@@ -1,0 +1,3266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <title>梦女心语 · 莉莉传讯</title>
+  <style>
+    :root {
+      --bg-a: #f4dce4;
+      --bg-b: #e5d0d7;
+      --bubble-user: #f6d5e0;
+      --bubble-bot: #f6d5e0;
+      --bubble-user-ink: #6b4a55;
+      --bubble-bot-ink: #6b4a55;
+      --ink: #6b4a55;
+      --ink-soft: #9a7a86;
+      --pink: #f4d5e0;
+      --card: rgba(255, 255, 255, 0.86);
+      --shadow: none;
+      --radius: 22px;
+      --wall-opacity: 1;
+      --wash-opacity: 0;
+      --wall-blur: 0px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      color: var(--ink);
+      background: #c9b8be;
+      overflow: hidden;
+    }
+    #wallpaper {
+      position: fixed;
+      inset: -20px;
+      z-index: 0;
+      background-image: url("assets/chat-bg.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: var(--wall-opacity);
+      filter: blur(var(--wall-blur));
+      pointer-events: none;
+    }
+    #wash {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(165deg, var(--bg-a) 0%, var(--bg-b) 100%);
+      opacity: var(--wash-opacity);
+    }
+
+    .sparkles, .petals { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+    .sparkle, .petal {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.55;
+      animation: floaty linear infinite;
+    }
+    .petal {
+      width: 10px; height: 14px;
+      border-radius: 10px 2px 10px 2px;
+      background: linear-gradient(135deg, #fbcfe8, #d4c4ca);
+      opacity: 0.35;
+    }
+    @keyframes floaty {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+      12% { opacity: 0.5; }
+      100% { transform: translateY(110vh) rotate(280deg); opacity: 0; }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 520px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    }
+
+    header {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(232, 214, 220, 0.82);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .avatar, .ava {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #f6d5e0, #c9b8be);
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 6px 16px rgba(180, 140, 150, 0.28);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 16px;
+      flex-shrink: 0;
+      border: none;
+      overflow: hidden;
+    }
+    .ava { width: 32px; height: 32px; font-size: 12px; box-shadow: none; }
+    button.avatar {
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+    }
+    .title-wrap { flex: 1; min-width: 0; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border: none;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      cursor: pointer;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .title-wrap h1 {
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+    }
+    .title-wrap p {
+      font-size: 12px;
+      color: var(--ink-soft);
+      opacity: 0.85;
+    }
+
+    #chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 14px 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .msg {
+      display: flex;
+      margin: 10px 0;
+      gap: 8px;
+      align-items: flex-end;
+      animation: popIn 0.45s cubic-bezier(.2,1.2,.3,1);
+    }
+    .msg.user { justify-content: flex-end; }
+    .msg.bot { justify-content: flex-start; }
+    .bubble-col {
+      display: flex;
+      flex-direction: column;
+      max-width: 72%;
+      min-width: 0;
+    }
+    .msg.user .bubble-col { align-items: flex-end; }
+    .msg.bot .bubble-col { align-items: flex-start; }
+    .bubble {
+      max-width: 100%;
+      position: relative;
+      margin-top: 16px;
+      padding: 12px 16px 11px;
+      border-radius: 20px;
+      line-height: 1.55;
+      font-size: 15px;
+      word-break: break-word;
+      border: 3px solid #fff;
+      box-shadow: none;
+    }
+    .bubble::before,
+    .bubble::after {
+      content: "";
+      position: absolute;
+      top: -13px;
+      width: 13px;
+      height: 17px;
+      background: inherit;
+      border: 3px solid #fff;
+      border-radius: 10px 10px 6px 6px;
+      box-sizing: border-box;
+    }
+    .msg.bot .bubble::before { left: 14px; }
+    .msg.bot .bubble::after { left: 30px; }
+    .msg.user .bubble::before { right: 30px; left: auto; }
+    .msg.user .bubble::after { right: 14px; left: auto; }
+    .time {
+      font-size: 10px;
+      margin-top: 3px;
+      padding: 0 4px;
+      opacity: 0.58;
+      color: var(--ink-soft);
+      white-space: nowrap;
+    }
+    .time-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 3px;
+      padding: 0 4px;
+    }
+    .time-row .time { margin-top: 0; padding: 0; }
+    .msg.user .time-row { justify-content: flex-end; }
+    .receipt {
+      font-size: 10px;
+      opacity: 0.7;
+    }
+    .receipt.unread { color: #b45309; }
+    .receipt.read { color: #576b95; }
+    .status-now-card {
+      background: #f0fdf4;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .status-now-card b { display: block; font-size: 12px; color: #07c160; margin-bottom: 4px; }
+    .status-now-card p { font-size: 16px; font-weight: 700; }
+    .msg.user .bubble {
+      background: var(--bubble-user);
+      color: var(--bubble-user-ink);
+    }
+    .msg.bot .bubble {
+      background: var(--bubble-bot);
+      color: var(--bubble-bot-ink);
+      transform-style: preserve-3d;
+      animation: cardFlip 0.7s ease;
+    }
+    .msg.bot.fall .bubble { animation: fallIn 0.8s ease; }
+    .hint {
+      font-size: 11px;
+      opacity: 0.75;
+      margin-bottom: 4px;
+    }
+    .cat-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.45);
+      margin-top: 6px;
+    }
+    .sys {
+      text-align: center;
+      font-size: 11px;
+      color: #9a9a9a;
+      margin: 8px 18px;
+      line-height: 1.6;
+    }
+    .sys .sys-link {
+      border: none;
+      background: none;
+      color: #576b95;
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 0 4px;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.96); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes cardFlip {
+      0% { transform: rotateY(-90deg) scale(0.8); opacity: 0; }
+      60% { transform: rotateY(12deg) scale(1.03); }
+      100% { transform: none; opacity: 1; }
+    }
+    @keyframes fallIn {
+      0% { transform: translateY(-40px) rotate(-8deg); opacity: 0; }
+      100% { transform: none; opacity: 1; }
+    }
+
+    .composer {
+      padding: 0 8px 6px;
+      background: #efe4e8;
+      border-top: 1px solid #e2d2d8;
+      position: relative;
+    }
+    .immerse-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 18px;
+      border: none;
+      background: transparent;
+      color: #999;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 2px;
+    }
+    .app.immersed .composer-body { display: none; }
+    .app.immersed .immerse-btn {
+      height: 36px;
+      background: rgba(247,247,247,0.92);
+      color: #576b95;
+    }
+    .status-line {
+      font-size: 11px;
+      opacity: 0.9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .status-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+    .status-chips button {
+      border: 1px solid #e9d5ff;
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .status-chips button.on { background: #07c160; color: #fff; border-color: #07c160; }
+    .his-lib-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 12px;
+    }
+    .his-lib-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid #e9d5ff;
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 8px 6px 10px;
+      font-size: 13px;
+    }
+    .his-lib-chip button {
+      border: 0;
+      background: transparent;
+      color: #a855f7;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+    .his-lib-add {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .his-lib-add input { flex: 1; }
+    .his-color-row button {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #ddd; cursor: pointer;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    #userInput {
+      flex: 1;
+      min-height: 40px;
+      max-height: 90px;
+      resize: none;
+      border: none;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font: inherit;
+      outline: none;
+      background: #fff;
+      color: #111;
+    }
+    .plus-btn, .send-btn, .tool-btn, .submit-btn, .ghost-btn {
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
+    }
+    .plus-btn {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #fff;
+      color: #111;
+      font-size: 26px;
+      line-height: 1;
+      flex-shrink: 0;
+      border: 1px solid #ddd;
+    }
+    .send-btn {
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 6px;
+      background: #07c160;
+      color: white;
+      font-weight: 700;
+      white-space: nowrap;
+      display: none;
+    }
+    .send-btn.show { display: block; }
+    .plus-btn.hide { display: none; }
+    .send-btn:hover, .tool-btn:hover, .submit-btn:hover { transform: scale(1.05); filter: brightness(1.05); }
+    .send-btn:active, .tool-btn:active { transform: scale(0.96); }
+
+    .plus-panel, .sticker-panel {
+      display: none;
+      margin-top: 8px;
+      background: #ededed;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .plus-panel.show, .sticker-panel.show { display: block; }
+    .plus-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+    .plus-item span {
+      display: block;
+      font-size: 11px;
+      color: #666;
+    }
+    .sticker-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .sticker-bar button { flex: 1; margin: 0; }
+    .bubble video.chat-vid {
+      max-width: 200px;
+      max-height: 260px;
+      display: block;
+      border-radius: 8px;
+      background: #111;
+    }
+
+    .page-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      display: none;
+      flex-direction: column;
+      background: #ededed;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    #mePage .wx-group { margin-left: 0; margin-right: 0; border-radius: 0; }
+    .page-layer.show { display: flex; }
+    .me-cover, .mm-hero {
+      height: 220px;
+      background: #6b7280 center/cover no-repeat;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .page-back, .mm-post-btn {
+      position: absolute;
+      top: 14px;
+      border: none;
+      background: rgba(0,0,0,0.28);
+      color: #fff;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .page-back { left: 12px; }
+    .mm-post-btn { right: 12px; }
+    .me-cover-btn {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      border: none;
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .me-id {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: -28px 16px 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .me-id .avatar { width: 64px; height: 64px; border: 2px solid #fff; }
+    .me-id input {
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      width: 160px;
+    }
+    .me-hint { font-size: 12px; color: #888; }
+    .me-row {
+      margin: 10px 0 0;
+      background: #fff;
+      border: none;
+      width: 100%;
+      text-align: left;
+      padding: 16px 18px;
+      font: inherit;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+    }
+    .mm-hero .mm-who {
+      position: absolute;
+      right: 14px;
+      bottom: -22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+      font-weight: 700;
+      text-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+    .mm-feed { flex: 1; overflow: auto; padding: 36px 0 80px; background: #fff; }
+    .mm-post {
+      display: flex;
+      gap: 10px;
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .mm-post .ava { width: 42px; height: 42px; }
+    .mm-name { color: #576b95; font-weight: 700; font-size: 15px; }
+    .mm-text { margin: 6px 0; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+    .mm-imgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 240px; }
+    .mm-imgs img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .mm-meta { font-size: 12px; color: #999; margin-top: 6px; display: flex; justify-content: space-between; }
+    .mm-compose {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      display: none;
+      flex-direction: column;
+      padding: 12px;
+      z-index: 2;
+    }
+    .mm-compose.show { display: flex; }
+    .mm-compose textarea { flex: 1; min-height: 120px; border: none; font: inherit; outline: none; }
+    .mm-add-photos { display: flex; flex-wrap: wrap; gap: 8px; }
+    .mm-add-photos img { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; }
+    .mm-add { width: 72px; height: 72px; border: 1px dashed #ccc; background: #fafafa; font-size: 28px; }
+    .plus-ico {
+      width: 52px; height: 52px;
+      border-radius: 12px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 6px;
+      font-size: 22px;
+    }
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+    .sticker-grid img, .sticker-add {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .bubble img.chat-img {
+      max-width: 180px;
+      max-height: 240px;
+      display: block;
+      border-radius: 8px;
+    }
+    .bubble.media { padding: 8px; }
+
+    .wx-banner {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120%);
+      width: min(420px, 92%);
+      background: rgba(255,255,255,0.96);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      padding: 10px 12px;
+      z-index: 60;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      transition: transform 0.28s ease;
+    }
+    .wx-banner.show { transform: translateX(-50%) translateY(0); }
+    .wx-banner .b-ava {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #f6d5e0, #c9b8be);
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+    }
+    .wx-banner .b-txt { font-size: 13px; color: #111; }
+    .wx-banner .b-txt b { display: block; font-size: 14px; }
+
+    .call-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 80px 24px 48px;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    .call-layer.show { display: flex; }
+    .call-layer.mini {
+      inset: auto;
+      top: 56px;
+      right: 10px;
+      left: auto;
+      width: 74px;
+      height: 90px;
+      padding: 10px 6px;
+      border-radius: 12px;
+      justify-content: center;
+      align-items: center;
+      background: #07c160;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+      z-index: 80;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+    .call-layer.mini.dragging { cursor: grabbing; }
+    .call-layer.mini .call-main {
+      transform: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .call-layer.mini .call-main::before {
+      content: "📞";
+      font-size: 22px;
+      line-height: 1;
+    }
+    .call-layer.mini[data-kind="video"] .call-main::before { content: "📹"; }
+    .call-layer.mini .call-main-ava,
+    .call-layer.mini .call-actions,
+    .call-layer.mini #callKindTag,
+    .call-layer.mini #callStatus,
+    .call-layer.mini #callName,
+    .call-layer.mini video,
+    .call-layer.mini .call-mini-btn { display: none !important; }
+    .call-layer.mini #callTimer {
+      display: block !important;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 0;
+      opacity: 1;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .call-mini-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .call-layer video {
+      position: absolute;
+      right: 16px;
+      top: 80px;
+      width: 110px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #333;
+    }
+    .call-main-ava {
+      width: 96px; height: 96px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #f6d5e0, #c9b8be);
+      background-size: cover;
+      background-position: center;
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+    }
+    .call-actions { display: flex; gap: 48px; }
+    .call-btn {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .call-btn.accept { background: #07c160; }
+    .call-btn.hang { background: #fa5151; }
+    .fold-head {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 12px;
+      background: #f3e8ff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 8px 0;
+    }
+    .pool-pager { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+    .pool-pager button { flex: 1; }
+
+    .tools {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tool-btn {
+      padding: 9px 8px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .pay-slot {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: 14px;
+      border: 1px dashed rgba(147, 51, 234, 0.35);
+      color: #7e22ce;
+      background: rgba(255,255,255,0.35);
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(76, 29, 99, 0.35);
+      z-index: 90;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-mask.show { display: flex; }
+    .sheet {
+      width: min(520px, 100%);
+      max-height: 86vh;
+      overflow: auto;
+      background: linear-gradient(180deg, #fff, #faf5ff);
+      border-radius: 24px 24px 0 0;
+      padding: 18px 16px 28px;
+      box-shadow: 0 -10px 40px rgba(76, 29, 99, 0.2);
+      animation: sheetUp 0.28s ease;
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: none; opacity: 1; }
+    }
+    .sheet h2 { font-size: 17px; margin-bottom: 12px; }
+    label { display: block; font-size: 13px; margin: 10px 0 6px; color: var(--ink-soft); }
+    input[type="text"], textarea, select {
+      width: 100%;
+      border: 1px solid #e9d5ff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .card-list textarea.card-edit { min-height: 54px; }
+    .submit-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #e8b8c8, #c9b8be);
+      color: #fff;
+      font-weight: 700;
+    }
+    .ghost-btn {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--ink-soft);
+    }
+    .card-list { list-style: none; }
+    .card-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      background: #faf5ff;
+      border-radius: 14px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+    .card-item .txt { flex: 1; font-size: 14px; }
+    .del-btn {
+      border: none;
+      background: #fce7f3;
+      border-radius: 10px;
+      padding: 6px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .fortune {
+      display: grid;
+      gap: 10px;
+    }
+    .fortune-card {
+      background: linear-gradient(145deg, #fdf4ff, #f5d0fe);
+      border-radius: 16px;
+      padding: 12px;
+      animation: cardFlip 0.7s ease;
+    }
+    .fortune-card b { display: block; margin-bottom: 6px; color: #7e22ce; }
+    .read { font-size: 12px; opacity: 0.8; margin-top: 6px; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 120px;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(76, 29, 99, 0.88);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s ease;
+      max-width: 86%;
+      text-align: center;
+    }
+    .set-hdr-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 2px 4px;
+      flex-shrink: 0;
+      line-height: 1.15;
+    }
+    .set-hdr-ico { font-size: 16px; line-height: 1; }
+    .wx-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      background: #fff;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      text-align: left;
+      padding: 14px 16px;
+      font: inherit;
+      font-size: 16px;
+      cursor: pointer;
+      color: #111;
+    }
+    .wx-group .wx-cell:last-child { border-bottom: none; }
+    .wx-ico {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+    .wx-cell-txt { flex: 1; }
+    .wx-cell .wx-hint {
+      font-size: 13px;
+      color: #888;
+      margin-right: 4px;
+    }
+    .wx-chev { color: #c7c7cc; font-size: 18px; line-height: 1; }
+    .mm-meta { align-items: center; }
+    .mm-act { margin-left: auto; position: relative; display: flex; align-items: center; gap: 8px; }
+    .mm-more {
+      border: none;
+      background: #f0f0f0;
+      color: #576b95;
+      border-radius: 4px;
+      padding: 2px 10px;
+      letter-spacing: 2px;
+      cursor: pointer;
+    }
+    .mm-pop {
+      display: none;
+      position: absolute;
+      right: 36px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #4c4c4c;
+      border-radius: 6px;
+      overflow: hidden;
+      z-index: 3;
+    }
+    .mm-pop.show { display: flex; }
+    .mm-pop button {
+      border: none;
+      background: transparent;
+      color: #fff;
+      padding: 8px 14px;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .mm-pop button + button { border-left: 1px solid #666; }
+    .mm-social {
+      margin-top: 8px;
+      background: #f7f7f7;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .mm-likes { color: #576b95; }
+    .mm-cmts { margin-top: 4px; }
+    .mm-cmts p { margin: 2px 0; }
+    .mm-cmts b { color: #576b95; font-weight: 700; }
+    .mm-cmt-box {
+      display: none;
+      margin-top: 6px;
+    }
+    .mm-cmt-box.show { display: block; }
+    .mm-cmt-box input {
+      width: 100%;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font: inherit;
+    }
+    .wx-back {
+      border: none;
+      background: transparent;
+      font: inherit;
+      font-size: 16px;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0 0 8px;
+    }
+    .wx-group {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 8px 0 14px;
+    }
+    .wx-group .me-row {
+      margin: 0;
+      border-bottom: 1px solid #f3e8ff;
+    }
+    .wx-group .me-row:last-child { border-bottom: none; }
+    .contact-me {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 160px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .color-cell {
+      background: #faf5ff;
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .color-cell span { display: block; font-size: 12px; margin-bottom: 6px; }
+    .color-cell input[type="color"] {
+      width: 100%;
+      height: 40px;
+      border: none;
+      background: transparent;
+      padding: 0;
+      cursor: pointer;
+    }
+    .range-row {
+      margin-top: 12px;
+      background: #faf5ff;
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .range-row label {
+      display: flex;
+      justify-content: space-between;
+      margin: 0 0 6px;
+      font-size: 12px;
+    }
+    .range-row input[type="range"] { width: 100%; }
+    .wall-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .wall-actions .submit-btn, .wall-actions .ghost-btn { margin: 0; flex: 1; }
+    .avatar-pick .pick {
+      flex: 1;
+      text-align: center;
+    }
+    .avatar-pick .avatar {
+      width: 64px; height: 64px;
+      margin: 0 auto 8px;
+      cursor: pointer;
+    }
+    .add-plus {
+      width: 100%;
+      border: 1.5px dashed #d8b4fe;
+      background: #faf5ff;
+      color: #7e22ce;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .card-edit {
+      flex: 1;
+      min-height: 54px;
+      font-size: 14px;
+    }
+    .pool-meta { font-size: 12px; opacity: 0.8; margin-bottom: 10px; }
+
+    @media (min-width: 640px) {
+      .modal-mask { align-items: center; }
+      .sheet { border-radius: 24px; margin-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="wallpaper"></div>
+  <div id="wash"></div>
+  <div class="sparkles" id="sparkles"></div>
+  <div class="petals" id="petals"></div>
+
+  <div class="app">
+    <header>
+      <button type="button" class="avatar" id="hisAvatarBtn" title="资料"> </button>
+      <div class="title-wrap">
+        <h1 id="hisRemarkTitle">用户001</h1>
+        <p id="onlineHint" class="status-line">在线</p>
+      </div>
+      <button type="button" class="avatar" id="myAvatarBtn" title="我">我</button>
+      <button type="button" class="set-hdr-btn" id="btnTheme"><span class="set-hdr-ico">⚙️</span>设置</button>
+    </header>
+
+    <div id="chat" aria-live="polite"></div>
+    <div id="typing" class="sys" style="display:none">对方正在输入…</div>
+
+    <div class="composer" id="composer">
+      <button type="button" class="immerse-btn" id="immerseBtn" title="沉浸聊天">﹀</button>
+      <div class="composer-body">
+      <div class="input-row">
+        <textarea id="userInput" rows="1" placeholder="发送消息"></textarea>
+        <button type="button" class="plus-btn" id="plusBtn" aria-label="更多">+</button>
+        <button class="send-btn" id="sendBtn">发送</button>
+      </div>
+      <div class="plus-panel" id="plusPanel">
+        <div class="plus-grid">
+          <button type="button" class="plus-item" id="plusAlbum"><div class="plus-ico">🖼</div><span>相册</span></button>
+          <button type="button" class="plus-item" id="plusCamera"><div class="plus-ico">📷</div><span>拍摄</span></button>
+          <button type="button" class="plus-item" id="plusSendVideo"><div class="plus-ico">🎬</div><span>视频</span></button>
+          <button type="button" class="plus-item" id="plusVoice"><div class="plus-ico">📞</div><span>语音通话</span></button>
+          <button type="button" class="plus-item" id="plusVideo"><div class="plus-ico">📹</div><span>视频通话</span></button>
+          <button type="button" class="plus-item" id="plusSticker"><div class="plus-ico">☺</div><span>表情</span></button>
+          <button type="button" class="plus-item" id="plusCouple"><div class="plus-ico">🖼️</div><span>换头像申请</span></button>
+        </div>
+      </div>
+      <div class="sticker-panel" id="stickerPanel">
+        <div class="sticker-bar">
+          <button type="button" class="submit-btn" id="stickerFromAlbum">从相册添加表情包</button>
+        </div>
+        <div class="sticker-grid" id="stickerGrid"></div>
+      </div>
+      <div class="tools">
+        <button class="tool-btn" id="btnPool">📒 他的字卡库</button>
+        <button class="tool-btn" id="btnFortune">✨ 今日占卜</button>
+        <button class="tool-btn" id="btnLetter">✉️ 给他写信</button>
+        <div class="pay-slot">付费功能入口 · 即将开放（占位）</div>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="fileCouple" accept="image/*" hidden />
+  <input type="file" id="fileHis" accept="image/*" hidden />
+  <input type="file" id="fileMine" accept="image/*" hidden />
+  <input type="file" id="fileWall" accept="image/*" hidden />
+
+  <!-- 装扮：背景与对话框颜色、头像 -->
+  <div class="modal-mask" id="modalTheme">
+    <div class="sheet">
+      <input type="hidden" id="colorBgA" value="#f4dce4" />
+      <input type="hidden" id="colorBgB" value="#e5d0d7" />
+      <input type="hidden" id="rangeWashOp" value="0" />
+
+      <div class="wx-view" id="themeViewHome">
+        <h2>设置</h2>
+        <div class="wx-group">
+          <button type="button" class="wx-cell" data-theme-go="dress"><span class="wx-ico">🎨</span><span class="wx-cell-txt">装扮</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="contact"><span class="wx-ico">✉️</span><span class="wx-cell-txt">联系我</span><span class="wx-chev">›</span></button>
+        </div>
+        <button class="ghost-btn" data-close="modalTheme">关上</button>
+      </div>
+
+      <div class="wx-view" id="themeViewDress" hidden>
+        <button type="button" class="wx-back" data-theme-go="home">‹ 返回</button>
+        <h2>装扮</h2>
+        <div class="wx-group">
+          <button type="button" class="wx-cell" data-theme-go="wall"><span class="wx-ico">🖼</span><span class="wx-cell-txt">背景装扮</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="wallset"><span class="wx-ico">🌫</span><span class="wx-cell-txt">背景设置</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="ava"><span class="wx-ico">👤</span><span class="wx-cell-txt">头像装扮</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="bubble"><span class="wx-ico">💬</span><span class="wx-cell-txt">气泡装扮</span><span class="wx-chev">›</span></button>
+        </div>
+      </div>
+
+      <div class="wx-view" id="themeViewWall" hidden>
+        <button type="button" class="wx-back" data-theme-go="dress">‹ 返回</button>
+        <h2>背景装扮</h2>
+        <div class="wall-actions">
+          <button type="button" class="submit-btn" id="pickWall">上传背景图</button>
+          <button type="button" class="ghost-btn" id="clearWall">去掉背景图</button>
+        </div>
+      </div>
+
+      <div class="wx-view" id="themeViewWallSet" hidden>
+        <button type="button" class="wx-back" data-theme-go="dress">‹ 返回</button>
+        <h2>背景设置</h2>
+        <div class="range-row">
+          <label>背景透明度 <b id="valWallOp">100%</b></label>
+          <input type="range" id="rangeWallOp" min="15" max="100" value="100" />
+        </div>
+        <div class="range-row">
+          <label>背景模糊 <b id="valWallBlur">0</b></label>
+          <input type="range" id="rangeWallBlur" min="0" max="16" value="0" />
+        </div>
+        <button class="submit-btn" id="saveTheme">保存设置</button>
+        <button class="ghost-btn" id="resetTheme">恢复默认</button>
+      </div>
+
+      <div class="wx-view" id="themeViewAva" hidden>
+        <button type="button" class="wx-back" data-theme-go="dress">‹ 返回</button>
+        <h2>头像装扮</h2>
+        <div class="avatar-pick">
+          <div class="pick">
+            <div class="avatar" id="themeHisPreview">莉</div>
+            <button type="button" class="ghost-btn" id="pickHis" style="margin:0">换他的头像</button>
+          </div>
+          <div class="pick">
+            <div class="avatar" id="themeMyPreview">我</div>
+            <button type="button" class="ghost-btn" id="pickMine" style="margin:0">换我的头像</button>
+          </div>
+        </div>
+        <button class="submit-btn" id="saveAvaTheme">保存头像</button>
+      </div>
+
+      <div class="wx-view" id="themeViewBubble" hidden>
+        <button type="button" class="wx-back" data-theme-go="dress">‹ 返回</button>
+        <h2>气泡装扮</h2>
+        <div class="color-grid">
+          <label class="color-cell"><span>我的气泡</span><input type="color" id="colorUser" value="#f6d5e0" /></label>
+          <label class="color-cell"><span>他的气泡</span><input type="color" id="colorBot" value="#f6d5e0" /></label>
+        </div>
+        <button class="submit-btn" id="saveBubbleTheme">保存气泡</button>
+      </div>
+
+      <div class="wx-view" id="themeViewContact" hidden>
+        <button type="button" class="wx-back" data-theme-go="home">‹ 返回</button>
+        <h2>联系我</h2>
+        <div class="contact-me" id="contactMeBody">
+          <p>这里留给你写联系方式。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 他的字卡库 -->
+  <div class="modal-mask" id="modalPool">
+    <div class="sheet">
+      <h2>📒 他的字卡库</h2>
+      <p class="pool-meta">已存字卡默认折叠。点开可搜索、改、删。＋再加一条。上限 2000。当前 <span id="poolCount">0 / 2000</span></p>
+      <input type="text" id="poolSearch" placeholder="搜索字卡…" />
+      <button type="button" class="fold-head" id="foldPool">已存字卡 ▸ 展开</button>
+      <div id="poolFold" style="display:none">
+        <ul class="card-list" id="poolList"></ul>
+        <div class="pool-pager">
+          <button type="button" class="ghost-btn" id="poolPrev">上一页</button>
+          <button type="button" class="ghost-btn" id="poolNext">下一页</button>
+        </div>
+      </div>
+      <button type="button" class="add-plus" id="btnAddCard">＋ 再加一条</button>
+      <button class="ghost-btn" data-close="modalPool">关上</button>
+    </div>
+  </div>
+
+  <!-- 今日占卜 -->
+  <div class="modal-mask" id="modalFortune">
+    <div class="sheet">
+      <h2>✨ 今日占卜</h2>
+      <div class="fortune" id="fortuneBoard"></div>
+      <button class="ghost-btn" data-close="modalFortune">收下这份解读</button>
+    </div>
+  </div>
+
+  <!-- 写信 -->
+  <div class="modal-mask" id="modalLetter">
+    <div class="sheet">
+      <h2>✉️ 给他写信</h2>
+      <div id="letterEditor">
+        <label>标题</label>
+        <input type="text" id="letterTitle" placeholder="今夜想对你说" />
+        <label>正文</label>
+        <textarea id="letterBody" placeholder="把那些说不出口的话，写在这里…"></textarea>
+        <button class="submit-btn" id="sendLetter">发送</button>
+      </div>
+      <div id="letterReply" style="display:none"></div>
+      <button class="ghost-btn" data-close="modalLetter">合上信纸</button>
+    </div>
+  </div>
+
+  <!-- 「我」主页 -->
+  <div class="page-layer" id="mePage">
+    <div class="me-cover" id="meCover">
+      <button type="button" class="page-back" id="meBack">‹</button>
+      <button type="button" class="me-cover-btn" id="meCoverBtn">更换主页背景</button>
+    </div>
+    <div class="me-id">
+      <button type="button" class="avatar" id="mePageAva" title="更换头像">我</button>
+      <div>
+        <input type="text" id="myNick" maxlength="16" placeholder="昵称" />
+        <div class="me-hint">点头像换头像 · 点上方换主页背景</div>
+      </div>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="goMyStatus"><span class="wx-ico">🌙</span><span class="wx-cell-txt">状态</span><span class="wx-hint" id="meStatusHint">在线</span><span class="wx-chev">›</span></button>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="goMoments"><span class="wx-ico">🖼</span><span class="wx-cell-txt">朋友圈</span><span class="wx-chev">›</span></button>
+    </div>
+  </div>
+
+  <!-- 对方资料 -->
+  <div class="modal-mask" id="modalHis">
+    <div class="sheet">
+      <h2>对方资料</h2>
+      <label>备注名</label>
+      <input type="text" id="hisRemarkInput" maxlength="20" />
+      <label>纯色头像</label>
+      <div class="his-color-row" id="hisColors"></div>
+      <p class="me-hint" id="hisStatusPreview"></p>
+      <label>他的状态库</label>
+      <p class="me-hint">这些是他能用的状态。你只能往库里加，他用哪一条由他自己随机决定，也可以不设。</p>
+      <div class="his-lib-list" id="hisStatusLibBox"></div>
+      <div class="his-lib-add">
+        <input type="text" id="hisStatusAdd" maxlength="20" placeholder="自定义一个状态给他" />
+        <button type="button" class="submit-btn" id="btnHisStatusAdd" style="width:auto;margin:0;padding:8px 14px">加入</button>
+      </div>
+      <button class="ghost-btn" data-close="modalHis">关上</button>
+    </div>
+  </div>
+
+  <!-- 状态设置 -->
+  <div class="modal-mask" id="modalStatus">
+    <div class="sheet">
+      <h2 id="statusTitle">我的状态</h2>
+      <div class="status-now-card">
+        <b>当前状态</b>
+        <p id="myStatusNowText">在线</p>
+      </div>
+      <div class="status-chips" id="statusChips"></div>
+      <label>自定义状态</label>
+      <input type="text" id="statusCustom" maxlength="20" placeholder="例如：想你中 🌙" />
+      <label>持续多久</label>
+      <select id="statusDur">
+        <option value="30">30 分钟</option>
+        <option value="60">1 小时</option>
+        <option value="120">2 小时</option>
+        <option value="240">4 小时</option>
+        <option value="today">到今天结束</option>
+      </select>
+      <button class="submit-btn" id="saveStatus">设为当前状态</button>
+      <button class="ghost-btn" id="clearStatus">恢复在线</button>
+      <button class="ghost-btn" data-close="modalStatus">关上</button>
+    </div>
+  </div>
+
+  <!-- 朋友圈 -->
+  <div class="page-layer" id="momentsPage">
+    <div class="mm-hero" id="mmHero">
+      <button type="button" class="page-back" id="mmBack">‹</button>
+      <button type="button" class="mm-post-btn" id="mmCamera" title="发朋友圈">📷</button>
+      <div class="mm-who"><span id="mmNick">我</span><div class="avatar" id="mmAva">我</div></div>
+    </div>
+    <div class="mm-feed" id="mmFeed"></div>
+    <div class="mm-compose" id="mmCompose">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <button type="button" class="ghost-btn" id="mmCancel" style="width:auto;margin:0">取消</button>
+        <button type="button" class="send-btn show" id="mmPublish" style="display:block">发表</button>
+      </div>
+      <textarea id="mmText" placeholder="这一刻的想法…"></textarea>
+      <div class="mm-add-photos" id="mmPhotos"></div>
+      <button type="button" class="mm-add" id="mmAddPhoto">＋</button>
+    </div>
+  </div>
+
+  <input type="file" id="fileAlbum" accept="image/*" hidden />
+  <input type="file" id="fileCamera" accept="image/*" capture="environment" hidden />
+  <input type="file" id="fileSticker" accept="image/*" hidden />
+  <input type="file" id="fileSendVideo" accept="video/*" hidden />
+  <input type="file" id="fileMeCover" accept="image/*" hidden />
+  <input type="file" id="fileMmPhotos" accept="image/*" multiple hidden />
+
+  <div class="wx-banner" id="wxBanner">
+    <div class="b-ava" id="wxBannerAva"></div>
+    <div class="b-txt"><b id="wxBannerTitle">莉莉传讯</b><span id="wxBannerBody">对方发来一条消息</span></div>
+  </div>
+
+  <div class="call-layer" id="callLayer">
+    <button type="button" class="call-mini-btn" id="callMini">缩小</button>
+    <div class="call-main" style="text-align:center;position:relative;z-index:1">
+      <div class="call-main-ava" id="callAva"></div>
+      <h2 id="callName" style="margin:14px 0 6px;font-size:22px">用户001</h2>
+      <p id="callKindTag" style="opacity:.75;margin-bottom:8px">视频通话</p>
+      <p id="callStatus" style="opacity:.75">邀请你视频通话…</p>
+      <p id="callTimer" style="opacity:.75;display:none">00:00</p>
+    </div>
+    <video id="localCam" autoplay muted playsinline></video>
+    <div class="call-actions" id="callActions"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ========== 一、原始字卡库（可在「他的字卡库」里查看和编辑） ========== */
+    const DEFAULT_TEXTS = `我回家了
+我还在忙
+我在听雨声
+我在喝水
+这个好喝
+这个不好喝
+我尝试了新东西
+我吃到好吃的了
+我吃到不好吃的了
+我出去吃饭了
+我去聚餐了
+我正在工作
+我不想工作
+我在试字卡
+我想和你打电话
+我想听你的声音了
+我想和你一起听音乐
+我在看日出
+我在看日落
+今天有好看的晚霞
+出门的时候
+外面有开的很好看的花
+我在去公司的路上
+我在外地出差
+我出去逛街了
+我去外面走走，散步
+我在客厅
+我在厕所
+我要等多久？
+今天下雨了，下的是小雨
+今天下雨了，下的是大暴雨
+今天是晴天
+外面的天气很好
+我在公园
+我出门了
+我在洗澡
+你陪陪我
+我哄哄你
+你哄哄我
+我喜欢你
+我爱你
+我想你了
+不要看别人
+不要偷吃别人家
+我吃醋了
+是的
+不是
+早安
+午安
+晚安
+对不起
+没关系
+早上好
+中午好
+晚上好
+我同意了
+我不同意
+我答应你
+听你的
+听我的
+今天上午的时候
+今天下午的时候
+这是系统发的不是我发的
+我发错了
+你等一下我
+等几秒钟
+等几分钟
+等几个小时
+我推传讯给小红书了
+我推传讯给抖音了
+我收到传讯回复了
+你给我写信嘛！
+不要再看短视频了！
+不要再看小红书了！
+你在干什么？
+我也要一起
+为什么？
+你生气了吗？
+你是不是不开心了？
+是一样的
+只有一半是我想的
+放假了吗？
+你
+和
+我
+你的朋友
+你的家人
+你这边
+我这边
+好看
+小猫
+小狗
+看得见
+看不见
+开心
+伤心
+无奈
+郁闷
+烦躁
+嫉妒
+羡慕
+好好吃饭
+不要熬夜
+出去玩注意安全
+我心里不舒服
+我身体不舒服
+记得看天气预报
+带上外套，注意不要着凉
+喜欢
+讨厌
+是不是
+记得
+忘了
+好
+不可以
+够了
+不满足
+我很期待
+知道了
+不清楚
+很好看
+不怎么样
+差不多
+完全不对
+不可能
+有一定概率
+长短
+我很高兴
+夸我
+奖励我
+愉悦
+好感动
+想哭
+好敷衍
+不许怀疑我
+我不开心了
+我生气了
+哄哄我
+惊讶
+我在担心你
+你不理我…真遗憾
+和别人聊天很开心是吗
+嗯
+你猜我在做什么
+理理我
+不需要
+不记得
+想到就会去尝试
+有些冲动
+想你了
+不愿意就算了
+喜欢看你笑
+只有哥哥
+出乎意料
+被我猜对了
+正确！
+真棒！
+有点可疑
+辛苦啦
+不要骗我
+你答应过的
+看书
+一起晒晒太阳
+一起吹吹风
+想给你听听这首歌
+想听你讲你的世界
+一起出门散步
+多喝温水
+吃太少了，再吃一些
+陪你一起看手机
+别熬夜
+小心感冒
+量一下体温
+还是有点发烧
+要乖乖吃药哦
+生理期不可以乱吃东西哦
+气色看起来不太好
+我感觉到你不舒服
+照顾好自己
+你生病了我会心疼
+累了就休息
+闭上眼睛，休息一下
+睡吧，晚安
+你睡得很香
+轮到我问你了
+心情怎么样？
+今天有开心的事吗？
+在做什么呀？
+需要我过来吗？
+一会有什么安排？
+你不喜欢？
+不可以吗？
+很好奇吗？
+你刚刚说什么？
+喜欢吃这个吗？
+在看什么？
+吃过饭了吗？
+在看什么书？
+你在哪里？
+穿的暖和吗？
+出门东西带齐了没有？
+有人惹你不开心了？
+怕不怕？
+怎么受伤的？
+还疼吗？
+头晕吗？
+盖好被子没有？
+昨晚睡得好吗？
+打算几点睡觉？
+梦到我了？
+今天累不累？
+哪里不舒服吗？
+让我想想该怎么说
+想找传讯师
+给你打电话
+一直在等你的电话
+想要手写信
+有一部分话不是我说的
+不要瞒着我
+多想想我
+嗯，我在
+我回来了
+马上到家
+回来会比较迟
+今晚回不来了
+别走
+好难
+不太习惯
+我在等你
+相信我
+想让你知道我的感受
+想知道你的感受
+陪你我能做到
+我很满意
+正在工作
+正在你身边
+正在吃饭
+吃了
+还没吃
+好吃
+骗你是小狗
+我不是
+我没有
+我知道错了
+原谅我好不好
+误会我了
+别皱眉
+不要胡思乱想
+别哭
+来我怀里哭
+别生气了
+不要被别人影响心情
+我会一直陪着你
+不是你的错
+今天
+明天
+昨天
+清晨
+中午
+晚上
+迟一些`.trim().split("\n").map((s) => s.trim()).filter(Boolean);
+    const DEFAULT_CARDS = DEFAULT_TEXTS.map((text, i) => ({ id: i + 1, text }));
+    let cardLib = [];
+    const LS_CARDS = "my_cards";
+    const LS_LIB_VER = "card_lib_ver";
+    const LIB_VER = "origin-2";
+    const LS_CHAT = "chat_history";
+    const LS_DIV = "today_divination";
+    const LS_THEME = "ui_theme";
+    const LS_AVATAR = "ui_avatars";
+    const LS_PROFILE = "ui_profile";
+    const LS_MOMENTS = "ui_moments";
+    const LS_WALL = "ui_wallpaper";
+    const LS_STICKERS = "my_stickers";
+    const LS_HIS = "ui_his";
+    const LS_STATUS = "ui_status";
+    const CARD_LIMIT = 2000;
+    const DEFAULT_WALL = "assets/chat-bg.png";
+    const LS_THEME_VER = "ui_theme_ver";
+    const THEME_VER = "pink-grey-1";
+    const DEFAULT_THEME = {
+      bgA: "#f4dce4",
+      bgB: "#e5d0d7",
+      user: "#f6d5e0",
+      bot: "#f6d5e0",
+      wallOp: 100,
+      washOp: 0,
+      wallBlur: 0
+    };
+    let avatars = { him: "", me: "" };
+    let hisInfo = { remark: "用户001", color: "#7d9fd3" };
+    let statusMe = { text: "", until: 0 };
+    let statusHim = { text: "", until: 0 };
+    const HIS_COLORS = ["#7d9fd3", "#8b8b8b", "#67c23a", "#e6a23c", "#f56c6c", "#b37feb", "#5ac8fa", "#ff9f0a"];
+    const HIS_STATUS_DEFAULT = ["忙碌中", "工作中", "出差中", "吃饭中", "开会中", "运动中", "心情好 😊", "想你中 🌙"];
+    const STATUS_PRESETS = ["忙碌中", "工作中", "出差中", "吃饭中", "开会中", "睡觉中", "运动中", "心情好 😊", "想你中 🌙"];
+    let hisStatusLib = HIS_STATUS_DEFAULT.slice();
+    let wallpaperData = "";
+
+    /* ========== 三、状态 ========== */
+    const chatEl = document.getElementById("chat");
+    const inputEl = document.getElementById("userInput");
+    const typingEl = document.getElementById("typing");
+    let idleTimer = null;
+    let pendingReplies = 0;
+    let pendingUserReply = false;
+    const TEN_MIN = 10 * 60 * 1000;
+    const USER_REPLY_MIN = 500;
+    const USER_REPLY_MAX = 60 * 1000;
+
+    /* ========== 四、装饰飘落 ========== */
+    (function spawnDecor() {
+      const s = document.getElementById("sparkles");
+      const p = document.getElementById("petals");
+      for (let i = 0; i < 18; i++) {
+        const d = document.createElement("div");
+        d.className = "sparkle";
+        d.style.left = Math.random() * 100 + "%";
+        d.style.width = d.style.height = 4 + Math.random() * 6 + "px";
+        d.style.background = Math.random() > 0.5 ? "#fff" : "#fbcfe8";
+        d.style.animationDuration = 8 + Math.random() * 10 + "s";
+        d.style.animationDelay = Math.random() * 8 + "s";
+        s.appendChild(d);
+      }
+      for (let i = 0; i < 12; i++) {
+        const d = document.createElement("div");
+        d.className = "petal";
+        d.style.left = Math.random() * 100 + "%";
+        d.style.animationDuration = 10 + Math.random() * 12 + "s";
+        d.style.animationDelay = Math.random() * 10 + "s";
+        p.appendChild(d);
+      }
+    })();
+
+    /* ========== 五、持久化 ========== */
+    function loadPrivate() {
+      try {
+        const raw = localStorage.getItem(LS_CARDS);
+        const saved = raw ? JSON.parse(raw) : [];
+        const list = Array.isArray(saved) ? saved : [];
+        const ver = localStorage.getItem(LS_LIB_VER);
+        if (ver !== LIB_VER) {
+          const seeded = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+          list.forEach((c) => {
+            const t = (c.text || "").trim();
+            if (t && !seeded.some((s) => s.text === t)) {
+              seeded.push({ id: c.id || Date.now() + Math.random(), text: t });
+            }
+          });
+          cardLib = seeded;
+          savePrivate();
+          localStorage.setItem(LS_LIB_VER, LIB_VER);
+          return;
+        }
+        cardLib = list.length ? list : DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+      } catch (e) {
+        cardLib = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+      }
+    }
+    function savePrivate() {
+      localStorage.setItem(LS_CARDS, JSON.stringify(cardLib));
+    }
+    function inkFor(hex) {
+      const h = hex.replace("#", "");
+      const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+      const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      const y = (r * 299 + g * 587 + b * 114) / 1000;
+      return y > 160 ? "#6b4a55" : "#fffafc";
+    }
+    function applyTheme(t) {
+      const root = document.documentElement.style;
+      root.setProperty("--bg-a", t.bgA);
+      root.setProperty("--bg-b", t.bgB);
+      root.setProperty("--bubble-user", t.user);
+      root.setProperty("--bubble-bot", t.bot);
+      root.setProperty("--bubble-user-ink", inkFor(t.user));
+      root.setProperty("--bubble-bot-ink", inkFor(t.bot));
+      const wallOp = t.wallOp == null ? 100 : Number(t.wallOp);
+      const washOp = t.washOp == null ? 0 : Number(t.washOp);
+      const wallBlur = t.wallBlur == null ? 0 : Number(t.wallBlur);
+      root.setProperty("--wall-opacity", String(wallOp / 100));
+      root.setProperty("--wash-opacity", String(washOp / 100));
+      root.setProperty("--wall-blur", wallBlur + "px");
+      document.getElementById("colorBgA").value = t.bgA;
+      document.getElementById("colorBgB").value = t.bgB;
+      document.getElementById("colorUser").value = t.user;
+      document.getElementById("colorBot").value = t.bot;
+      document.getElementById("rangeWallOp").value = wallOp;
+      document.getElementById("rangeWashOp").value = washOp;
+      document.getElementById("rangeWallBlur").value = wallBlur;
+      document.getElementById("valWallOp").textContent = wallOp + "%";
+      document.getElementById("valWallBlur").textContent = wallBlur;
+      const wall = document.getElementById("wallpaper");
+      wall.style.backgroundImage = "url(" + (wallpaperData || DEFAULT_WALL) + ")";
+    }
+    function loadTheme() {
+      try {
+        wallpaperData = localStorage.getItem(LS_WALL) || "";
+        const ver = localStorage.getItem(LS_THEME_VER);
+        if (ver !== THEME_VER) {
+          wallpaperData = "";
+          try { localStorage.removeItem(LS_WALL); } catch (e) {}
+          applyTheme(DEFAULT_THEME);
+          persistTheme();
+          localStorage.setItem(LS_THEME_VER, THEME_VER);
+          return;
+        }
+        const t = JSON.parse(localStorage.getItem(LS_THEME) || "null");
+        applyTheme(t && t.bgA ? Object.assign({}, DEFAULT_THEME, t) : DEFAULT_THEME);
+      } catch (e) {
+        applyTheme(DEFAULT_THEME);
+      }
+    }
+    function currentTheme() {
+      return {
+        bgA: document.getElementById("colorBgA").value,
+        bgB: document.getElementById("colorBgB").value,
+        user: document.getElementById("colorUser").value,
+        bot: document.getElementById("colorBot").value,
+        wallOp: Number(document.getElementById("rangeWallOp").value),
+        washOp: Number(document.getElementById("rangeWashOp").value),
+        wallBlur: Number(document.getElementById("rangeWallBlur").value)
+      };
+    }
+    function persistTheme() {
+      try {
+        localStorage.setItem(LS_THEME, JSON.stringify(currentTheme()));
+        if (wallpaperData) localStorage.setItem(LS_WALL, wallpaperData);
+        else localStorage.removeItem(LS_WALL);
+        return true;
+      } catch (e) {
+        toast("背景图太大，存不下。试试更小的图，或先去掉背景图。");
+        return false;
+      }
+    }
+    function compressWallpaper(file, done) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const max = 960;
+        let w = img.width, h = img.height;
+        if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+        else if (h >= w && h > max) { w = Math.round(w * max / h); h = max; }
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        done(canvas.toDataURL("image/jpeg", 0.62));
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+    function himLetter() {
+      return "";
+    }
+    function paintAva(el, who) {
+      if (!el) return;
+      const url = avatars[who];
+      if (url) {
+        el.style.background = "";
+        el.style.backgroundImage = "url(" + url + ")";
+        el.style.backgroundSize = "cover";
+        el.style.backgroundPosition = "center";
+        el.style.backgroundColor = "";
+        el.textContent = "";
+      } else if (who === "him") {
+        el.style.backgroundImage = "none";
+        el.style.background = hisInfo.color || "#7d9fd3";
+        el.textContent = "";
+      } else {
+        el.style.backgroundImage = "";
+        el.style.backgroundColor = "";
+        el.textContent = "我";
+      }
+    }
+    function refreshAvatars() {
+      paintAva(document.getElementById("hisAvatarBtn"), "him");
+      paintAva(document.getElementById("myAvatarBtn"), "me");
+      paintAva(document.getElementById("themeHisPreview"), "him");
+      paintAva(document.getElementById("themeMyPreview"), "me");
+      paintAva(document.getElementById("mePageAva"), "me");
+      paintAva(document.getElementById("mmAva"), "me");
+      chatEl.querySelectorAll(".msg.bot .ava").forEach((el) => paintAva(el, "him"));
+      chatEl.querySelectorAll(".msg.user .ava").forEach((el) => paintAva(el, "me"));
+    }
+    function loadAvatars() {
+      try {
+        avatars = JSON.parse(localStorage.getItem(LS_AVATAR) || '{"him":"","me":""}');
+      } catch (e) {
+        avatars = { him: "", me: "" };
+      }
+      refreshAvatars();
+    }
+    function saveAvatars() {
+      localStorage.setItem(LS_AVATAR, JSON.stringify(avatars));
+      refreshAvatars();
+    }
+    function compressImage(file, done) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const size = 160;
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        const s = Math.min(img.width, img.height);
+        ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
+        done(canvas.toDataURL("image/jpeg", 0.72));
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+    function avaHtml(who) {
+      if (who === "him") {
+        if (avatars.him) return `<span class="ava" style="background-image:url(${avatars.him})"></span>`;
+        return `<span class="ava" style="background:${hisInfo.color};background-image:none"></span>`;
+      }
+      const url = avatars.me;
+      return url
+        ? `<span class="ava" style="background-image:url(${url})"></span>`
+        : `<span class="ava">我</span>`;
+    }
+    function saveChat() {
+      const nodes = [...chatEl.querySelectorAll("[data-log]")];
+      const logs = nodes.slice(-50).map((n) => {
+        const copy = n.cloneNode(true);
+        copy.querySelectorAll("video").forEach((v) => {
+          const d = document.createElement("div");
+          d.className = "time";
+          d.textContent = "[视频]";
+          v.replaceWith(d);
+        });
+        return { role: n.dataset.role, html: copy.innerHTML, cls: n.className };
+      });
+      try { localStorage.setItem(LS_CHAT, JSON.stringify(logs)); } catch (e) {}
+    }
+    function restoreChat() {
+      try {
+        const raw = localStorage.getItem(LS_CHAT);
+        if (!raw) return false;
+        const logs = JSON.parse(raw);
+        if (!Array.isArray(logs) || !logs.length) return false;
+        logs.forEach((item) => {
+          const wrap = document.createElement("div");
+          wrap.className = item.cls;
+          wrap.dataset.log = "1";
+          wrap.dataset.role = item.role;
+          wrap.innerHTML = item.html;
+          chatEl.appendChild(wrap);
+        });
+        chatEl.querySelectorAll(".invite-btns, .chat-invite .sys-link").forEach((n) => n.remove());
+        chatEl.querySelectorAll(".sys").forEach((el) => {
+          const t = el.textContent || "";
+          if (t.includes("对方主动找你了") || t.includes("暂无你的专属字卡")) el.remove();
+        });
+        chatEl.querySelectorAll(".msg.bot").forEach((wrap) => {
+          if (!wrap.querySelector(".ava")) wrap.insertAdjacentHTML("afterbegin", avaHtml("him"));
+        });
+        chatEl.querySelectorAll(".msg.user").forEach((wrap) => {
+          if (!wrap.querySelector(".ava")) wrap.insertAdjacentHTML("beforeend", avaHtml("me"));
+          const col = wrap.querySelector(".bubble-col");
+          if (!col) return;
+          if (!col.querySelector(".receipt")) {
+            const t = col.querySelector(".time");
+            const row = document.createElement("div");
+            row.className = "time-row";
+            const rec = document.createElement("span");
+            rec.className = "receipt unread";
+            rec.textContent = "未读";
+            row.appendChild(rec);
+            if (t) row.appendChild(t);
+            else {
+              const tm = document.createElement("span");
+              tm.className = "time";
+              tm.textContent = "";
+              row.appendChild(tm);
+            }
+            col.appendChild(row);
+          }
+        });
+        saveChat();
+        refreshAvatars();
+        scrollBottom();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    /* ========== 六、UI 工具 ========== */
+    function toast(t) {
+      const el = document.getElementById("toast");
+      el.textContent = t;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    }
+    function scrollBottom() {
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+    function openModal(id) {
+      document.getElementById(id).classList.add("show");
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("show");
+    }
+    document.querySelectorAll("[data-close]").forEach((btn) => {
+      btn.addEventListener("click", () => closeModal(btn.dataset.close));
+    });
+    document.querySelectorAll(".modal-mask").forEach((mask) => {
+      mask.addEventListener("click", (e) => {
+        if (e.target === mask) mask.classList.remove("show");
+      });
+    });
+
+    function formatTime(d) {
+      const x = d || new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const hm = pad(x.getHours()) + ":" + pad(x.getMinutes());
+      const today = new Date();
+      if (x.toDateString() === today.toDateString()) return hm;
+      return pad(x.getMonth() + 1) + "-" + pad(x.getDate()) + " " + hm;
+    }
+    function addSys(text) {
+      const el = document.createElement("div");
+      el.className = "sys";
+      el.dataset.log = "1";
+      el.dataset.role = "sys";
+      el.textContent = text;
+      chatEl.appendChild(el);
+      saveChat();
+      scrollBottom();
+    }
+    function addUser(text) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg user";
+      wrap.dataset.log = "1";
+      wrap.dataset.role = "user";
+      wrap.innerHTML = `<div class="bubble-col"><div class="bubble">${escapeHtml(text)}</div><div class="time-row"><span class="receipt unread">未读</span><span class="time">${formatTime()}</span></div></div>${avaHtml("me")}`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+      rollReceipt(wrap);
+    }
+    function addBot(card, silent) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg bot" + (Math.random() > 0.5 ? " fall" : "");
+      wrap.dataset.log = "1";
+      wrap.dataset.role = "bot";
+      wrap.innerHTML = `${avaHtml("him")}<div class="bubble-col"><div class="bubble">${escapeHtml(card.text)}</div><div class="time">${formatTime()}</div></div>`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+    }
+    function addMedia(who, dataUrl) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + (who === "me" ? "user" : "bot");
+      wrap.dataset.log = "1";
+      wrap.dataset.role = who === "me" ? "user" : "bot";
+      const img = `<div class="bubble media"><img class="chat-img" src="${dataUrl}" alt="图片" /></div><div class="time-row">${who === "me" ? '<span class="receipt unread">未读</span>' : ""}<span class="time">${formatTime()}</span></div>`;
+      wrap.innerHTML = who === "me"
+        ? `<div class="bubble-col">${img}</div>${avaHtml("me")}`
+        : `${avaHtml("him")}<div class="bubble-col">${img}</div>`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+      if (who === "me") rollReceipt(wrap);
+    }
+    function addVideo(who, url) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg " + (who === "me" ? "user" : "bot");
+      wrap.dataset.log = "1";
+      wrap.dataset.role = who === "me" ? "user" : "bot";
+      const body = `<div class="bubble media"><video class="chat-vid" src="${url}" controls playsinline></video></div><div class="time-row">${who === "me" ? '<span class="receipt unread">未读</span>' : ""}<span class="time">${formatTime()}</span></div>`;
+      wrap.innerHTML = who === "me"
+        ? `<div class="bubble-col">${body}</div>${avaHtml("me")}`
+        : `${avaHtml("him")}<div class="bubble-col">${body}</div>`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+      if (who === "me") rollReceipt(wrap);
+    }
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    let titleTimer = null;
+    const baseTitle = document.title;
+    function askNotify() {
+      if (window.Notification && Notification.permission === "default") Notification.requestPermission();
+    }
+    function notifyIncoming() {}
+    function stopTitleFlash() {
+      clearInterval(titleTimer);
+      document.title = baseTitle;
+    }
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) stopTitleFlash(); });
+    document.getElementById("wxBanner").addEventListener("click", () => {
+      document.getElementById("wxBanner").classList.remove("show");
+      stopTitleFlash();
+    });
+
+    let stickers = [];
+    function loadStickers() {
+      try { stickers = JSON.parse(localStorage.getItem(LS_STICKERS) || "[]"); } catch (e) { stickers = []; }
+      if (!Array.isArray(stickers)) stickers = [];
+    }
+    function saveStickers() {
+      try { localStorage.setItem(LS_STICKERS, JSON.stringify(stickers)); }
+      catch (e) { toast("表情包存不下了，删几张再试"); }
+    }
+    function renderStickers() {
+      const g = document.getElementById("stickerGrid");
+      g.innerHTML = stickers.map((s, i) => `<img src="${s}" data-i="${i}" alt="表情" />`).join("")
+        + `<button type="button" class="sticker-add" id="stickerAdd">＋</button>`;
+      g.querySelectorAll("img").forEach((img) => {
+        img.addEventListener("click", () => {
+          addMedia("me", img.src);
+          closePlus();
+        });
+      });
+      document.getElementById("stickerAdd").addEventListener("click", () => document.getElementById("fileSticker").click());
+    }
+    function compressChatImage(file, done) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const max = 560;
+        let w = img.width, h = img.height;
+        if (w > h && w > max) { h = Math.round(h * max / w); w = max; }
+        else if (h >= w && h > max) { w = Math.round(w * max / h); h = max; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        done(canvas.toDataURL("image/jpeg", 0.62));
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+
+    let callState = "idle";
+    let callKind = "video";
+    let callTimer = null;
+    let callSec = 0;
+    let ringCtx = null;
+    let ringLoop = null;
+    let ringNodes = [];
+    let localStream = null;
+    let himHangTimer = null;
+    function kindName() {
+      return callKind === "voice" ? "语音通话" : "视频通话";
+    }
+    function stopRing() {
+      clearTimeout(ringLoop);
+      ringNodes.forEach((n) => { try { n.stop(); } catch (e) {} });
+      ringNodes = [];
+    }
+    function startRing() {
+      stopRing();
+      try {
+        ringCtx = ringCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (ringCtx.state === "suspended") ringCtx.resume();
+        const seq = [
+          [659.25, 0.15], [783.99, 0.15], [987.77, 0.15], [1174.66, 0.26],
+          [987.77, 0.15], [783.99, 0.15], [659.25, 0.32],
+          [0, 0.22],
+          [523.25, 0.13], [659.25, 0.13], [783.99, 0.2],
+          [0, 0.45]
+        ];
+        const beat = seq.reduce((s, x) => s + x[1], 0);
+        const play = () => {
+          if (callState !== "in" && callState !== "out") return;
+          let t = ringCtx.currentTime;
+          seq.forEach(([freq, dur]) => {
+            if (freq) {
+              const o = ringCtx.createOscillator();
+              const g = ringCtx.createGain();
+              o.type = "triangle";
+              o.frequency.value = freq;
+              g.gain.setValueAtTime(0.0001, t);
+              g.gain.exponentialRampToValueAtTime(0.07, t + 0.02);
+              g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+              o.connect(g);
+              g.connect(ringCtx.destination);
+              o.start(t);
+              o.stop(t + dur + 0.03);
+              ringNodes.push(o);
+            }
+            t += dur;
+          });
+          ringLoop = setTimeout(play, beat * 1000);
+        };
+        play();
+      } catch (e) {}
+    }
+    function stopLocalCam() {
+      if (localStream) localStream.getTracks().forEach((t) => t.stop());
+      localStream = null;
+      const v = document.getElementById("localCam");
+      v.srcObject = null;
+      v.style.display = "none";
+    }
+    async function startLocalCam() {
+      const v = document.getElementById("localCam");
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        v.srcObject = localStream;
+        v.style.display = "block";
+      } catch (e) {
+        v.style.display = "none";
+      }
+    }
+    function renderCallActions(mode) {
+      const box = document.getElementById("callActions");
+      const kn = kindName();
+      if (mode === "in") {
+        box.innerHTML = `<button class="call-btn hang" id="callDecline">拒绝</button><button class="call-btn accept" id="callAccept">接听</button>`;
+        document.getElementById("callDecline").onclick = () => endCall("你已拒绝" + kn);
+        document.getElementById("callAccept").onclick = () => acceptCall();
+      } else if (mode === "out") {
+        box.innerHTML = `<button class="call-btn hang" id="callCancel">取消</button>`;
+        document.getElementById("callCancel").onclick = () => endCall("已取消");
+      } else {
+        box.innerHTML = `<button class="call-btn hang" id="callHang">挂断</button>`;
+        document.getElementById("callHang").onclick = () => endCall(kn + "结束 " + document.getElementById("callTimer").textContent);
+      }
+    }
+    function openCall(mode, status) {
+      callState = mode;
+      paintAva(document.getElementById("callAva"), "him");
+      document.getElementById("callName").textContent = hisInfo.remark || "用户001";
+      document.getElementById("callKindTag").textContent = kindName();
+      document.getElementById("callStatus").textContent = status;
+      document.getElementById("callTimer").style.display = "none";
+      document.getElementById("localCam").style.display = callKind === "video" && mode === "talk" ? "block" : "none";
+      document.getElementById("callLayer").classList.add("show");
+      document.getElementById("callLayer").classList.remove("mini");
+      document.getElementById("callLayer").dataset.kind = callKind;
+      document.getElementById("callMini").style.display = "none";
+      renderCallActions(mode === "talk" ? "talk" : (mode === "out" ? "out" : "in"));
+    }
+    function setCallMini(on) {
+      const layer = document.getElementById("callLayer");
+      layer.classList.add("show");
+      layer.classList.toggle("mini", on);
+      document.getElementById("callMini").style.display = on || callState !== "talk" ? "none" : "block";
+      if (!on) {
+        layer.style.left = "";
+        layer.style.top = "";
+        layer.style.right = "";
+        layer.classList.remove("dragging");
+      }
+    }
+    function scheduleHimRingEnd() {
+      clearTimeout(himHangTimer);
+      if (callState !== "in") return;
+      himHangTimer = setTimeout(() => {
+        if (callState === "in") endCall("对方已取消" + kindName());
+      }, randomDelayMs(8000, 22000));
+    }
+    function acceptCall() {
+      stopRing();
+      openCall("talk", kindName() + "中");
+      document.getElementById("callTimer").style.display = "block";
+      callSec = 0;
+      renderCallActions("talk");
+      document.getElementById("callMini").style.display = "block";
+      if (callKind === "video") startLocalCam();
+      else stopLocalCam();
+      clearInterval(callTimer);
+      callTimer = setInterval(() => {
+        callSec += 1;
+        const m = String(Math.floor(callSec / 60)).padStart(2, "0");
+        const s = String(callSec % 60).padStart(2, "0");
+        document.getElementById("callTimer").textContent = m + ":" + s;
+      }, 1000);
+      clearTimeout(himHangTimer);
+      setCallMini(true);
+      resetIdle();
+    }
+    function closeChatInvite() {
+      document.querySelectorAll(".chat-invite .sys-link").forEach((n) => n.remove());
+    }
+    function endCall(sys) {
+      stopRing();
+      clearInterval(callTimer);
+      clearTimeout(openCall._wait);
+      clearTimeout(himHangTimer);
+      stopLocalCam();
+      callState = "idle";
+      const layer = document.getElementById("callLayer");
+      layer.classList.remove("show", "mini", "dragging");
+      layer.style.left = "";
+      layer.style.top = "";
+      layer.style.right = "";
+      layer.dataset.skipExpand = "";
+      document.getElementById("callMini").style.display = "none";
+      closeChatInvite();
+      if (sys) addSys(sys);
+      resetIdle();
+    }
+    function incomingCall(kind) {
+      if (callState !== "idle") return;
+      callKind = kind || (Math.random() < 0.5 ? "video" : "voice");
+      callState = "in";
+      addCallInvite();
+      scheduleHimRingEnd();
+    }
+    function addCallInvite() {
+      document.querySelectorAll(".chat-invite").forEach((n) => n.remove());
+      const line = callKind === "video" ? "对方想跟你视频通话" : "对方想跟你语音通话";
+      const el = document.createElement("div");
+      el.className = "sys chat-invite";
+      el.dataset.log = "1";
+      el.dataset.role = "sys";
+      el.innerHTML = `${escapeHtml(line)} <button type="button" class="sys-link invite-ok">接听</button><button type="button" class="sys-link invite-no">拒绝</button>`;
+      chatEl.appendChild(el);
+      el.querySelector(".invite-ok").onclick = () => {
+        closeChatInvite();
+        saveChat();
+        acceptCall();
+      };
+      el.querySelector(".invite-no").onclick = () => {
+        closeChatInvite();
+        saveChat();
+        endCall("你已拒绝" + kindName());
+      };
+      saveChat();
+      scrollBottom();
+    }
+    function outgoingCall(kind) {
+      if (callState !== "idle") return;
+      callKind = kind || "video";
+      askNotify();
+      addSys("正在呼叫对方…");
+      startRing();
+      openCall("out", "正在等待对方接受…");
+      openCall._wait = setTimeout(() => {
+        if (callState !== "out") return;
+        if (Math.random() < 0.28) endCall("对方拒绝了" + kindName());
+        else acceptCall();
+      }, randomDelayMs(2500, 9000));
+    }
+    function pokeYou() {
+      addSys("对方戳了戳你");
+    }
+    document.getElementById("callMini").addEventListener("click", (e) => {
+      e.stopPropagation();
+      setCallMini(true);
+    });
+    (function bindCallMiniDrag() {
+      const layer = document.getElementById("callLayer");
+      let drag = null;
+      layer.addEventListener("pointerdown", (e) => {
+        if (!layer.classList.contains("mini")) return;
+        if (e.button != null && e.button !== 0) return;
+        const r = layer.getBoundingClientRect();
+        drag = {
+          x: e.clientX,
+          y: e.clientY,
+          l: r.left,
+          t: r.top,
+          moved: false
+        };
+        layer.classList.add("dragging");
+        try { layer.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      layer.addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        if (!drag.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+        drag.moved = true;
+        const w = layer.offsetWidth;
+        const h = layer.offsetHeight;
+        let l = drag.l + dx;
+        let t = drag.t + dy;
+        l = Math.max(4, Math.min(window.innerWidth - w - 4, l));
+        t = Math.max(4, Math.min(window.innerHeight - h - 4, t));
+        layer.style.left = l + "px";
+        layer.style.top = t + "px";
+        layer.style.right = "auto";
+      });
+      function endDrag(e) {
+        if (!drag) return;
+        const moved = drag.moved;
+        drag = null;
+        layer.classList.remove("dragging");
+        if (moved) layer.dataset.skipExpand = "1";
+      }
+      layer.addEventListener("pointerup", endDrag);
+      layer.addEventListener("pointercancel", endDrag);
+      layer.addEventListener("click", (e) => {
+        if (!layer.classList.contains("mini")) return;
+        if (layer.dataset.skipExpand === "1") {
+          layer.dataset.skipExpand = "";
+          e.stopPropagation();
+          return;
+        }
+        setCallMini(false);
+      });
+    })();
+    function himSendSticker(fromIdle) {
+      if (!stickers.length) return false;
+      const s = stickers[Math.floor(Math.random() * stickers.length)];
+      if (!fromIdle) markAllUserRead();
+      addMedia("him", s);
+      return true;
+    }
+
+    /* ========== 七、他的回复：只从字卡库随机抽 ========== */
+    function fullPool() {
+      const filled = cardLib.filter((c) => (c.text || "").trim());
+      return filled.length ? filled : DEFAULT_CARDS;
+    }
+    function pickCard(exclude) {
+      const pool = fullPool().filter((c) => !exclude || !exclude.has(c.text));
+      const src = pool.length ? pool : fullPool();
+      return src[Math.floor(Math.random() * src.length)];
+    }
+    function drawCards(n) {
+      const used = new Set();
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        const card = pickCard(used);
+        if (!card) break;
+        used.add(card.text);
+        out.push(card);
+      }
+      return out;
+    }
+    function randomDelayMs(minMs, maxMs) {
+      const a = Math.log(minMs);
+      const b = Math.log(maxMs);
+      return Math.round(Math.exp(a + Math.random() * (b - a)));
+    }
+
+    /* ========== 八、对话（微信式发送 / 主动提醒） ========== */
+    function showTyping() {
+      typingEl.style.display = "block";
+      chatEl.appendChild(typingEl);
+      scrollBottom();
+    }
+    function hideTyping() {
+      typingEl.style.display = "none";
+    }
+    function deliverHisCards(cards, fromIdle) {
+      hideTyping();
+      if (!fromIdle) {
+        pendingUserReply = false;
+        markAllUserRead();
+      }
+      if (fromIdle && stickers.length && Math.random() < 0.28) {
+        himSendSticker(true);
+      } else if (!fromIdle && stickers.length && Math.random() < 0.22) {
+        himSendSticker(false);
+      } else {
+        cards.forEach((card, i) => {
+          setTimeout(() => addBot(card, !fromIdle), i * 480);
+        });
+      }
+      pendingReplies = Math.max(0, pendingReplies - 1);
+      if (!fromIdle && hasUnreadUser()) {
+        ensureHisReplyToUser();
+        return;
+      }
+      if (pendingReplies === 0) resetIdle();
+    }
+    function queueHisCards(fromIdle, delay) {
+      pendingReplies += 1;
+      clearTimeout(idleTimer);
+      const count = fromIdle ? 1 : (Math.random() < 0.55 ? 1 : 2);
+      const cards = drawCards(count);
+      const typingLead = Math.min(1600, Math.max(400, delay * 0.08));
+      setTimeout(() => {
+        if (delay > 1800) showTyping();
+      }, Math.max(0, delay - typingLead));
+      setTimeout(() => deliverHisCards(cards, fromIdle), delay);
+    }
+    function ensureHisReplyToUser() {
+      if (pendingUserReply) return;
+      pendingUserReply = true;
+      const delay = Math.min(USER_REPLY_MAX, Math.max(USER_REPLY_MIN, randomDelayMs(USER_REPLY_MIN, USER_REPLY_MAX)));
+      queueHisCards(false, delay);
+    }
+    function scheduleHisReply(fromIdle) {
+      if (!fromIdle) {
+        ensureHisReplyToUser();
+        return;
+      }
+      queueHisCards(true, randomDelayMs(400, 2000));
+    }
+    function hasUnreadUser() {
+      return !!chatEl.querySelector(".msg.user .receipt.unread");
+    }
+    function idleEvent() {
+      if (pendingReplies > 0) return;
+      if (callState === "in" || callState === "out") return;
+      if (callState === "talk") {
+        if (hasUnreadUser()) scheduleHisReply(false);
+        else if (stickers.length && Math.random() < 0.28) himSendSticker(true);
+        else scheduleHisReply(true);
+        return;
+      }
+      const r = Math.random();
+      if (r < 0.10) incomingCall(Math.random() < 0.5 ? "video" : "voice");
+      else if (r < 0.18) pokeYou();
+      else if (r < 0.28) {
+        if (statusHim.text && statusHim.until > Date.now() && Math.random() < 0.45) himEndStatusEarly();
+        else himSetRandomStatus();
+      }
+      else if (r < 0.40 && stickers.length) himSendSticker(true);
+      else scheduleHisReply(true);
+    }
+    function resetIdle() {
+      clearTimeout(idleTimer);
+      if (pendingReplies > 0) return;
+      if (callState === "in" || callState === "out") return;
+      const wait = randomDelayMs(2000, TEN_MIN);
+      idleTimer = setTimeout(idleEvent, wait);
+    }
+    function markAllUserRead() {
+      chatEl.querySelectorAll(".msg.user .receipt").forEach((rec) => {
+        rec.textContent = "已读";
+        rec.classList.remove("unread");
+        rec.classList.add("read");
+      });
+      saveChat();
+    }
+    function rollReceipt(wrap) {
+      if (!wrap || !wrap.querySelector(".receipt")) return;
+      ensureHisReplyToUser();
+    }
+    function syncComposer() {
+      const has = !!inputEl.value.trim();
+      document.getElementById("sendBtn").classList.toggle("show", has);
+      document.getElementById("plusBtn").classList.toggle("hide", has);
+    }
+    function closePlus() {
+      document.getElementById("plusPanel").classList.remove("show");
+      document.getElementById("stickerPanel").classList.remove("show");
+    }
+    function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      askNotify();
+      inputEl.value = "";
+      syncComposer();
+      closePlus();
+      addUser(text);
+    }
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    inputEl.addEventListener("input", syncComposer);
+    inputEl.addEventListener("focus", closePlus);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    /* ========== 九、他的字卡库（折叠 + 分页） ========== */
+    let poolPage = 0;
+    const POOL_PAGE = 20;
+    let poolOpen = false;
+    function filteredPool() {
+      const q = (document.getElementById("poolSearch").value || "").trim();
+      if (!q) return cardLib;
+      return cardLib.filter((c) => (c.text || "").includes(q));
+    }
+    function renderPool() {
+      document.getElementById("poolCount").textContent = cardLib.length + " / " + CARD_LIMIT;
+      document.getElementById("foldPool").textContent = poolOpen
+        ? "已存字卡 ▾ 收起（" + cardLib.length + "）"
+        : "已存字卡 ▸ 展开（" + cardLib.length + "）";
+      document.getElementById("poolFold").style.display = poolOpen ? "block" : "none";
+      if (!poolOpen) return;
+      const list = filteredPool();
+      const pages = Math.max(1, Math.ceil(list.length / POOL_PAGE));
+      if (poolPage >= pages) poolPage = pages - 1;
+      if (poolPage < 0) poolPage = 0;
+      const slice = list.slice(poolPage * POOL_PAGE, poolPage * POOL_PAGE + POOL_PAGE);
+      const ul = document.getElementById("poolList");
+      ul.innerHTML = slice
+        .map(
+          (c) => `<li class="card-item" data-id="${c.id}">
+            <textarea class="card-edit" placeholder="他可能会对你说…">${escapeHtml(c.text || "")}</textarea>
+            <button type="button" class="del-btn">删除</button>
+          </li>`
+        )
+        .join("") || "<li class='sys'>没有匹配的字卡</li>";
+      ul.querySelectorAll(".card-item").forEach((li) => {
+        const id = li.dataset.id;
+        li.querySelector(".card-edit").addEventListener("change", (e) => {
+          const item = cardLib.find((c) => String(c.id) === String(id));
+          if (item) {
+            item.text = e.target.value.trim();
+            savePrivate();
+          }
+        });
+        li.querySelector(".del-btn").addEventListener("click", () => {
+          cardLib = cardLib.filter((c) => String(c.id) !== String(id));
+          savePrivate();
+          renderPool();
+        });
+      });
+    }
+    document.getElementById("foldPool").addEventListener("click", () => {
+      poolOpen = !poolOpen;
+      renderPool();
+    });
+    document.getElementById("poolSearch").addEventListener("input", () => {
+      poolPage = 0;
+      if (!poolOpen) poolOpen = true;
+      renderPool();
+    });
+    document.getElementById("poolPrev").addEventListener("click", () => { poolPage -= 1; renderPool(); });
+    document.getElementById("poolNext").addEventListener("click", () => { poolPage += 1; renderPool(); });
+    document.getElementById("btnAddCard").addEventListener("click", () => {
+      if (cardLib.length >= CARD_LIMIT) {
+        toast("字卡库已满，上限 2000 条");
+        return;
+      }
+      cardLib.push({ id: Date.now() + Math.random(), text: "" });
+      savePrivate();
+      poolOpen = true;
+      poolPage = Math.floor((cardLib.length - 1) / POOL_PAGE);
+      renderPool();
+      setTimeout(() => {
+        const areas = document.querySelectorAll("#poolList .card-edit");
+        const last = areas[areas.length - 1];
+        if (last) last.focus();
+      }, 0);
+    });
+    document.getElementById("btnPool").addEventListener("click", () => {
+      poolOpen = false;
+      renderPool();
+      openModal("modalPool");
+    });
+
+
+    /* ========== 十一、今日占卜（每日一次） ========== */
+    function todayStr() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+    function pickForFortune() {
+      const labels = ["过去", "现在", "未来"];
+      const reads = [
+        "过去已定，那些心跳不必改写。",
+        "现在正行，把温柔握在手里。",
+        "未来可期，故事还会朝你走来。"
+      ];
+      return drawCards(3).map((c, i) => ({ ...c, label: labels[i], read: reads[i] }));
+    }
+    document.getElementById("btnFortune").addEventListener("click", () => {
+      const today = todayStr();
+      const last = localStorage.getItem(LS_DIV);
+      const board = document.getElementById("fortuneBoard");
+      if (last === today && board.dataset.done !== "1") {
+        board.innerHTML = "<p>今日已经占卜过啦，把这份解读留到明天再翻新页。</p>";
+        openModal("modalFortune");
+        return;
+      }
+      if (last === today && board.innerHTML) {
+        openModal("modalFortune");
+        return;
+      }
+      const cards = pickForFortune();
+      board.dataset.done = "1";
+      board.innerHTML = cards
+        .map(
+          (c) => `<div class="fortune-card"><b>${c.label}</b>
+            <div>${escapeHtml(c.text)}</div>
+            <div class="read">${c.read} 过去已定，现在正行，未来可期。</div></div>`
+        )
+        .join("");
+      localStorage.setItem(LS_DIV, today);
+      openModal("modalFortune");
+    });
+
+    /* ========== 十二、写信 ========== */
+    document.getElementById("btnLetter").addEventListener("click", () => {
+      document.getElementById("letterEditor").style.display = "block";
+      document.getElementById("letterReply").style.display = "none";
+      document.getElementById("letterTitle").value = "";
+      document.getElementById("letterBody").value = "";
+      openModal("modalLetter");
+    });
+    document.getElementById("sendLetter").addEventListener("click", () => {
+      const title = document.getElementById("letterTitle").value.trim();
+      const body = document.getElementById("letterBody").value.trim();
+      if (!title && !body) {
+        toast("先写下一点心里话");
+        return;
+      }
+      const draws = drawCards(3);
+      document.getElementById("letterEditor").style.display = "none";
+      const box = document.getElementById("letterReply");
+      box.style.display = "block";
+      box.innerHTML =
+        `<p style="margin-bottom:10px;color:#7e22ce;font-weight:700;">信已寄出，他正在看…</p>` +
+        draws
+          .map(
+            (card, i) =>
+              `<div class="fortune-card"><b>回信 ${i + 1}</b><div>${escapeHtml(card.text)}</div></div>`
+          )
+          .join("");
+    });
+
+    /* ========== 十三、装扮与头像 ========== */
+    ["colorUser", "colorBot", "rangeWallOp", "rangeWallBlur"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", () => applyTheme(currentTheme()));
+    });
+    function showThemeView(name) {
+      const map = {
+        home: "themeViewHome",
+        dress: "themeViewDress",
+        wall: "themeViewWall",
+        wallset: "themeViewWallSet",
+        ava: "themeViewAva",
+        bubble: "themeViewBubble",
+        contact: "themeViewContact"
+      };
+      const id = map[name] || "themeViewHome";
+      document.querySelectorAll("#modalTheme .wx-view").forEach((v) => {
+        v.hidden = v.id !== id;
+      });
+    }
+    document.getElementById("btnTheme").addEventListener("click", () => {
+      showThemeView("home");
+      openModal("modalTheme");
+    });
+    document.querySelectorAll("#modalTheme [data-theme-go]").forEach((btn) => {
+      btn.addEventListener("click", () => showThemeView(btn.dataset.themeGo));
+    });
+    document.getElementById("saveTheme").addEventListener("click", () => {
+      if (persistTheme()) toast("设置已保存");
+    });
+    document.getElementById("saveAvaTheme").addEventListener("click", () => {
+      if (persistTheme()) toast("头像已保存");
+    });
+    document.getElementById("saveBubbleTheme").addEventListener("click", () => {
+      if (persistTheme()) toast("气泡已保存");
+    });
+    document.getElementById("resetTheme").addEventListener("click", () => {
+      wallpaperData = "";
+      applyTheme(DEFAULT_THEME);
+      persistTheme();
+      toast("已恢复默认配色和背景");
+    });
+    document.getElementById("pickWall").addEventListener("click", () => document.getElementById("fileWall").click());
+    document.getElementById("clearWall").addEventListener("click", () => {
+      wallpaperData = "";
+      document.getElementById("rangeWashOp").value = 0;
+      applyTheme(currentTheme());
+      persistTheme();
+      toast("已恢复默认背景图");
+    });
+    document.getElementById("fileWall").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      compressWallpaper(f, (data) => {
+        wallpaperData = data;
+        if (Number(document.getElementById("rangeWashOp").value) > 70) {
+          document.getElementById("rangeWashOp").value = 32;
+        }
+        applyTheme(currentTheme());
+        persistTheme();
+        toast("背景图已换上，可再调透明度和模糊");
+      });
+      e.target.value = "";
+    });
+    document.getElementById("hisAvatarBtn").addEventListener("click", () => {
+      document.getElementById("hisRemarkInput").value = hisInfo.remark || "用户001";
+      document.getElementById("hisStatusPreview").textContent = "当前：" + statusLabel(statusHim);
+      renderHisStatusLib();
+      openModal("modalHis");
+    });
+    document.getElementById("myAvatarBtn").addEventListener("click", () => {
+      document.getElementById("mePage").classList.add("show");
+      applyProfile();
+    });
+    document.getElementById("pickHis").addEventListener("click", () => document.getElementById("fileHis").click());
+    document.getElementById("pickMine").addEventListener("click", () => document.getElementById("fileMine").click());
+    document.getElementById("fileHis").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      compressImage(f, (data) => {
+        avatars.him = data;
+        saveAvatars();
+      });
+      e.target.value = "";
+    });
+    document.getElementById("fileMine").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      compressImage(f, (data) => {
+        avatars.me = data;
+        saveAvatars();
+      });
+      e.target.value = "";
+    });
+
+    document.getElementById("plusBtn").addEventListener("click", () => {
+      askNotify();
+      const pan = document.getElementById("plusPanel");
+      const st = document.getElementById("stickerPanel");
+      st.classList.remove("show");
+      pan.classList.toggle("show");
+    });
+    document.getElementById("plusAlbum").addEventListener("click", () => document.getElementById("fileAlbum").click());
+    document.getElementById("plusCamera").addEventListener("click", () => document.getElementById("fileCamera").click());
+    document.getElementById("plusSticker").addEventListener("click", () => {
+      document.getElementById("plusPanel").classList.remove("show");
+      document.getElementById("stickerPanel").classList.add("show");
+      renderStickers();
+    });
+    document.getElementById("plusSendVideo").addEventListener("click", () => document.getElementById("fileSendVideo").click());
+    document.getElementById("plusVoice").addEventListener("click", () => { closePlus(); outgoingCall("voice"); });
+    document.getElementById("plusVideo").addEventListener("click", () => { closePlus(); outgoingCall("video"); });
+    document.getElementById("plusCouple").addEventListener("click", () => document.getElementById("fileCouple").click());
+    document.getElementById("stickerFromAlbum").addEventListener("click", () => document.getElementById("fileSticker").click());
+    function onPickChatImage(e) {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      compressChatImage(f, (data) => {
+        addMedia("me", data);
+        closePlus();
+      });
+    }
+    document.getElementById("fileAlbum").addEventListener("change", onPickChatImage);
+    document.getElementById("fileCamera").addEventListener("change", onPickChatImage);
+    document.getElementById("fileSticker").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      compressImage(f, (data) => {
+        if (stickers.length >= 30) stickers.shift();
+        stickers.push(data);
+        saveStickers();
+        renderStickers();
+        toast("表情包已加入");
+      });
+    });
+    document.getElementById("fileSendVideo").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      addVideo("me", url);
+      closePlus();
+    });
+    document.getElementById("fileCouple").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      compressImage(f, (data) => {
+        closePlus();
+        addUser("想看你换这个头像");
+        addMedia("me", data);
+        addSys("已发送换头像申请，等待对方回应…");
+        setTimeout(() => {
+          if (Math.random() < 0.62) {
+            avatars.him = data;
+            saveAvatars();
+            addSys("对方同意了，已换成你给的头像");
+          } else {
+            addSys("对方拒绝了这次换头像");
+          }
+        }, randomDelayMs(2500, 8000));
+      });
+    });
+
+    document.getElementById("immerseBtn").addEventListener("click", () => {
+      document.querySelector(".app").classList.toggle("immersed");
+      const on = document.querySelector(".app").classList.contains("immersed");
+      document.getElementById("immerseBtn").textContent = on ? "︿ 点击展开输入栏" : "﹀";
+    });
+
+    function statusLabel(st) {
+      if (!st || !st.text || !st.until || st.until < Date.now()) return "在线";
+      const left = Math.max(0, st.until - Date.now());
+      const h = Math.floor(left / 3600000);
+      const m = Math.floor((left % 3600000) / 60000);
+      const s = Math.floor((left % 60000) / 1000);
+      const cd = h > 0 ? h + "小时" + m + "分" : m > 0 ? m + "分" + s + "秒" : s + "秒";
+      return st.text + " · 剩余" + cd;
+    }
+    function refreshStatusBar() {
+      if (statusHim.until && statusHim.until < Date.now()) statusHim.text = "";
+      if (statusMe.until && statusMe.until < Date.now()) statusMe.text = "";
+      document.getElementById("hisRemarkTitle").textContent = hisInfo.remark || "用户001";
+      document.getElementById("onlineHint").textContent = statusLabel(statusHim);
+      const prev = document.getElementById("hisStatusPreview");
+      if (prev) prev.textContent = "当前：" + statusLabel(statusHim);
+      const mine = document.getElementById("myStatusNowText");
+      if (mine) mine.textContent = statusLabel(statusMe);
+      const hint = document.getElementById("meStatusHint");
+      if (hint) hint.textContent = statusLabel(statusMe);
+    }
+    function persistHis() {
+      localStorage.setItem(LS_HIS, JSON.stringify(hisInfo));
+      localStorage.setItem(LS_STATUS, JSON.stringify({ me: statusMe, him: statusHim, himLib: hisStatusLib }));
+      refreshStatusBar();
+      refreshAvatars();
+    }
+    function loadHis() {
+      try {
+        hisInfo = Object.assign({ remark: "用户001", color: "#7d9fd3" }, JSON.parse(localStorage.getItem(LS_HIS) || "{}"));
+      } catch (e) {}
+      if (!hisInfo.remark) hisInfo.remark = "用户001";
+      try {
+        const st = JSON.parse(localStorage.getItem(LS_STATUS) || "{}");
+        statusMe = st.me || statusMe;
+        statusHim = st.him || statusHim;
+        if (Array.isArray(st.himLib)) {
+          hisStatusLib = st.himLib.map((t) => String(t || "").trim()).filter((t) => t && t !== "睡觉中");
+        }
+        if (!hisStatusLib.length) hisStatusLib = HIS_STATUS_DEFAULT.slice();
+        if (statusHim.text === "睡觉中") statusHim = { text: "", until: 0 };
+      } catch (e) {}
+      const row = document.getElementById("hisColors");
+      row.innerHTML = HIS_COLORS.map((c) => `<button type="button" data-c="${c}" style="background:${c}"></button>`).join("");
+      row.querySelectorAll("button").forEach((b) => {
+        b.addEventListener("click", () => {
+          hisInfo.color = b.dataset.c;
+          avatars.him = "";
+          persistHis();
+        });
+      });
+      document.getElementById("hisRemarkInput").addEventListener("change", () => {
+        hisInfo.remark = document.getElementById("hisRemarkInput").value.trim() || "用户001";
+        persistHis();
+      });
+      document.getElementById("btnHisStatusAdd").addEventListener("click", addHisStatusToLib);
+      document.getElementById("hisStatusAdd").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addHisStatusToLib();
+        }
+      });
+      renderHisStatusLib();
+      refreshStatusBar();
+    }
+    function renderHisStatusLib() {
+      const box = document.getElementById("hisStatusLibBox");
+      if (!box) return;
+      box.innerHTML = hisStatusLib.map((t, i) =>
+        `<span class="his-lib-chip">${escapeHtml(t)}<button type="button" data-i="${i}" aria-label="删除">×</button></span>`
+      ).join("") || `<span class="me-hint">库是空的，他暂时只能显示在线</span>`;
+      box.querySelectorAll("button").forEach((b) => {
+        b.addEventListener("click", () => {
+          const i = Number(b.dataset.i);
+          hisStatusLib.splice(i, 1);
+          persistHis();
+          renderHisStatusLib();
+        });
+      });
+    }
+    function addHisStatusToLib() {
+      const input = document.getElementById("hisStatusAdd");
+      const text = (input.value || "").trim();
+      if (!text) {
+        toast("先写一个状态");
+        return;
+      }
+      if (hisStatusLib.includes(text)) {
+        toast("库里已经有这条了");
+        return;
+      }
+      if (hisStatusLib.length >= 40) {
+        toast("状态库满了");
+        return;
+      }
+      hisStatusLib.push(text);
+      input.value = "";
+      persistHis();
+      renderHisStatusLib();
+      toast("已加入他的状态库");
+    }
+    let statusPick = "忙碌中";
+    function renderStatusChips() {
+      const box = document.getElementById("statusChips");
+      box.innerHTML = STATUS_PRESETS.map((t) => `<button type="button" class="${t === statusPick ? "on" : ""}" data-t="${t}">${t}</button>`).join("");
+      box.querySelectorAll("button").forEach((b) => {
+        b.addEventListener("click", () => {
+          statusPick = b.dataset.t;
+          document.getElementById("statusCustom").value = "";
+          renderStatusChips();
+        });
+      });
+    }
+    function openStatus() {
+      const cur = statusMe;
+      statusPick = cur.text && STATUS_PRESETS.includes(cur.text) ? cur.text : "忙碌中";
+      document.getElementById("statusTitle").textContent = "我的状态";
+      document.getElementById("statusCustom").value = cur.text && !STATUS_PRESETS.includes(cur.text) ? cur.text : "";
+      renderStatusChips();
+      refreshStatusBar();
+      openModal("modalStatus");
+    }
+    function applyStatus() {
+      const custom = document.getElementById("statusCustom").value.trim();
+      const text = custom || statusPick;
+      const dur = document.getElementById("statusDur").value;
+      let until = Date.now() + 30 * 60 * 1000;
+      if (dur === "today") {
+        const d = new Date();
+        d.setHours(23, 59, 59, 999);
+        until = d.getTime();
+      } else until = Date.now() + Number(dur) * 60 * 1000;
+      statusMe = { text, until };
+      persistHis();
+      refreshStatusBar();
+      toast("已设为「" + text + "」");
+    }
+    let himStatusEarlyTimer = null;
+    function himEndStatusEarly() {
+      if (!statusHim.text || statusHim.until < Date.now()) return;
+      statusHim = { text: "", until: 0 };
+      persistHis();
+      addSys("对方提前结束了状态，已恢复在线");
+    }
+    function himSetRandomStatus() {
+      const dice = Math.random();
+      if (dice < 0.42) return;
+      if (dice < 0.58) {
+        if (statusHim.text && statusHim.until > Date.now()) himEndStatusEarly();
+        else {
+          statusHim = { text: "", until: 0 };
+          persistHis();
+        }
+        return;
+      }
+      const pool = hisStatusLib.filter(Boolean);
+      if (!pool.length) return;
+      const text = pool[Math.floor(Math.random() * pool.length)];
+      const mins = [15, 30, 60, 90, 120, 240][Math.floor(Math.random() * 6)];
+      statusHim = { text, until: Date.now() + mins * 60 * 1000 };
+      persistHis();
+      addSys("对方将状态设为「" + text + "」，持续约" + mins + "分钟");
+      clearTimeout(himStatusEarlyTimer);
+      const full = mins * 60 * 1000;
+      if (Math.random() < 0.55) {
+        himStatusEarlyTimer = setTimeout(himEndStatusEarly, randomDelayMs(Math.min(25000, full * 0.2), Math.max(40000, full * 0.55)));
+      }
+    }
+    document.getElementById("goMyStatus").addEventListener("click", () => openStatus());
+    document.getElementById("saveStatus").addEventListener("click", applyStatus);
+    document.getElementById("clearStatus").addEventListener("click", () => {
+      statusMe = { text: "", until: 0 };
+      persistHis();
+      refreshStatusBar();
+      toast("已恢复在线");
+    });
+    setInterval(refreshStatusBar, 1000);
+
+    /* ========== 我 / 朋友圈 ========== */
+    let profile = { nick: "我", cover: "" };
+    let moments = [];
+    let mmDraft = [];
+    function applyProfile() {
+      document.getElementById("myNick").value = profile.nick || "我";
+      document.getElementById("mmNick").textContent = profile.nick || "我";
+      const bg = profile.cover ? "url(" + profile.cover + ")" : "";
+      document.getElementById("meCover").style.backgroundImage = bg;
+      document.getElementById("mmHero").style.backgroundImage = bg;
+      refreshAvatars();
+      refreshStatusBar();
+    }
+    function loadProfile() {
+      try {
+        profile = Object.assign({ nick: "我", cover: "" }, JSON.parse(localStorage.getItem(LS_PROFILE) || "{}"));
+      } catch (e) {
+        profile = { nick: "我", cover: "" };
+      }
+      try {
+        moments = JSON.parse(localStorage.getItem(LS_MOMENTS) || "[]");
+        if (!Array.isArray(moments)) moments = [];
+      } catch (e) { moments = []; }
+      applyProfile();
+    }
+    function saveProfile() {
+      profile.nick = (document.getElementById("myNick").value || "").trim() || "我";
+      try { localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } catch (e) { toast("主页背景太大，换一张小图"); }
+      applyProfile();
+    }
+    function saveMoments() {
+      try { localStorage.setItem(LS_MOMENTS, JSON.stringify(moments.slice(0, 40))); }
+      catch (e) {
+        moments = moments.slice(0, 8);
+        try { localStorage.setItem(LS_MOMENTS, JSON.stringify(moments)); } catch (err) {}
+        toast("朋友圈图片过多，已自动少留几条");
+      }
+    }
+    function normMoment(m) {
+      if (!Array.isArray(m.likes)) m.likes = [];
+      if (!Array.isArray(m.comments)) m.comments = [];
+      return m;
+    }
+    function himName() {
+      return hisInfo.remark || "用户001";
+    }
+    function scheduleHimLike(id) {
+      if (Math.random() < 0.4) return;
+      const delay = randomDelayMs(5000, 8 * 60 * 1000);
+      setTimeout(() => {
+        const m = moments.find((x) => String(x.id) === String(id));
+        if (!m) return;
+        normMoment(m);
+        if (m.likes.some((l) => l.who === "him")) return;
+        const when = formatTime();
+        m.likes.push({ who: "him", name: himName(), at: when });
+        saveMoments();
+        if (document.getElementById("momentsPage").classList.contains("show")) renderMoments();
+        addSys(himName() + "赞了你的朋友圈 · " + when);
+      }, delay);
+    }
+    function toggleMyLike(id) {
+      const m = moments.find((x) => String(x.id) === String(id));
+      if (!m) return;
+      normMoment(m);
+      const i = m.likes.findIndex((l) => l.who === "me");
+      if (i >= 0) m.likes.splice(i, 1);
+      else m.likes.unshift({ who: "me", name: profile.nick || "我" });
+      saveMoments();
+      renderMoments();
+    }
+    function addMyComment(id, text) {
+      const m = moments.find((x) => String(x.id) === String(id));
+      if (!m || !text) return;
+      normMoment(m);
+      m.comments.push({ who: "me", name: profile.nick || "我", text, time: formatTime() });
+      saveMoments();
+      renderMoments();
+    }
+    function renderMoments() {
+      const feed = document.getElementById("mmFeed");
+      if (!moments.length) {
+        feed.innerHTML = '<p class="sys">还没有动态，点右上角相机发表</p>';
+        return;
+      }
+      feed.innerHTML = moments.map((raw) => {
+        const m = normMoment(raw);
+        const imgs = (m.images || []).map((src) => `<img src="${src}" alt="" />`).join("");
+        const likedMe = m.likes.some((l) => l.who === "me");
+        const likeTxt = m.likes.map((l) => escapeHtml(l.name || (l.who === "him" ? himName() : "我"))).join("，");
+        const cmts = m.comments.map((c) => `<p><b>${escapeHtml(c.name || "我")}</b>：${escapeHtml(c.text || "")}</p>`).join("");
+        const social = (m.likes.length || m.comments.length)
+          ? `<div class="mm-social">${m.likes.length ? `<div class="mm-likes">♥ ${likeTxt}</div>` : ""}${cmts ? `<div class="mm-cmts">${cmts}</div>` : ""}</div>`
+          : "";
+        return `<div class="mm-post" data-id="${m.id}">
+          <span class="ava"></span>
+          <div style="flex:1;min-width:0">
+            <div class="mm-name">${escapeHtml(profile.nick || "我")}</div>
+            <div class="mm-text">${escapeHtml(m.text || "")}</div>
+            ${imgs ? `<div class="mm-imgs">${imgs}</div>` : ""}
+            <div class="mm-meta">
+              <span>${escapeHtml(m.time || "")}</span>
+              <div class="mm-act">
+                <div class="mm-pop">
+                  <button type="button" class="mm-like">${likedMe ? "取消" : "赞"}</button>
+                  <button type="button" class="mm-cmt">评论</button>
+                </div>
+                <button type="button" class="mm-more">···</button>
+                <button type="button" class="mm-del">删除</button>
+              </div>
+            </div>
+            ${social}
+            <div class="mm-cmt-box"><input type="text" maxlength="80" placeholder="评论" /></div>
+          </div>
+        </div>`;
+      }).join("");
+      feed.querySelectorAll(".mm-post .ava").forEach((el) => paintAva(el, "me"));
+      feed.querySelectorAll(".mm-del").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.closest(".mm-post").dataset.id;
+          moments = moments.filter((m) => String(m.id) !== String(id));
+          saveMoments();
+          renderMoments();
+        });
+      });
+      feed.querySelectorAll(".mm-more").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          feed.querySelectorAll(".mm-pop").forEach((p) => p.classList.remove("show"));
+          btn.previousElementSibling.classList.toggle("show");
+        });
+      });
+      feed.querySelectorAll(".mm-like").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleMyLike(btn.closest(".mm-post").dataset.id);
+        });
+      });
+      feed.querySelectorAll(".mm-cmt").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const post = btn.closest(".mm-post");
+          post.querySelector(".mm-pop").classList.remove("show");
+          const box = post.querySelector(".mm-cmt-box");
+          box.classList.add("show");
+          box.querySelector("input").focus();
+        });
+      });
+      feed.querySelectorAll(".mm-cmt-box input").forEach((inp) => {
+        inp.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          const text = inp.value.trim();
+          if (!text) return;
+          addMyComment(inp.closest(".mm-post").dataset.id, text);
+        });
+      });
+    }
+    function renderMmDraft() {
+      const box = document.getElementById("mmPhotos");
+      box.innerHTML = mmDraft.map((src) => `<img src="${src}" alt="" />`).join("");
+    }
+    document.getElementById("meBack").addEventListener("click", () => {
+      saveProfile();
+      document.getElementById("mePage").classList.remove("show");
+    });
+    document.getElementById("mePageAva").addEventListener("click", () => document.getElementById("fileMine").click());
+    document.getElementById("meCoverBtn").addEventListener("click", () => document.getElementById("fileMeCover").click());
+    document.getElementById("myNick").addEventListener("change", saveProfile);
+    document.getElementById("goMoments").addEventListener("click", () => {
+      saveProfile();
+      document.getElementById("momentsPage").classList.add("show");
+      renderMoments();
+    });
+    document.getElementById("mmBack").addEventListener("click", () => document.getElementById("momentsPage").classList.remove("show"));
+    document.getElementById("mmCamera").addEventListener("click", () => {
+      mmDraft = [];
+      document.getElementById("mmText").value = "";
+      renderMmDraft();
+      document.getElementById("mmCompose").classList.add("show");
+    });
+    document.getElementById("mmCancel").addEventListener("click", () => document.getElementById("mmCompose").classList.remove("show"));
+    document.getElementById("mmAddPhoto").addEventListener("click", () => document.getElementById("fileMmPhotos").click());
+    document.getElementById("fileMeCover").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      compressWallpaper(f, (data) => {
+        profile.cover = data;
+        saveProfile();
+      });
+    });
+    document.getElementById("fileMmPhotos").addEventListener("change", (e) => {
+      const files = [...e.target.files];
+      e.target.value = "";
+      files.slice(0, 9 - mmDraft.length).forEach((f) => {
+        compressChatImage(f, (data) => {
+          if (mmDraft.length < 9) {
+            mmDraft.push(data);
+            renderMmDraft();
+          }
+        });
+      });
+    });
+    document.getElementById("mmPublish").addEventListener("click", () => {
+      const text = document.getElementById("mmText").value.trim();
+      if (!text && !mmDraft.length) {
+        toast("写一句或加一张图再发表");
+        return;
+      }
+      moments.unshift({ id: Date.now(), text, images: mmDraft.slice(), time: formatTime(), likes: [], comments: [] });
+      const newId = moments[0].id;
+      mmDraft = [];
+      saveMoments();
+      document.getElementById("mmCompose").classList.remove("show");
+      renderMoments();
+      scheduleHimLike(newId);
+    });
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".mm-pop.show").forEach((p) => p.classList.remove("show"));
+    });
+
+    /* ========== 十四、启动 ========== */
+    loadPrivate();
+    loadTheme();
+    loadAvatars();
+    loadStickers();
+    loadHis();
+    loadProfile();
+    const restored = restoreChat();
+    if (!restored) {
+      addSys("莉莉已上线。你随便说，他从字卡库里回你。");
+    }
+    if (hasUnreadUser()) ensureHisReplyToUser();
+    else resetIdle();
+  </script>
+</body>
+</html>
