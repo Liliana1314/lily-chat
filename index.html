@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <title>梦女心语 · 莉莉传讯</title>
+  <title>莉莉·Amour</title>
   <style>
     :root {
       --bg-a: #f4dce4;
@@ -82,6 +82,18 @@
       padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
     }
 
+    .hall-back {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.72);
+      color: #6b4a55;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
     header {
       padding: 10px 12px;
       display: flex;
@@ -106,7 +118,7 @@
       border: none;
       overflow: hidden;
     }
-    .ava { width: 32px; height: 32px; font-size: 12px; box-shadow: none; }
+    .ava { width: 32px; height: 32px; font-size: 12px; box-shadow: none; cursor: pointer; }
     button.avatar {
       cursor: pointer;
       padding: 0;
@@ -131,6 +143,58 @@
       font-size: 12px;
       color: var(--ink-soft);
       opacity: 0.85;
+    }
+    .me-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex-shrink: 0;
+      width: 48px;
+    }
+    .me-head .avatar {
+      width: 36px;
+      height: 36px;
+      font-size: 13px;
+    }
+    .my-chat-status {
+      width: 48px;
+      max-width: 48px;
+      font-size: 9px !important;
+      font-weight: 500;
+      line-height: 1.15;
+      color: var(--ink-soft);
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      padding: 0;
+      font-family: inherit;
+    }
+    .dur-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0 10px;
+    }
+    .dur-row input {
+      width: 64px;
+      text-align: center;
+    }
+    .dur-row span { font-size: 13px; color: #6b4a55; }
+    .status-chips .chip-x {
+      margin-left: 4px;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      line-height: 1;
     }
 
     #chat {
@@ -227,6 +291,477 @@
       animation: cardFlip 0.7s ease;
     }
     .msg.bot.fall .bubble { animation: fallIn 0.8s ease; }
+    .quote {
+      font-size: 12px;
+      line-height: 1.4;
+      color: rgba(107, 74, 85, 0.62);
+      background: rgba(255, 255, 255, 0.42);
+      border-left: 3px solid rgba(255, 255, 255, 0.95);
+      border-radius: 8px;
+      padding: 5px 8px;
+      margin: 0 0 8px;
+      max-height: 3.4em;
+      overflow: hidden;
+    }
+    .bubble.choice-ask {
+      min-width: 228px;
+      max-width: 86%;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(165deg, #3a2a31 0%, #5c414c 55%, #7a5560 100%);
+      color: #f7e8ee;
+      box-shadow: 0 10px 28px rgba(60, 40, 48, 0.28);
+    }
+    .choice-ask .ch-kicker {
+      padding: 10px 14px 0;
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      opacity: 0.62;
+    }
+    .choice-ask .ch-q {
+      padding: 6px 14px 12px;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.45;
+    }
+    .choice-ask .ch-opt {
+      margin: 0 10px 8px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .choice-ask .ch-no {
+      font-size: 11px;
+      opacity: 0.55;
+      min-width: 1.2em;
+    }
+    .choice-ask .ch-opt:last-child { margin-bottom: 12px; }
+    .bubble.choice-pick {
+      min-width: 180px;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(180deg, #fff7fa, #f3d5df);
+      box-shadow: 0 8px 22px rgba(180, 130, 145, 0.22);
+    }
+    .choice-pick .ch-kicker {
+      padding: 10px 14px 0;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: #9a7a86;
+    }
+    .choice-pick .ch-ans {
+      padding: 8px 14px 14px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #6b4a55;
+    }
+    #divPage {
+      z-index: 85;
+      max-width: 520px;
+      overflow: hidden;
+      background: #f6e6ec url("assets/chat-bg.png") center/cover no-repeat;
+      color: #5c3d48;
+    }
+    #divPage .his-home-bar {
+      background: rgba(255, 246, 248, 0.58);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(196, 160, 130, 0.35);
+      color: #5c3d48;
+    }
+    #divPage .his-home-bar button { color: #5c3d48; }
+    .div-hero {
+      padding: 16px 16px 10px;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .div-ava {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      border: 2px solid #e8d5a3;
+      box-shadow: 0 8px 24px rgba(107,74,85,0.18);
+    }
+    .div-name {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #5c3d48;
+    }
+    .div-sub {
+      font-size: 11px;
+      color: #9a7a86;
+      margin-top: 4px;
+      letter-spacing: 0.28em;
+    }
+    .div-loc { margin-top: 14px; width: 100%; max-width: 420px; }
+    .loc-card, .cal-mini, .div-tile, .agenda-wrap, .tarot-read, .tarot-hist {
+      background: rgba(255, 248, 250, 0.72);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(212, 175, 130, 0.42);
+      box-shadow: 0 10px 28px rgba(90, 50, 70, 0.08);
+    }
+    .loc-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 18px;
+      padding: 12px 14px;
+      color: #5c3d48;
+    }
+    .loc-art {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      flex-shrink: 0;
+      background: linear-gradient(160deg, #fff6e8, #f3d5df);
+    }
+    .loc-art.rain { background: linear-gradient(160deg, #e8f1f8, #d5e0f3); }
+    .loc-art.cloud { background: linear-gradient(160deg, #eef1f4, #d9dde4); }
+    .loc-art.snow { background: linear-gradient(160deg, #f4f8ff, #e4eef8); }
+    .loc-art.storm { background: linear-gradient(160deg, #ece6f4, #c9bdd8); }
+    .loc-art.off { background: #f3e6ea; font-size: 28px; }
+    .loc-place { font-size: 15px; font-weight: 800; }
+    .loc-row { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; }
+    .loc-temp { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; }
+    .loc-sky { font-size: 13px; color: #9a7a86; }
+    .loc-pin { font-size: 12px; color: #b08996; margin-top: 2px; letter-spacing: 0.12em; }
+    .div-loc button {
+      margin-top: 8px;
+      border: 1px solid rgba(212, 175, 130, 0.45);
+      background: rgba(255,248,250,0.7);
+      color: #5c3d48;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+    .cal-mini {
+      margin-top: 12px;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 16px;
+      padding: 12px 14px 10px;
+    }
+    .cal-date-full {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #5c3d48;
+    }
+    .cal-date-wd { font-size: 12px; color: #9a7a86; margin-top: 4px; letter-spacing: 0.18em; }
+    .agenda-wrap {
+      margin: 12px 14px 0;
+      border-radius: 16px;
+      padding: 12px 12px 8px;
+      overflow: hidden;
+    }
+    .agenda-wrap h3 {
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      font-weight: 700;
+      color: #9a7a86;
+      margin-bottom: 8px;
+    }
+    .agenda-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      color: #5c3d48;
+    }
+    .agenda-table th {
+      text-align: left;
+      font-weight: 600;
+      color: #b08996;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(212,175,130,0.35);
+    }
+    .agenda-table td {
+      padding: 8px 4px;
+      border-bottom: 1px solid rgba(232, 214, 220, 0.8);
+      vertical-align: top;
+    }
+    .agenda-table tr.now td { color: #8a4a62; font-weight: 700; }
+    .agenda-log { display: flex; flex-direction: column; gap: 8px; }
+    .agenda-item {
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.38);
+      color: #5c3d48;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    .agenda-item b {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #b08996;
+      margin-bottom: 2px;
+    }
+    .agenda-item.now { background: rgba(255, 232, 240, 0.85); }
+    .agenda-item.now b, .agenda-item.now p { color: #8a4a62; font-weight: 700; }
+    .agenda-item p { margin: 0; font-weight: 500; }
+    .quote-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 4px 6px;
+      padding: 7px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.55);
+      border-left: 3px solid #e8c5d1;
+    }
+    .quote-bar[hidden] { display: none !important; }
+    .quote-bar-txt {
+      flex: 1;
+      font-size: 12px;
+      color: #8a6a74;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .quote-bar button {
+      border: 0;
+      background: transparent;
+      font-size: 16px;
+      color: #9a7a86;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .agenda-empty { font-size: 12px; color: #b08996; padding: 8px 0 12px; }
+    .agenda-note {
+      margin: 12px 14px 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 244, 232, 0.9);
+      border: 1px solid rgba(212, 175, 130, 0.55);
+      color: #8a4a32;
+      font-size: 12px;
+      line-height: 1.55;
+      font-weight: 600;
+    }
+    .div-tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 14px 28px;
+    }
+    .div-tile {
+      aspect-ratio: 1;
+      border-radius: 22px;
+      padding: 14px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: space-between;
+      text-align: left;
+      font: inherit;
+      color: #5c3d48;
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
+    }
+    .div-tile.bond { background: rgba(255, 242, 245, 0.82); }
+    .div-tile .tile-lab { font-size: 11px; font-weight: 700; letter-spacing: 0.18em; opacity: 0.72; }
+    .div-tile .tile-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+      padding: 4px 2px;
+      word-break: break-word;
+    }
+    .div-tile.bond .tile-main {
+      font-size: 48px;
+      letter-spacing: -0.04em;
+      line-height: 0.9;
+    }
+    .div-tile .tile-sub {
+      font-size: 11px;
+      line-height: 1.35;
+      color: #8a6b75;
+      width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-align: center;
+    }
+    .tarot-hist {
+      margin-top: 16px;
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .tarot-hist h3 {
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      color: #9a7a86;
+      margin-bottom: 8px;
+    }
+    .hist-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(232, 214, 220, 0.85);
+      font-size: 12px;
+      color: #5c3d48;
+      line-height: 1.5;
+    }
+    .hist-item:last-child { border-bottom: 0; }
+    .hist-item b { display: block; font-size: 11px; color: #b08996; margin-bottom: 2px; font-weight: 700; }
+    .agenda-head {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      background: transparent;
+      color: #5c3d48;
+      font: inherit;
+      cursor: pointer;
+      padding: 0 0 4px;
+    }
+    .agenda-head .lab {
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      font-weight: 700;
+      color: #9a7a86;
+      flex-shrink: 0;
+    }
+    .agenda-head .prev {
+      flex: 1;
+      min-width: 0;
+      font-size: 11px;
+      color: #b08996;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: right;
+    }
+    .agenda-head .chev { color: #b08996; font-size: 12px; }
+    .agenda-edit {
+      width: 100%;
+      margin-top: 6px;
+      border: 1px dashed rgba(184, 120, 140, 0.55);
+      background: rgba(255,255,255,0.45);
+      color: #8a4a62;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .mm-status {
+      display: block;
+      margin-top: 4px;
+      border: none;
+      background: rgba(0,0,0,0.28);
+      color: #fff;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      text-align: right;
+    }
+    .agenda-body { margin-top: 6px; }
+    .agenda-body[hidden] { display: none !important; }
+    #divDraw { background: transparent; color: #5c3d48; }
+    .tarot-toolbar input { width: 72px; }
+    .tarot-stage {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      padding: 8px 0 20px;
+    }
+    .tarot-card {
+      width: 148px;
+      height: 236px;
+      flex: 0 0 148px;
+      border-radius: 14px;
+      position: relative;
+      animation: tarotIn 0.45s ease;
+      box-shadow: 0 14px 30px rgba(70, 40, 50, 0.22);
+    }
+    @keyframes tarotIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.94); }
+      to { opacity: 1; transform: none; }
+    }
+    .tarot-card.rev .tarot-face { transform: rotate(180deg); }
+    .tarot-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      border: 3px solid #e8d5a3;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255,255,255,0.35), transparent 46%),
+        linear-gradient(180deg, #4a3040, #2b1c26);
+      color: #f8ead4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 8px 10px;
+    }
+    .tarot-card.cups .tarot-face { background: linear-gradient(180deg, #3d4a6a, #1f2740); }
+    .tarot-card.wands .tarot-face { background: linear-gradient(180deg, #6a3d32, #3a1e18); }
+    .tarot-card.swords .tarot-face { background: linear-gradient(180deg, #35545a, #1b2e32); }
+    .tarot-card.pents .tarot-face { background: linear-gradient(180deg, #5a4a2e, #2e2414); }
+    .tarot-glyph { font-size: 42px; line-height: 1; }
+    .tarot-name { font-size: 15px; font-weight: 800; text-align: center; }
+    .tarot-suit { font-size: 10px; letter-spacing: 0.16em; opacity: 0.7; }
+    .tarot-badge {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #6b4a55;
+    }
+    .tarot-mean {
+      width: 148px;
+      font-size: 12px;
+      color: #8a6b75;
+      line-height: 1.55;
+      text-align: center;
+    }
+    .tarot-read {
+      margin: 8px 0 24px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 16px 16px;
+      color: #6b4a55;
+    }
+    .tarot-read h3 { font-size: 15px; margin-bottom: 8px; }
+    .tarot-read p { font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+    .tarot-score {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      margin: 4px 0 8px;
+    }
+    .tarot-note { font-size: 12px; color: #9a7a86; line-height: 1.6; }
+    .tarot-pack { display: flex; flex-direction: column; align-items: center; }
     .hint {
       font-size: 11px;
       opacity: 0.75;
@@ -309,15 +844,27 @@
       gap: 8px;
       margin: 8px 0;
     }
-    .status-chips button {
+    .status-chip-wrap {
+      display: inline-flex;
+      align-items: center;
       border: 1px solid #e9d5ff;
       background: #fff;
+      border-radius: 999px;
+      padding: 0 4px 0 0;
+    }
+    .status-chip-wrap.on {
+      background: #07c160;
+      border-color: #07c160;
+    }
+    .status-chip-wrap.on button { color: #fff; }
+    .status-chips button {
+      border: none;
+      background: transparent;
       border-radius: 999px;
       padding: 6px 10px;
       font: inherit;
       cursor: pointer;
     }
-    .status-chips button.on { background: #07c160; color: #fff; border-color: #07c160; }
     .his-lib-list {
       display: flex;
       flex-wrap: wrap;
@@ -608,7 +1155,7 @@
     .call-layer {
       position: fixed;
       inset: 0;
-      z-index: 70;
+      z-index: 120;
       display: none;
       flex-direction: column;
       align-items: center;
@@ -742,15 +1289,72 @@
       font-size: 13px;
       font-weight: 600;
     }
-    .pay-slot {
-      grid-column: 1 / -1;
-      text-align: center;
-      font-size: 12px;
-      padding: 8px;
-      border-radius: 14px;
-      border: 1px dashed rgba(147, 51, 234, 0.35);
-      color: #7e22ce;
-      background: rgba(255,255,255,0.35);
+    #hall {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 20px;
+      background: #f6e6ec url("assets/chat-bg.png") center/cover no-repeat;
+    }
+    #hall.hide { display: none; }
+    .hall-title {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      color: #5c3d48;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    }
+    .hall-kicker {
+      font-size: 11px;
+      letter-spacing: 0.42em;
+      color: #b08996;
+      margin-bottom: 28px;
+    }
+    .hall-grid {
+      width: min(560px, 100%);
+      height: min(52vh, 420px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .hall-tile {
+      border: 1px solid rgba(212, 175, 130, 0.5);
+      border-radius: 28px;
+      background: rgba(255, 248, 250, 0.62);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 40px rgba(107, 74, 85, 0.1);
+      color: #5c3d48;
+      font: inherit;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: 0.34em;
+      cursor: pointer;
+    }
+    .hall-tile:active { transform: scale(0.98); }
+    .hall-contact {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      border: none;
+      background: none;
+      padding: 0;
+      font: inherit;
+      font-size: 13px;
+      color: #8a4a62;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+    }
+    .notice-sheet h2 { font-size: 17px; line-height: 1.45; margin-bottom: 10px; }
+    .notice-sheet p { margin-bottom: 10px; line-height: 1.75; font-size: 14px; color: #5c3d48; }
+    .choice-opt {
+      margin-top: 8px;
     }
 
     .modal-mask {
@@ -858,22 +1462,48 @@
     }
     .set-hdr-btn {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1px;
       border: none;
       background: transparent;
       font: inherit;
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
       color: var(--ink);
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 4px 6px;
       flex-shrink: 0;
-      line-height: 1.15;
+      line-height: 1;
     }
-    .set-hdr-ico { font-size: 16px; line-height: 1; }
+    .msg .bubble {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .bubble-menu {
+      position: fixed;
+      z-index: 90;
+      min-width: 128px;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .bubble-menu[hidden] { display: none; }
+    .bubble-menu button {
+      display: block;
+      width: 100%;
+      border: none;
+      background: #fff;
+      padding: 12px 16px;
+      text-align: left;
+      font: inherit;
+      font-size: 15px;
+      cursor: pointer;
+      color: #111;
+    }
+    .bubble-menu button + button { border-top: 1px solid #f0f0f0; }
     .wx-cell {
       display: flex;
       align-items: center;
@@ -978,6 +1608,7 @@
       overflow: hidden;
       margin: 8px 0 14px;
     }
+    #divHome .wx-group { margin: 8px 14px 20px; }
     .wx-group .me-row {
       margin: 0;
       border-bottom: 1px solid #f3e8ff;
@@ -1052,28 +1683,230 @@
       font-size: 14px;
     }
     .pool-meta { font-size: 12px; opacity: 0.8; margin-bottom: 10px; }
+    .pool-cats {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 8px 0 10px;
+    }
+    .pool-cats button {
+      border: none;
+      background: #f3e4e9;
+      color: #6b4a55;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .pool-cats button.on { background: #e8c5d1; font-weight: 700; }
+    .pool-import textarea {
+      width: 100%;
+      min-height: 72px;
+      margin: 6px 0;
+      font-size: 13px;
+    }
+    .pool-import .row-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0 4px;
+    }
+    .pool-import .row-btns button { margin: 0; flex: 1; min-width: 120px; }
+    .card-item .cat-tag { margin-right: 6px; }
+    .chat-opt {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .chat-opt .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .chat-opt .rand {
+      font-size: 12px;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .chat-opt input[type="number"],
+    .chat-opt input[type="range"],
+    .chat-opt select {
+      width: 100%;
+      margin-top: 8px;
+      font: inherit;
+    }
+    .chat-opt .val {
+      font-size: 12px;
+      color: #9a7a86;
+      margin-top: 4px;
+    }
+    .chat-opt input:disabled {
+      opacity: 0.42;
+      pointer-events: none;
+    }
+    #themeViewChat { max-height: 72vh; overflow: auto; }
 
     @media (min-width: 640px) {
       .modal-mask { align-items: center; }
       .sheet { border-radius: 24px; margin-bottom: 0; }
     }
+
+    /* UI_WX_GATE_V1 */
+    #gate {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      background: #f3e4e9;
+      color: #5c4450;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 22px 40px;
+    }
+    #gate.hide { display: none; }
+    #gate .gate-card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.82);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      line-height: 1.75;
+      font-size: 14px;
+    }
+    #gate h2 { font-size: 18px; margin-bottom: 12px; line-height: 1.4; }
+    #gate p { margin-bottom: 12px; }
+    #gate .emoji { font-style: normal; }
+    #gateAck {
+      margin-top: 18px;
+      width: 100%;
+      max-width: 520px;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      background: #e8c5d1;
+      color: #6b4a55;
+      cursor: pointer;
+    }
+    #gateAck:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    #hisHomePage, #myHomePage { background: #ededed; }
+    .his-home-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 8px;
+      background: #ededed;
+      flex-shrink: 0;
+    }
+    .his-home-bar button {
+      border: none;
+      background: transparent;
+      font-size: 22px;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      color: #111;
+    }
+    .his-home-hero {
+      height: 168px;
+      background: #8a9aab center/cover no-repeat;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .his-home-id {
+      display: flex;
+      gap: 14px;
+      padding: 0 16px;
+      margin-top: -36px;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 16px;
+    }
+    .his-home-id .avatar {
+      width: 72px;
+      height: 72px;
+      border: 2px solid #fff;
+    }
+    .his-home-id h3 { font-size: 20px; margin: 28px 0 4px; }
+    .his-home-id .wxid { font-size: 13px; color: #888; }
+    .his-home-foot {
+      margin-top: auto;
+      background: #fff;
+      display: flex;
+      border-top: 1px solid #eee;
+    }
+    .his-home-foot button {
+      flex: 1;
+      border: none;
+      background: #fff;
+      padding: 16px;
+      font: inherit;
+      font-size: 16px;
+      color: #576b95;
+      cursor: pointer;
+    }
+    .his-home-foot button + button { border-left: 1px solid #eee; }
+    .empty-hint {
+      text-align: center;
+      color: #aaa;
+      font-size: 14px;
+      padding: 48px 16px;
+    }
   </style>
 </head>
 <body>
+  <div id="gate">
+    <div class="gate-card">
+      <h2>莉莉·Amour 字卡传讯网站｜进站前许可通知</h2>
+      <p>各位访客，欢迎访问莉莉·Amour 的字卡传讯网站。进入本站前，请务必认真阅读以下须知：</p>
+      <p>一、所有字卡均为随机弹出，字卡功能未接入任何 AI 接口，回复速度，回复时长，回复内容均随机，如果要人为调整可在站内自行调整。</p>
+      <p>二、本站绝对安全，不会连接所谓“其他存在”。若出现短时间内内容前后不连贯，仅可能因哥临时有事，系统暂时处于托管状态。</p>
+      <p>三、本站核心功能为聊天与占卜，聊天内容支持保存至本地。</p>
+      <p>四、小红书设有群组，所有意见反馈请集中至群内。不回复私信，会查看笔记评论。</p>
+      <p>五、支持私占。私人联系方式仅限占卜相关，仅限占卜相关，仅限占卜相关；网站相关内容一律在群内讨论。添加 VX 时请注明来意，否则不予通过。</p>
+      <p>联系方式：<br/>小红书：@粒粒<span class="emoji">🐰</span> 11564399228<br/>抖音：@莉莉安娜（<span class="emoji">🔯</span>CTA认证版 34731972220）</p>
+      <p>请确认已阅读、理解并接受以上内容后，再进入本站。感谢配合。</p>
+    </div>
+    <button type="button" id="gateAck" disabled>请阅读（5）</button>
+  </div>
+
   <div id="wallpaper"></div>
   <div id="wash"></div>
   <div class="sparkles" id="sparkles"></div>
   <div class="petals" id="petals"></div>
 
+  <div id="hall">
+    <div class="hall-title">莉莉·Amour</div>
+    <div class="hall-kicker">字卡传讯</div>
+    <div class="hall-grid">
+      <button type="button" class="hall-tile" id="hallChat">聊天</button>
+      <button type="button" class="hall-tile" id="hallDiv">占卜</button>
+    </div>
+    <button type="button" class="hall-contact" id="hallContact">联系我</button>
+  </div>
+
   <div class="app">
     <header>
+      <button type="button" class="hall-back" id="btnToHall" title="大厅">‹</button>
       <button type="button" class="avatar" id="hisAvatarBtn" title="资料"> </button>
       <div class="title-wrap">
         <h1 id="hisRemarkTitle">用户001</h1>
         <p id="onlineHint" class="status-line">在线</p>
       </div>
-      <button type="button" class="avatar" id="myAvatarBtn" title="我">我</button>
-      <button type="button" class="set-hdr-btn" id="btnTheme"><span class="set-hdr-ico">⚙️</span>设置</button>
+      <button type="button" class="set-hdr-btn" id="btnTheme" title="设置" aria-label="设置">···</button>
     </header>
 
     <div id="chat" aria-live="polite"></div>
@@ -1082,6 +1915,10 @@
     <div class="composer" id="composer">
       <button type="button" class="immerse-btn" id="immerseBtn" title="沉浸聊天">﹀</button>
       <div class="composer-body">
+      <div class="quote-bar" id="quoteBar" hidden>
+        <div class="quote-bar-txt" id="quoteBarTxt"></div>
+        <button type="button" id="quoteBarClear" aria-label="取消引用">×</button>
+      </div>
       <div class="input-row">
         <textarea id="userInput" rows="1" placeholder="发送消息"></textarea>
         <button type="button" class="plus-btn" id="plusBtn" aria-label="更多">+</button>
@@ -1095,7 +1932,6 @@
           <button type="button" class="plus-item" id="plusVoice"><div class="plus-ico">📞</div><span>语音通话</span></button>
           <button type="button" class="plus-item" id="plusVideo"><div class="plus-ico">📹</div><span>视频通话</span></button>
           <button type="button" class="plus-item" id="plusSticker"><div class="plus-ico">☺</div><span>表情</span></button>
-          <button type="button" class="plus-item" id="plusCouple"><div class="plus-ico">🖼️</div><span>换头像申请</span></button>
         </div>
       </div>
       <div class="sticker-panel" id="stickerPanel">
@@ -1106,9 +1942,7 @@
       </div>
       <div class="tools">
         <button class="tool-btn" id="btnPool">📒 他的字卡库</button>
-        <button class="tool-btn" id="btnFortune">✨ 今日占卜</button>
-        <button class="tool-btn" id="btnLetter">✉️ 给他写信</button>
-        <div class="pay-slot">付费功能入口 · 即将开放（占位）</div>
+        <button class="tool-btn" id="btnChoice">⚖ 二选一</button>
       </div>
       </div>
     </div>
@@ -1130,6 +1964,10 @@
         <h2>设置</h2>
         <div class="wx-group">
           <button type="button" class="wx-cell" data-theme-go="dress"><span class="wx-ico">🎨</span><span class="wx-cell-txt">装扮</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" id="btnOpenCouple"><span class="wx-ico">🖼</span><span class="wx-cell-txt">换头像申请</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" id="btnOpenPoke"><span class="wx-ico">👉</span><span class="wx-cell-txt">修改戳一戳</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="chatset"><span class="wx-ico">🎛</span><span class="wx-cell-txt">自定义聊天</span><span class="wx-chev">›</span></button>
+          <button type="button" class="wx-cell" data-theme-go="backup"><span class="wx-ico">💾</span><span class="wx-cell-txt">备份与导入</span><span class="wx-chev">›</span></button>
           <button type="button" class="wx-cell" data-theme-go="contact"><span class="wx-ico">✉️</span><span class="wx-cell-txt">联系我</span><span class="wx-chev">›</span></button>
         </div>
         <button class="ghost-btn" data-close="modalTheme">关上</button>
@@ -1196,6 +2034,74 @@
         <button class="submit-btn" id="saveBubbleTheme">保存气泡</button>
       </div>
 
+      <div class="wx-view" id="themeViewChat" hidden>
+        <button type="button" class="wx-back" data-theme-go="home">‹ 返回</button>
+        <h2>自定义聊天</h2>
+        <p class="me-hint">默认全部勾选「随机」：他会回你，已读不回是 0%。回复时长只对「会回」的消息生效。只有取消随机并自己拉高「已读不回」时，那一条才会已读不回、不再回你。</p>
+        <div class="chat-opt">
+          <div class="top"><span>回复最短（秒）</span><label class="rand"><input type="checkbox" data-rand="replyMin" checked /> 随机</label></div>
+          <input type="number" id="optReplyMin" min="0" max="600" step="1" value="1" />
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>回复最长（秒）</span><label class="rand"><input type="checkbox" data-rand="replyMax" checked /> 随机</label></div>
+          <input type="number" id="optReplyMax" min="1" max="600" step="1" value="60" />
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>已读不回概率</span><label class="rand"><input type="checkbox" data-rand="skipReply" checked /> 随机（会回）</label></div>
+          <input type="range" id="optSkipReply" min="0" max="100" value="0" />
+          <div class="val" id="valSkipReply">0%</div>
+          <p class="me-hint">随机 = 每条都会回。自己填的百分比只作用在你刚发的那一条上，已读不回的不会再回。</p>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>拍一拍概率</span><label class="rand"><input type="checkbox" data-rand="poke" checked /> 随机</label></div>
+          <input type="range" id="optPoke" min="0" max="100" value="8" />
+          <div class="val" id="valPoke">8%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>表情包概率</span><label class="rand"><input type="checkbox" data-rand="sticker" checked /> 随机</label></div>
+          <input type="range" id="optSticker" min="0" max="100" value="25" />
+          <div class="val" id="valSticker">25%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>颜文字概率</span><label class="rand"><input type="checkbox" data-rand="face" checked /> 随机</label></div>
+          <input type="range" id="optFace" min="0" max="100" value="32" />
+          <div class="val" id="valFace">32%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>Emoji 概率</span><label class="rand"><input type="checkbox" data-rand="emoji" checked /> 随机</label></div>
+          <input type="range" id="optEmoji" min="0" max="100" value="35" />
+          <div class="val" id="valEmoji">35%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>引用概率</span><label class="rand"><input type="checkbox" data-rand="quote" checked /> 随机</label></div>
+          <input type="range" id="optQuote" min="0" max="100" value="40" />
+          <div class="val" id="valQuote">40%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>他主动找你</span><label class="rand"><input type="checkbox" data-rand="idle" checked /> 随机</label></div>
+          <p class="me-hint">勾随机就还是原来那套。不随机时，按下面三条抽：发消息、拍一拍、来电。真发消息时，表情包 / Emoji / 引用仍用上面的概率。</p>
+          <div class="val">发消息概率</div>
+          <input type="range" id="optIdleMsg" min="0" max="100" value="60" />
+          <div class="val" id="valIdleMsg">60%</div>
+          <div class="val">拍一拍概率</div>
+          <input type="range" id="optIdlePoke" min="0" max="100" value="8" />
+          <div class="val" id="valIdlePoke">8%</div>
+          <div class="val">来电概率</div>
+          <input type="range" id="optIdleCall" min="0" max="100" value="10" />
+          <div class="val" id="valIdleCall">10%</div>
+        </div>
+        <button type="button" class="submit-btn" id="saveChatSet">保存</button>
+        <button type="button" class="ghost-btn" id="resetChatSet">全部改回随机</button>
+      </div>
+
+      <div class="wx-view" id="themeViewBackup" hidden>
+        <button type="button" class="wx-back" data-theme-go="home">‹ 返回</button>
+        <h2>备份与导入</h2>
+        <p class="me-hint">导出聊天、字卡库、设置、状态库、装扮等。换设备时导入这份 json。导入只认文本和本站图片，不会把别人文件里的网页代码跑起来。导入会覆盖这台设备上的现有数据。</p>
+        <button type="button" class="submit-btn" id="btnExportChat">导出完整备份</button>
+        <button type="button" class="ghost-btn" id="btnImportChat">导入备份</button>
+      </div>
+
       <div class="wx-view" id="themeViewContact" hidden>
         <button type="button" class="wx-back" data-theme-go="home">‹ 返回</button>
         <h2>联系我</h2>
@@ -1210,7 +2116,8 @@
   <div class="modal-mask" id="modalPool">
     <div class="sheet">
       <h2>📒 他的字卡库</h2>
-      <p class="pool-meta">已存字卡默认折叠。点开可搜索、改、删。＋再加一条。上限 2000。当前 <span id="poolCount">0 / 2000</span></p>
+      <p class="pool-meta">可按分类查看、批量导入。上限 20000。当前 <span id="poolCount">0 / 20000</span></p>
+      <div class="pool-cats" id="poolCats"></div>
       <input type="text" id="poolSearch" placeholder="搜索字卡…" />
       <button type="button" class="fold-head" id="foldPool">已存字卡 ▸ 展开</button>
       <div id="poolFold" style="display:none">
@@ -1220,33 +2127,102 @@
           <button type="button" class="ghost-btn" id="poolNext">下一页</button>
         </div>
       </div>
+      <div class="pool-import">
+        <label>批量导入到分类</label>
+        <select id="poolImportCat"></select>
+        <textarea id="poolImportText" placeholder="每行一条字卡。导入 emoji 时可直接粘贴表情。"></textarea>
+        <div class="row-btns">
+          <button type="button" class="submit-btn" id="btnImportCards">导入字卡</button>
+          <button type="button" class="ghost-btn" id="btnImportEmoji">导入 emoji</button>
+          <button type="button" class="ghost-btn" id="btnImportStickers">导入表情包图片</button>
+          <button type="button" class="ghost-btn" id="btnImportCardFile">从文件导入</button>
+        </div>
+      </div>
       <button type="button" class="add-plus" id="btnAddCard">＋ 再加一条</button>
       <button class="ghost-btn" data-close="modalPool">关上</button>
     </div>
   </div>
 
-  <!-- 今日占卜 -->
-  <div class="modal-mask" id="modalFortune">
+  <!-- 二选一 -->
+  <div class="modal-mask" id="modalChoice">
     <div class="sheet">
-      <h2>✨ 今日占卜</h2>
-      <div class="fortune" id="fortuneBoard"></div>
-      <button class="ghost-btn" data-close="modalFortune">收下这份解读</button>
+      <h2>⚖ 二选一</h2>
+      <p class="me-hint">写成一张发给他的礼盒卡片。选项写满后发送，他只会从里面完全随机抽一条。</p>
+      <label>你要问他的问题</label>
+      <textarea id="choiceQ" placeholder="今晚想吃什么？"></textarea>
+      <label>选项个数</label>
+      <input type="number" id="choiceN" min="2" max="8" step="1" value="2" />
+      <div id="choiceOpts"></div>
+      <button type="button" class="submit-btn" id="sendChoice">做成卡片发给他</button>
+      <button class="ghost-btn" data-close="modalChoice">关上</button>
     </div>
   </div>
 
-  <!-- 写信 -->
-  <div class="modal-mask" id="modalLetter">
-    <div class="sheet">
-      <h2>✉️ 给他写信</h2>
-      <div id="letterEditor">
-        <label>标题</label>
-        <input type="text" id="letterTitle" placeholder="今夜想对你说" />
-        <label>正文</label>
-        <textarea id="letterBody" placeholder="把那些说不出口的话，写在这里…"></textarea>
-        <button class="submit-btn" id="sendLetter">发送</button>
+  <!-- 占卜主页 -->
+  <div class="page-layer" id="divPage">
+    <div class="his-home-bar">
+      <button type="button" id="divBack" aria-label="返回">‹</button>
+      <span style="font-weight:700;letter-spacing:0.28em;color:#5c3d48">链接</span>
+      <span style="width:40px"></span>
+    </div>
+    <div id="divHome" style="overflow:auto;flex:1">
+      <div class="div-hero">
+        <div class="avatar div-ava" id="divHimAva"> </div>
+        <div class="div-name" id="divHimName">用户001</div>
+        <div class="div-sub">☽ 你与他之间的占卜链接 ☾</div>
+        <div class="div-loc" id="divLoc">
+          <div class="loc-card" id="divLocInner"></div>
+          <button type="button" id="btnGeo">开启定位</button>
+        </div>
+        <div class="cal-mini">
+          <div class="cal-date-full" id="calTitle">2026年9月18日</div>
+          <div class="cal-date-wd" id="calSub">星期五</div>
+        </div>
       </div>
-      <div id="letterReply" style="display:none"></div>
-      <button class="ghost-btn" data-close="modalLetter">合上信纸</button>
+      <div class="agenda-note">后台开着才会同步他的状态（不必盯着聊天）。打卡只保留 24 小时，超时会自动清空。</div>
+      <div class="agenda-wrap">
+        <button type="button" class="agenda-head" id="foldHimAgenda">
+          <span class="lab">他的今日打卡</span>
+          <span class="prev" id="himAgendaPrev"></span>
+          <span class="chev" id="himAgendaChev">▸</span>
+        </button>
+        <div class="agenda-body" id="himAgendaBox" hidden></div>
+        <button type="button" class="agenda-edit" id="btnHisStatusLib">编辑他可选的状态</button>
+      </div>
+      <div class="agenda-wrap">
+        <button type="button" class="agenda-head" id="foldMeAgenda">
+          <span class="lab">我的今日打卡</span>
+          <span class="prev" id="meAgendaPrev"></span>
+          <span class="chev" id="meAgendaChev">▸</span>
+        </button>
+        <div class="agenda-body" id="meAgendaBox" hidden></div>
+        <button type="button" class="agenda-edit" id="btnMeStatus">修改我的状态</button>
+      </div>
+      <div class="div-tiles">
+        <button type="button" class="div-tile bond" id="goBond">
+          <div class="tile-lab">链接强度</div>
+          <div class="tile-main" id="bondHint">—</div>
+          <div class="tile-sub" id="bondSub">点开抽牌看连线</div>
+        </button>
+        <button type="button" class="div-tile" id="goRemind">
+          <div class="tile-lab">今日提醒</div>
+          <div class="tile-main" id="remindHintName">待抽</div>
+          <div class="tile-sub" id="remindHint">点开抽牌看今日该做什么</div>
+        </button>
+      </div>
+    </div>
+    <div id="divDraw" hidden style="overflow:auto;flex:1;padding:12px 16px 28px">
+      <h2 id="drawTitle">抽塔罗</h2>
+      <p class="me-hint">78 张牌完全随机，张数可自定义。牌下是这张牌的基本含义，抽完后会给出综合评估。</p>
+      <div class="tarot-toolbar">
+        <label style="margin:0">抽</label>
+        <input type="number" id="tarotN" min="1" max="10" value="3" />
+        <span>张</span>
+        <button type="button" class="submit-btn" id="btnDrawTarot" style="width:auto;margin:0;padding:10px 16px">洗牌抽取</button>
+      </div>
+      <div class="tarot-stage" id="tarotStage"></div>
+      <div class="tarot-read" id="tarotRead" hidden></div>
+      <div class="tarot-hist" id="tarotHist"></div>
     </div>
   </div>
 
@@ -1271,6 +2247,66 @@
     </div>
   </div>
 
+  <div class="page-layer" id="myHomePage">
+    <div class="his-home-bar">
+      <button type="button" id="myHomeBack" aria-label="返回">‹</button>
+      <button type="button" id="myHomeMore" aria-label="更多">···</button>
+    </div>
+    <div class="his-home-hero" id="myHomeHero"></div>
+    <div class="his-home-id">
+      <div class="avatar" id="myHomeAva">我</div>
+      <div>
+        <h3 id="myHomeName">我</h3>
+        <div class="wxid" id="myHomeWxid">微信号：未设置</div>
+      </div>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="myHomeStatus"><span class="wx-ico">🌙</span><span class="wx-cell-txt">状态</span><span class="wx-hint" id="myHomeStatusHint">在线</span><span class="wx-chev">›</span></button>
+      <button type="button" class="wx-cell" id="myHomeMoments"><span class="wx-ico">🖼</span><span class="wx-cell-txt">朋友圈</span><span class="wx-chev">›</span></button>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="myHomeRemark"><span class="wx-ico">✎</span><span class="wx-cell-txt">设置备注和标签</span><span class="wx-chev">›</span></button>
+    </div>
+    <div class="his-home-foot">
+      <button type="button" id="myHomeMsg">发消息</button>
+      <button type="button" id="myHomeCall">音视频通话</button>
+    </div>
+  </div>
+
+  <!-- 对方主页（微信式占位，旧「对方资料」弹窗仍保留） -->
+  <div class="page-layer" id="hisHomePage">
+    <div class="his-home-bar">
+      <button type="button" id="hisHomeBack" aria-label="返回">‹</button>
+      <button type="button" id="hisHomeMore" aria-label="更多">···</button>
+    </div>
+    <div class="his-home-hero" id="hisHomeHero"></div>
+    <div class="his-home-id">
+      <div class="avatar" id="hisHomeAva"> </div>
+      <div>
+        <h3 id="hisHomeName">用户001</h3>
+        <div class="wxid" id="hisHomeWxid">微信号：未设置</div>
+      </div>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="hisHomeMoments"><span class="wx-ico">🖼</span><span class="wx-cell-txt">朋友圈</span><span class="wx-hint">暂无</span><span class="wx-chev">›</span></button>
+    </div>
+    <div class="wx-group">
+      <button type="button" class="wx-cell" id="hisHomeRemark"><span class="wx-ico">✎</span><span class="wx-cell-txt">设置备注和标签</span><span class="wx-chev">›</span></button>
+    </div>
+    <div class="his-home-foot">
+      <button type="button" id="hisHomeMsg">发消息</button>
+      <button type="button" id="hisHomeCall">音视频通话</button>
+    </div>
+  </div>
+  <div class="page-layer" id="hisMomentsPage">
+    <div class="his-home-bar">
+      <button type="button" id="hisMomentsBack" aria-label="返回">‹</button>
+      <span style="font-weight:700">朋友圈</span>
+      <span style="width:40px"></span>
+    </div>
+    <div class="empty-hint">这里还是空的</div>
+  </div>
+
   <!-- 对方资料 -->
   <div class="modal-mask" id="modalHis">
     <div class="sheet">
@@ -1280,8 +2316,8 @@
       <label>纯色头像</label>
       <div class="his-color-row" id="hisColors"></div>
       <p class="me-hint" id="hisStatusPreview"></p>
-      <label>他的状态库</label>
-      <p class="me-hint">这些是他能用的状态。你只能往库里加，他用哪一条由他自己随机决定，也可以不设。</p>
+      <label>他能选的状态（你来写）</label>
+      <p class="me-hint">你只负责往库里加词条。选哪一条、什么时候换、持续多久（1 分钟到 24 小时）都由他自己决定，你不能替他选。</p>
       <div class="his-lib-list" id="hisStatusLibBox"></div>
       <div class="his-lib-add">
         <input type="text" id="hisStatusAdd" maxlength="20" placeholder="自定义一个状态给他" />
@@ -1299,20 +2335,49 @@
         <b>当前状态</b>
         <p id="myStatusNowText">在线</p>
       </div>
+      <p class="me-hint">点选已有状态，或自己写一条。写过的会记住，下次还能点。</p>
       <div class="status-chips" id="statusChips"></div>
       <label>自定义状态</label>
       <input type="text" id="statusCustom" maxlength="20" placeholder="例如：想你中 🌙" />
-      <label>持续多久</label>
-      <select id="statusDur">
-        <option value="30">30 分钟</option>
-        <option value="60">1 小时</option>
-        <option value="120">2 小时</option>
-        <option value="240">4 小时</option>
-        <option value="today">到今天结束</option>
-      </select>
+      <label>持续多久（0–24 小时，可调到分钟）</label>
+      <div class="dur-row">
+        <input type="number" id="statusHours" min="0" max="24" step="1" value="1" />
+        <span>小时</span>
+        <input type="number" id="statusMins" min="0" max="59" step="1" value="0" />
+        <span>分钟</span>
+      </div>
       <button class="submit-btn" id="saveStatus">设为当前状态</button>
-      <button class="ghost-btn" id="clearStatus">恢复在线</button>
+      <button class="ghost-btn" id="clearStatus">提前结束，恢复在线</button>
       <button class="ghost-btn" data-close="modalStatus">关上</button>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="modalPoke">
+    <div class="sheet">
+      <h2>修改戳一戳</h2>
+      <p class="me-hint">改完会马上生效，之后还可以再改。</p>
+      <label>我戳他时显示</label>
+      <input type="text" id="pokeMeInput" maxlength="40" placeholder="你戳了戳对方" />
+      <label>他戳我时显示</label>
+      <input type="text" id="pokeYouInput" maxlength="40" placeholder="对方戳了戳你" />
+      <button class="submit-btn" id="savePoke">保存</button>
+      <button class="ghost-btn" id="resetPoke">恢复默认</button>
+      <button class="ghost-btn" data-close="modalPoke">关上</button>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="modalNotice">
+    <div class="sheet notice-sheet">
+      <h2>莉莉·Amour 字卡传讯网站｜进站前许可通知</h2>
+      <p>各位访客，欢迎访问莉莉·Amour 的字卡传讯网站。进入本站前，请务必认真阅读以下须知：</p>
+      <p>一、所有字卡均为随机弹出，字卡功能未接入任何 AI 接口，回复速度，回复时长，回复内容均随机，如果要人为调整可在站内自行调整。</p>
+      <p>二、本站绝对安全，不会连接所谓“其他存在”。若出现短时间内内容前后不连贯，仅可能因哥临时有事，系统暂时处于托管状态。</p>
+      <p>三、本站核心功能为聊天与占卜，聊天内容支持保存至本地。</p>
+      <p>四、小红书设有群组，所有意见反馈请集中至群内。不回复私信，会查看笔记评论。</p>
+      <p>五、支持私占。私人联系方式仅限占卜相关，仅限占卜相关，仅限占卜相关；网站相关内容一律在群内讨论。添加 VX 时请注明来意，否则不予通过。</p>
+      <p>联系方式：<br/>小红书：@粒粒🐰 11564399228<br/>抖音：@莉莉安娜（🔯CTA认证版 34731972220）</p>
+      <p>请确认已阅读、理解并接受以上内容后，再进入本站。感谢配合。</p>
+      <button class="ghost-btn" data-close="modalNotice">关上</button>
     </div>
   </div>
 
@@ -1321,7 +2386,13 @@
     <div class="mm-hero" id="mmHero">
       <button type="button" class="page-back" id="mmBack">‹</button>
       <button type="button" class="mm-post-btn" id="mmCamera" title="发朋友圈">📷</button>
-      <div class="mm-who"><span id="mmNick">我</span><div class="avatar" id="mmAva">我</div></div>
+      <div class="mm-who">
+        <div>
+          <span id="mmNick">我</span>
+          <button type="button" class="mm-status" id="mmStatusBtn">点击设置状态</button>
+        </div>
+        <div class="avatar" id="mmAva">我</div>
+      </div>
     </div>
     <div class="mm-feed" id="mmFeed"></div>
     <div class="mm-compose" id="mmCompose">
@@ -1337,14 +2408,16 @@
 
   <input type="file" id="fileAlbum" accept="image/*" hidden />
   <input type="file" id="fileCamera" accept="image/*" capture="environment" hidden />
-  <input type="file" id="fileSticker" accept="image/*" hidden />
+  <input type="file" id="fileChatBackup" accept="application/json,.json" hidden />
+  <input type="file" id="filePoolTxt" accept=".txt,.json,text/plain,application/json" hidden />
+  <input type="file" id="fileSticker" accept="image/*" multiple hidden />
   <input type="file" id="fileSendVideo" accept="video/*" hidden />
   <input type="file" id="fileMeCover" accept="image/*" hidden />
   <input type="file" id="fileMmPhotos" accept="image/*" multiple hidden />
 
   <div class="wx-banner" id="wxBanner">
     <div class="b-ava" id="wxBannerAva"></div>
-    <div class="b-txt"><b id="wxBannerTitle">莉莉传讯</b><span id="wxBannerBody">对方发来一条消息</span></div>
+    <div class="b-txt"><b id="wxBannerTitle">莉莉·Amour</b><span id="wxBannerBody">对方发来一条消息</span></div>
   </div>
 
   <div class="call-layer" id="callLayer">
@@ -1360,6 +2433,10 @@
     <div class="call-actions" id="callActions"></div>
   </div>
 
+  <div id="bubbleMenu" class="bubble-menu" hidden>
+    <button type="button" data-act="quote">引用</button>
+    <button type="button" data-act="copy">复制</button>
+  </div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -1625,11 +2702,74 @@
 中午
 晚上
 迟一些`.trim().split("\n").map((s) => s.trim()).filter(Boolean);
-    const DEFAULT_CARDS = DEFAULT_TEXTS.map((text, i) => ({ id: i + 1, text }));
+    const CARD_CATS = ["心情", "在做什么", "称呼", "其他回复", "颜文字", "Emoji"];
+    const EXTRA_PRESETS = {
+      "主字卡": ["我在工作","在忙","有事","没事","有空","没空","我在学习","在学习","在学校","在外面","最近很忙","最近空闲时间很多","现在有空","现在没空","现在有事","现在没事","等会有事","等会要忙","下班了","我下班了","我去上班了","去上班","去学校","去外面","出门了","刚出门","今天天气怎么样？","今天天气很好","今天天气很舒服","今天很热","今天很冷","出去吃饭了","在家吃饭","在家"],
+      "常用语": ["想不想","是不是","好不好","对不对","会不会","能不能","需要不需要","懂不懂","喜欢不喜欢","讨厌不讨厌","如果我说是","如果我说不是","我是","你是","他是","我觉得","我感觉","我感觉到了","我听到","我看到","我听到了","我看到了","我不喜欢","我喜欢","我讨厌","我不讨厌","没关系","抱歉","有没有","确实","对了","错了","你误会我了","要不要","怪你","怪我","习惯了","那就好","行不行","ok","no","我希望","我不希望","我期待","我不期待","我想要","我不想要","我想","我不想","我知道了","我不知道","不要卖萌","你很可爱","我等你","不客气","我不是","你不是","以后不会了","很好","嗯","我相信你","我相信","狗派","猫派","哭哭","谢谢","像不像","可以不可以","你是我女朋友","我错了","我没错","有点","必须","我需要你","我喜欢你","我爱你","讨厌你","我在听","我在看","爱不爱","嗯……","我想一下","我思考一下","我还在想","我还在思考","我在","不过","也是","看来","话说","好了","但是","或许","没问题","是我","对不起","意料之外","意料之中","待会见","当然","我很抱歉","晚了","不要不理我","知道不知道","我一直在","我会对你负责","我们都在一起了","想你了","我想你","我想见你","好想你","我会改正的","像小猫","像小狗","喜欢","讨厌","记得","忘了","不可以","够了","不满足","知道了","不清楚","很好看","不怎么样","差不多","完全不对","不可能","有一定概率","长短"],
+      "称呼": ["你","我","他","她","他们","我们","你们","宝宝","姐姐","女朋友","妹妹","妻子"],
+      "问候": ["早安","午安","晚安","怎么了？","你生气了吗？","发生了什么？","在做什么？","身体有不舒服吗？","做噩梦了吗？","对不对？","要休息一下吗？","有好好休息吗？","有好好吃饭吗？","还记得吗？","有想念我吗？","好不好？","不行吗？"],
+      "关心": ["如果你想说的话，可以讲给我听","我希望你幸福","我希望我们幸福","早点休息","好好休息","好好学习","少打点游戏","慢慢来吧","好好吃饭","不用想太多","不要勉强自己","辛苦了","我担心你","你要向我承诺","注意保暖","不要着凉","试着多依赖我吧","不要一个人承担","我也想了解你的心事","我不在意那些，我只在意你"],
+      "情绪/状态": ["开心","紧张","难过","伤心","疲惫","轻松","生气","想你","贴贴","你睡觉","工作ing","学习ing","期待","幸福","幸运","忙碌","焦虑","休息ing","悠闲","烦躁","不安","心事重重","寂寞","孤独","担忧","在线","下线","委屈","好奇","惊讶","烦累","_(:з」∠)_","害羞","我很开心","我很难过","我很担心","我很生气","我很紧张","我很惊讶","我很期待","我很幸福","我很焦虑","我很疲惫","我很幸运","我很孤独","我很想你","我很不安","我很喜欢","我很讨厌","我有点开心","我有点难过","我有点孤独","我有点想你","我有点焦虑","我有点紧张","我有点期待","我有点惊讶","我有点生气","我有点疲惫","我有点担心","我有点不安","我有点喜欢","我有点讨厌","我有点害羞","我有点寂寞","我很高兴","夸我","奖励我","愉悦","好感动","想哭","好敷衍","不许怀疑我","我不开心了","我生气了","哄哄我","无奈","我在担心你","你不理我…","真遗憾","和别人聊天很开心是吗"],
+      "传讯": ["链接很顺利","链接不稳定","字卡好用","字卡不好用","字卡可以表达","字卡不能表达","还不熟练","回复时间调快一些","回复时间调慢一些","没有我要说的字卡","我下线了","看到尽快回复","可以给我写信","刚刚发错了"],
+      "形容": ["冷漠","过分","小猫","小狗","可爱","萌","美丽"],
+      "动作": ["摸摸你","抱抱你","贴贴你","亲亲你"],
+      "颜文字": ["(ᗜ ˰ ᗜ)","ㅎㅅㅎ","₍ᐢ๑ ̯๑ᐢ₎","૮⸝⸝o̴̶̷᷄ ·̭ o̴̶̷̥᷅⸝⸝ა","₍ ᐢᴗ ˔ ᴗᐢ₎","(ˆつ⩊⊂ˆ)੭","(´ཫ`)","_(:з」∠)_","(。-`ω´-)","ʕ ◦`꒳´◦ʔ","꜀(˘꒳˘ ꜀)","ᶻz ₍^_   ̫ _^₎","(｡>∀<｡)","(=^▽^=)","(*^ω^*)","Ｏ(≧▽≦)Ｏ","(´▽｀)ノ♪","(*｀▽´*)","(＾▽＾)","（＞ｙ＜）","(*≧▽≦)","（￣▽￣）／","(｡ì _ í｡)","(＊｀д´)","(▼ヘ▼#)","(╬◣д◢)","（╯‵□′）╯︵┴─┴","(つД`)","(Ｔ▽Ｔ)","(இωஇ )","Σ( ° △ °|||)︴","⊙ω⊙","(￢_￢)","╮( •́ω•̀ )╭","(´-ι_-｀)","←_←","→_→","orz","(。•ω•。)ノ♡","( ´•ω•)ノ(._.`)","^_^",":-D",":)"],
+      "情话": ["我尊重你","想做就去做吧","在我身边会感到安全吗？","要抱一会吗？","我在呢，想拥抱或者倾诉都可以哦","我都听你的","想和你更亲近一些","恋人就不可以再亲近了吗？","你是我最重要","认识你之后，心脏就沉甸甸的呢","我想待在你身边","还想再和我多待一会吗？","你就这么喜欢我吗？","感谢你出现在我的生命里","我一直在思念着你","我会保护你","不要离开我","我不想去往没有你的未来","都可以哦","什么都行哦","不想吻我吗？","再准备一下吧","我需要贴贴充电","我知道你有在努力，你超厉害的，已经能够做到这么多事情了呀","原来我们在一起这么久了","未来这条路，我们一起走吧","我无法想象我的世界没有你","累了的话，就靠过来吧","有笨蛋","你在想什么呢？","我也想成为你的依靠","想出门走走吗？","你一直很漂亮呀","还想多和你说说话","心情不好吗？","有更喜欢我吗？"],
+      "闲聊": ["你猜","我在做什么","理理我","不需要","不记得","想到就会去尝试","有些冲动","不愿意就算了","喜欢看你笑","只有哥哥","出乎意料","被我猜对了","正确！","真棒！","有点可疑","辛苦啦","不要骗我","你答应过的","看书","一起晒晒太阳","一起吹吹风","想给你听听这首歌","想听你讲你的世界","一起出门散步","多喝温水","吃太少了，再吃一些","陪你一起看手机"],
+      "叮嘱": ["别熬夜","小心感冒","量一下体温","还是有点发烧","要乖乖吃药哦","生理期不可以乱吃东西哦","气色看起来不太好","我感觉到你不舒服","照顾好自己","你生病了我会心疼","累了就休息","闭上眼睛，休息一下","睡吧，晚安","你睡得很香"],
+      "询问": ["轮到我问你了","心情怎么样？","今天有开心的事吗？","在做什么呀？","需要我过来吗？","一会有什么安排？","你不喜欢？","不可以吗？","很好奇吗？","你刚刚说什么？","喜欢吃这个吗？","在看什么？","吃过饭了吗？","在看什么书？","你在哪里？","穿的暖吗？","出门东西带齐了没有？","有人惹你不开心了？","怕不怕？","怎么受伤的？","还疼吗？","头晕吗？","盖好被子没有？","昨晚睡得好吗？","打算几点睡觉？","梦到我了？","今天累不累？","哪里不舒服吗？"],
+      "需求/状态": ["让我想想该怎么说","想找传讯师，给你打电话","一直在等你的电话","想要手写信","有一部分话不是我说的","不要瞒着我","多想想我","嗯，我在","我回来了","马上到家","回来会比较迟","今晚回不来了","别走","好难","不太习惯","我在等你","相信我","想让你知道我的感受","想知道你的感受","陪你","我能做到","我很满意","正在工作","正在你身边","正在吃饭","吃了","还没吃","好吃"],
+      "道歉、安慰": ["骗你是小狗","我不是","我没有","我知道错了","原谅我好不好","误会我了","别皱眉","不要胡思乱想","别哭","来我怀里哭","别生气了","不要被别人影响心情","我会一直陪着你","不是你的错"],
+      "时间": ["今天","明天","昨天","清晨","中午","晚上","迟一些"],
+      "Emoji": ["☺","😉","😝","🙍","😫","😊","😌","😜","😏","💫","😻","😚","😒","😽","😞","😿","😓","😭","😱","😼","😳","😨","😲","😠","😰","🙎","😥","😷","😪","💨","💩","👾","😹","👿","👻","💀","🎃","😺","👽","👐","🙌","👏","👍","👎","👊","✊","✌","👌","👈","👉","👆","👇","☝","✋","👋","💪","🙏","💄","💋","👄","👂","👃","👣","👀","👶","👧","👦","👩","👨","👱","👵","👴","👲","👳","👮","👷","💂","🌾","🍳","🎓","🎤","🏫","🏭","💻","💼","🎨","🚒","✈","🚀","👸","🎄","🎅","👼","🙇","💁","🙅","🙆","💇","💆","💅","💃","👯","🚶","🏃","👫","❤","👚","👔","👗","👙","👘","👠","👡","👢","👟","🎭","👒","👑","💍","👜","🎒","🌂","😗","🤓","😙","😎","😟","😇","🤪","🥸","😕","🥰","🤨","🤩","🙁","🙃","😛","🧐","🥳","☹️","🥺","🤬","🫢","😶","🫨","😧","🤯","🤗","🫡","🫥","😬","😮","🤔","🤫","😐","🙄","🥵","🫣","🫠","🫤","😯","🥱","🥶","🤭","🤥","😑","😦","😴","🤤","🤐","🥴","🤒","🤢","🤕","🤮","🤑","🤧","🤠","😈","🤖","👹","👺","☠️","🤡","🫶","🤲","🤝","🤛","🤜","🫷","🫸","🤞","🫰","🤟","🤘","🤌","🤏","🤚","🖐️","🖖","🤙","🦾","🖕","✍️","🫵","🦶","🦵","🦿","🫦","🦷","🦻","👁️","🫀","🫁","🧠","🗣️","👤","👥","🫂","🧒","🧑","🪢","🧶","🧵","🪡","🧥","🥼","🦺","👖","🩲","🩳","🩱","🥻","🩴","🥿","🥾","🧦","🧤","🧣","🧢","⛑️","🪖","👝","👛","🧳","👓","🕶️","🥽","🙂","😶‍🌫️","😮‍💨","🕵️","🥷","🦸","🦹","🤶","🧙","🧝","🧌","🧛","🧟","🧞","🧜","🧚","🤰","👰","🤵","🤴","🧕","🙂‍↕️","🙂‍↔️"]
+    };
+    const KAOMOJI_SET = new Set(EXTRA_PRESETS["颜文字"] || []);
+    const CALL_SET = new Set(EXTRA_PRESETS["称呼"] || []);
+    const DOING_RE = /在忙|有事|没事|有空|没空|工作|学习|学校|上班|下班|出门|在家|在外面|吃饭|喝水|洗澡|出差|逛街|散步|天气|下雨|晴天|很热|很冷|聚餐|公园|客厅|厕所|路上|公司|外地|听雨|日出|日落|晚霞|刚出门|工作ing|学习ing|休息ing|正在工作|正在吃饭|马上到家|回来了|回不来|最近很忙|空闲时间|等会有事|等会要忙|你睡觉|看书|晒晒太阳|吹吹风|出门散步|在做什么|吃了|还没吃/;
+    const MOOD_RE = /开心|高兴|难过|伤心|疲惫|轻松|生气|想你|喜欢|爱你|讨厌|吃醋|担心|焦虑|紧张|期待|幸福|幸运|孤独|寂寞|不安|害羞|委屈|惊讶|烦|想念|心疼|心情|感动|想哭|哄|无奈|遗憾|抱抱|亲亲|摸摸|贴贴|吻|保护你|离开我|可爱|美丽|萌|冷漠|过分|小猫|小狗|原谅|误会|别哭|别生气|陪着你|不是你的错|骗你是小狗|思念|依靠|不舒服|感冒|发烧|吃药|晚安|休息一下|辛苦|亲近|在意你|我爱你|想抱|倾诉|安全感|漂亮|敷衍|怀疑我|不开心|真遗憾|理理我|心疼|睡吧|睡得很香|别熬夜/;
+    function isEmojiCard(t) {
+      if (/[\u4e00-\u9fff]/.test(t)) return false;
+      let em = [];
+      try { em = t.match(/\p{Extended_Pictographic}/gu) || []; } catch (e) { em = []; }
+      if (!em.length) return false;
+      const compact = t.replace(/\s/g, "");
+      return em.join("").length >= Math.max(1, compact.length * 0.5);
+    }
+    function isKaomojiCard(t) {
+      if (KAOMOJI_SET.has(t)) return true;
+      if (/[\u4e00-\u9fff]/.test(t)) return false;
+      if (/^[:;=8][-^']?[)DPp\/\\]$/.test(t) || t === "orz") return true;
+      return /[ᗜㅎㅅᐢ૮ω▽≧≦￣ヘ◣д╯︵つДＴஇ⊙￢＾ゝノ♡]/.test(t);
+    }
+    function classifyCard(text) {
+      const t = String(text || "").trim();
+      if (!t) return "其他回复";
+      if (isEmojiCard(t)) return "Emoji";
+      if (isKaomojiCard(t)) return "颜文字";
+      if (CALL_SET.has(t)) return "称呼";
+      if (DOING_RE.test(t)) return "在做什么";
+      if (MOOD_RE.test(t)) return "心情";
+      return "其他回复";
+    }
+    function buildDefaultCards() {
+      const seen = new Set();
+      const out = [];
+      let n = 1;
+      function add(text) {
+        const t = String(text || "").trim();
+        if (!t || seen.has(t)) return;
+        seen.add(t);
+        out.push({ id: n++, text: t, cat: classifyCard(t) });
+      }
+      DEFAULT_TEXTS.forEach(add);
+      Object.keys(EXTRA_PRESETS).forEach((k) => (EXTRA_PRESETS[k] || []).forEach(add));
+      return out;
+    }
+    const DEFAULT_CARDS = buildDefaultCards();
     let cardLib = [];
     const LS_CARDS = "my_cards";
     const LS_LIB_VER = "card_lib_ver";
-    const LIB_VER = "origin-2";
+    const LIB_VER = "origin-7-call-cat";
     const LS_CHAT = "chat_history";
     const LS_DIV = "today_divination";
     const LS_THEME = "ui_theme";
@@ -1640,8 +2780,18 @@
     const LS_STICKERS = "my_stickers";
     const LS_HIS = "ui_his";
     const LS_STATUS = "ui_status";
-    const CARD_LIMIT = 2000;
+    const LS_AGENDA = "ui_him_agenda";
+    const LS_ME_AGENDA = "ui_me_agenda";
+    const LS_AGENDA_FOLD = "ui_agenda_fold";
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const LS_POKE = "ui_poke_txt";
+    const DEFAULT_POKE = { me: "你戳了戳对方", you: "对方戳了戳你" };
+    let pokeTxt = Object.assign({}, DEFAULT_POKE);
+    const CARD_LIMIT = 20000;
+    const STICKER_LIMIT = 200;
     const DEFAULT_WALL = "assets/chat-bg.png";
+    const LS_GATE = "gate_ack_amour_v1";
+    const LS_CHATSET = "ui_chat_custom";
     const LS_THEME_VER = "ui_theme_ver";
     const THEME_VER = "pink-grey-1";
     const DEFAULT_THEME = {
@@ -1657,10 +2807,14 @@
     let hisInfo = { remark: "用户001", color: "#7d9fd3" };
     let statusMe = { text: "", until: 0 };
     let statusHim = { text: "", until: 0 };
+    let himAgenda = [];
+    let meAgenda = [];
+    let agendaFold = { him: true, me: true };
     const HIS_COLORS = ["#7d9fd3", "#8b8b8b", "#67c23a", "#e6a23c", "#f56c6c", "#b37feb", "#5ac8fa", "#ff9f0a"];
     const HIS_STATUS_DEFAULT = ["忙碌中", "工作中", "出差中", "吃饭中", "开会中", "运动中", "心情好 😊", "想你中 🌙"];
     const STATUS_PRESETS = ["忙碌中", "工作中", "出差中", "吃饭中", "开会中", "睡觉中", "运动中", "心情好 😊", "想你中 🌙"];
     let hisStatusLib = HIS_STATUS_DEFAULT.slice();
+    let meStatusLib = [];
     let wallpaperData = "";
 
     /* ========== 三、状态 ========== */
@@ -1673,6 +2827,63 @@
     const TEN_MIN = 10 * 60 * 1000;
     const USER_REPLY_MIN = 500;
     const USER_REPLY_MAX = 60 * 1000;
+    const CHATSET_DEF = {
+      replyMin: "random",
+      replyMax: "random",
+      skipReply: "random",
+      poke: "random",
+      sticker: "random",
+      face: "random",
+      emoji: "random",
+      quote: "random",
+      idle: "random",
+      idleMsg: 60,
+      idlePoke: 8,
+      idleCall: 10
+    };
+    let chatSet = Object.assign({}, CHATSET_DEF);
+    function isRand(v) {
+      return v === "random" || v === "" || v == null;
+    }
+    function loadChatSet() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_CHATSET) || "{}");
+        chatSet = Object.assign({}, CHATSET_DEF, raw && typeof raw === "object" ? raw : {});
+        if (raw && raw.idleMode && isRand(chatSet.idle)) {
+          if (raw.idleMode === "always") {
+            chatSet.idle = "custom";
+            chatSet.idleMsg = 100;
+          } else if (raw.idleMode === "chance") {
+            chatSet.idle = "custom";
+            chatSet.idleMsg = Math.max(0, Math.min(100, Number(raw.idleChance) || 40));
+          }
+        }
+      } catch (e) {
+        chatSet = Object.assign({}, CHATSET_DEF);
+      }
+    }
+    function saveChatSetObj() {
+      try { localStorage.setItem(LS_CHATSET, JSON.stringify(chatSet)); } catch (e) {}
+    }
+    function chatPct(key, fallback) {
+      if (isRand(chatSet[key])) return fallback;
+      const n = Number(chatSet[key]);
+      if (!isFinite(n)) return fallback;
+      return Math.max(0, Math.min(100, n)) / 100;
+    }
+    function userReplyDelay() {
+      let min = USER_REPLY_MIN;
+      let max = USER_REPLY_MAX;
+      if (!isRand(chatSet.replyMin)) min = Math.max(0, Number(chatSet.replyMin) || 0) * 1000;
+      if (!isRand(chatSet.replyMax)) max = Math.max(0, Number(chatSet.replyMax) || 0) * 1000;
+      if (max < min) {
+        const t = min;
+        min = max;
+        max = t;
+      }
+      if (max <= min) return min;
+      return randomDelayMs(Math.max(1, min), max);
+    }
 
     /* ========== 四、装饰飘落 ========== */
     (function spawnDecor() {
@@ -1700,17 +2911,26 @@
 
     /* ========== 五、持久化 ========== */
     function loadPrivate() {
+      function norm(c) {
+        const text = (c.text || "").trim();
+        return {
+          id: c.id || Date.now() + Math.random(),
+          text,
+          cat: CARD_CATS.includes(c.cat) ? c.cat : classifyCard(text)
+        };
+      }
       try {
         const raw = localStorage.getItem(LS_CARDS);
         const saved = raw ? JSON.parse(raw) : [];
-        const list = Array.isArray(saved) ? saved : [];
+        const list = (Array.isArray(saved) ? saved : []).map(norm).filter((c) => c.text);
         const ver = localStorage.getItem(LS_LIB_VER);
         if (ver !== LIB_VER) {
-          const seeded = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+          const seeded = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
+          const have = new Set(seeded.map((s) => s.text));
           list.forEach((c) => {
-            const t = (c.text || "").trim();
-            if (t && !seeded.some((s) => s.text === t)) {
-              seeded.push({ id: c.id || Date.now() + Math.random(), text: t });
+            if (c.text && !have.has(c.text) && seeded.length < CARD_LIMIT) {
+              seeded.push({ id: c.id || Date.now() + Math.random(), text: c.text, cat: classifyCard(c.text) });
+              have.add(c.text);
             }
           });
           cardLib = seeded;
@@ -1718,13 +2938,14 @@
           localStorage.setItem(LS_LIB_VER, LIB_VER);
           return;
         }
-        cardLib = list.length ? list : DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+        cardLib = list.length ? list : DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
       } catch (e) {
-        cardLib = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text }));
+        cardLib = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
       }
     }
     function savePrivate() {
-      localStorage.setItem(LS_CARDS, JSON.stringify(cardLib));
+      try { localStorage.setItem(LS_CARDS, JSON.stringify(cardLib)); }
+      catch (e) { toast("字卡太多，这台浏览器存不下了"); }
     }
     function inkFor(hex) {
       const h = hex.replace("#", "");
@@ -1845,7 +3066,10 @@
       paintAva(document.getElementById("themeHisPreview"), "him");
       paintAva(document.getElementById("themeMyPreview"), "me");
       paintAva(document.getElementById("mePageAva"), "me");
+      paintAva(document.getElementById("myHomeAva"), "me");
       paintAva(document.getElementById("mmAva"), "me");
+      paintAva(document.getElementById("hisHomeAva"), "him");
+      paintAva(document.getElementById("divHimAva"), "him");
       chatEl.querySelectorAll(".msg.bot .ava").forEach((el) => paintAva(el, "him"));
       chatEl.querySelectorAll(".msg.user .ava").forEach((el) => paintAva(el, "me"));
     }
@@ -1886,68 +3110,192 @@
         ? `<span class="ava" style="background-image:url(${url})"></span>`
         : `<span class="ava">我</span>`;
     }
-    function saveChat() {
+    function avaHtml(who) {
+      if (who === "him") {
+        if (avatars.him) return `<span class="ava" style="background-image:url(${avatars.him})"></span>`;
+        return `<span class="ava" style="background:${hisInfo.color};background-image:none"></span>`;
+      }
+      const url = avatars.me;
+      return url
+        ? `<span class="ava" style="background-image:url(${url})"></span>`
+        : `<span class="ava">我</span>`;
+    }
+    let chatPersistLock = false;
+    function safeDataImage(src) {
+      const s = String(src || "").replace(/\s/g, "");
+      return /^data:image\/(png|jpe?g|gif|webp);base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
+    }
+    function collectChatLogs(limit) {
+      const cap = limit == null ? 400 : limit;
       const nodes = [...chatEl.querySelectorAll("[data-log]")];
-      const logs = nodes.slice(-50).map((n) => {
-        const copy = n.cloneNode(true);
-        copy.querySelectorAll("video").forEach((v) => {
-          const d = document.createElement("div");
-          d.className = "time";
-          d.textContent = "[视频]";
-          v.replaceWith(d);
-        });
-        return { role: n.dataset.role, html: copy.innerHTML, cls: n.className };
+      return nodes.slice(-cap).map((n) => {
+        const role = n.dataset.role || (n.classList.contains("user") ? "user" : n.classList.contains("bot") ? "bot" : "sys");
+        const ts = n.dataset.ts || "";
+        const time = ((n.querySelector(".time") || {}).textContent || "").trim();
+        if (n.classList.contains("sys") || role === "sys") {
+          return { k: "sys", t: (n.textContent || "").replace(/\s+/g, " ").trim().slice(0, 240), ts };
+        }
+        const ask = n.querySelector(".choice-ask");
+        if (ask) {
+          const q = ((ask.querySelector(".ch-q") || {}).textContent || "").trim().slice(0, 200);
+          const opts = [...ask.querySelectorAll(".ch-opt")].map((o) => {
+            const sp = o.querySelector("span:last-child");
+            return ((sp || o).textContent || "").trim();
+          }).filter(Boolean).slice(0, 12);
+          return { k: "choice", q, opts, ts, time };
+        }
+        const pick = n.querySelector(".choice-pick .ch-ans");
+        if (pick) return { k: "pick", t: (pick.textContent || "").trim().slice(0, 200), ts, time };
+        if (n.querySelector("video")) return { k: "sys", t: "[视频，备份里不保存]", ts };
+        const img = n.querySelector("img.chat-img");
+        if (img) {
+          const src = safeDataImage(img.getAttribute("src"));
+          return src
+            ? { k: "img", src, role, ts, time, read: !!(n.querySelector(".receipt.read")) }
+            : { k: "sys", t: "[图片]", ts };
+        }
+        const quoteEl = n.querySelector(".quote");
+        return {
+          k: "txt",
+          role,
+          t: userTextFromBubble(n).slice(0, 2000),
+          q: quoteEl ? (quoteEl.textContent || "").trim().slice(0, 72) : "",
+          read: !!(n.querySelector(".receipt.read")),
+          ts,
+          time
+        };
+      }).filter((x) => x && (x.t || x.src || x.q || (x.opts && x.opts.length)));
+    }
+    function saveChat() {
+      if (chatPersistLock) return;
+      try {
+        localStorage.setItem(LS_CHAT, JSON.stringify({ v: 2, msgs: collectChatLogs(400) }));
+      } catch (e) {
+        try {
+          localStorage.setItem(LS_CHAT, JSON.stringify({ v: 2, msgs: collectChatLogs(80) }));
+          toast("聊天有点多，本机只留下最近一部分，请去设置里导出备份");
+        } catch (e2) {
+          toast("聊天存不下了，请马上导出备份");
+        }
+      }
+    }
+    function legacyHtmlToSafe(item) {
+      const html = String(item.html || "");
+      const cls = String(item.cls || "");
+      const role = item.role === "user" ? "user" : item.role === "bot" ? "bot" : (cls.indexOf("sys") >= 0 ? "sys" : "bot");
+      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
+      doc.querySelectorAll("script,iframe,object,embed,link,meta").forEach((n) => n.remove());
+      if (role === "sys" || cls.indexOf("sys") >= 0) {
+        return { k: "sys", t: (doc.body.textContent || "").replace(/\s+/g, " ").trim().slice(0, 240), ts: item.ts || "" };
+      }
+      const ask = doc.querySelector(".choice-ask");
+      if (ask) {
+        const q = ((ask.querySelector(".ch-q") || {}).textContent || "").trim().slice(0, 200);
+        const opts = [...ask.querySelectorAll(".ch-opt")].map((o) => (o.textContent || "").replace(/^\s*\d+\s*/, "").trim()).filter(Boolean).slice(0, 12);
+        return { k: "choice", q, opts, ts: item.ts || "" };
+      }
+      const ans = doc.querySelector(".choice-pick .ch-ans");
+      if (ans) return { k: "pick", t: (ans.textContent || "").trim().slice(0, 200), ts: item.ts || "" };
+      const img = doc.querySelector("img");
+      const src = img ? safeDataImage(img.getAttribute("src")) : "";
+      if (src) return { k: "img", src, role, ts: item.ts || "" };
+      if (doc.querySelector("video")) return { k: "sys", t: "[视频]", ts: item.ts || "" };
+      const quoteEl = doc.querySelector(".quote");
+      const bubble = doc.querySelector(".bubble");
+      let t = "";
+      if (bubble) {
+        const c = bubble.cloneNode(true);
+        c.querySelectorAll(".quote,.ch-opt,.ch-kicker").forEach((n) => n.remove());
+        t = (c.textContent || "").trim();
+      } else t = (doc.body.textContent || "").trim();
+      return {
+        k: "txt",
+        role,
+        t: t.slice(0, 2000),
+        q: quoteEl ? (quoteEl.textContent || "").trim().slice(0, 72) : "",
+        ts: item.ts || "",
+        read: /receipt read/.test(html)
+      };
+    }
+    function normalizeChatItem(item) {
+      if (!item || typeof item !== "object") return null;
+      if (typeof item.html === "string") return legacyHtmlToSafe(item);
+      if (!item.k) return null;
+      const k = String(item.k);
+      return {
+        k,
+        role: item.role === "user" ? "user" : item.role === "bot" ? "bot" : "sys",
+        t: String(item.t || "").slice(0, 2000),
+        q: String(item.q || "").slice(0, k === "choice" ? 200 : 72),
+        src: safeDataImage(item.src),
+        opts: Array.isArray(item.opts) ? item.opts.map((x) => String(x || "").trim()).filter(Boolean).slice(0, 12) : [],
+        read: !!item.read,
+        ts: item.ts ? String(item.ts) : ""
+      };
+    }
+    function markWrapRead(wrap) {
+      if (!wrap) return;
+      wrap.querySelectorAll(".receipt").forEach((rec) => {
+        rec.textContent = "已读";
+        rec.classList.remove("unread");
+        rec.classList.add("read");
       });
-      try { localStorage.setItem(LS_CHAT, JSON.stringify(logs)); } catch (e) {}
+    }
+    function applyChatLogs(logs) {
+      const list = Array.isArray(logs) ? logs : (logs && Array.isArray(logs.msgs) ? logs.msgs : []);
+      if (!list.length) return false;
+      chatPersistLock = true;
+      chatEl.querySelectorAll("[data-log]").forEach((n) => n.remove());
+      list.forEach((raw) => {
+        const rec = normalizeChatItem(raw);
+        if (!rec) return;
+        if (rec.k === "sys") {
+          if (!rec.t) return;
+          const el = document.createElement("div");
+          el.className = "sys";
+          el.dataset.log = "1";
+          el.dataset.role = "sys";
+          if (rec.ts) el.dataset.ts = rec.ts;
+          el.textContent = rec.t;
+          chatEl.appendChild(el);
+          return;
+        }
+        if (rec.k === "choice") {
+          addChoiceUser(rec.q || rec.t, rec.opts.length ? rec.opts : ["选项"]);
+          return;
+        }
+        if (rec.k === "pick") {
+          if (rec.t) addChoiceBot(rec.t);
+          return;
+        }
+        if (rec.k === "img" && rec.src) {
+          addMedia(rec.role === "user" ? "me" : "him", rec.src);
+          const last = chatEl.querySelector("[data-log]:last-child");
+          if (rec.read) markWrapRead(last);
+          return;
+        }
+        if (rec.k === "txt" && rec.t) {
+          if (rec.role === "user") addUser(rec.t, true, rec.q);
+          else addBot({ text: rec.t }, true, rec.q);
+          const last = chatEl.querySelector("[data-log]:last-child");
+          if (rec.read) markWrapRead(last);
+          if (rec.ts && last) last.dataset.ts = rec.ts;
+        }
+      });
+      chatPersistLock = false;
+      saveChat();
+      refreshAvatars();
+      scrollBottom();
+      return true;
     }
     function restoreChat() {
       try {
         const raw = localStorage.getItem(LS_CHAT);
         if (!raw) return false;
-        const logs = JSON.parse(raw);
-        if (!Array.isArray(logs) || !logs.length) return false;
-        logs.forEach((item) => {
-          const wrap = document.createElement("div");
-          wrap.className = item.cls;
-          wrap.dataset.log = "1";
-          wrap.dataset.role = item.role;
-          wrap.innerHTML = item.html;
-          chatEl.appendChild(wrap);
-        });
-        chatEl.querySelectorAll(".invite-btns, .chat-invite .sys-link").forEach((n) => n.remove());
-        chatEl.querySelectorAll(".sys").forEach((el) => {
-          const t = el.textContent || "";
-          if (t.includes("对方主动找你了") || t.includes("暂无你的专属字卡")) el.remove();
-        });
-        chatEl.querySelectorAll(".msg.bot").forEach((wrap) => {
-          if (!wrap.querySelector(".ava")) wrap.insertAdjacentHTML("afterbegin", avaHtml("him"));
-        });
-        chatEl.querySelectorAll(".msg.user").forEach((wrap) => {
-          if (!wrap.querySelector(".ava")) wrap.insertAdjacentHTML("beforeend", avaHtml("me"));
-          const col = wrap.querySelector(".bubble-col");
-          if (!col) return;
-          if (!col.querySelector(".receipt")) {
-            const t = col.querySelector(".time");
-            const row = document.createElement("div");
-            row.className = "time-row";
-            const rec = document.createElement("span");
-            rec.className = "receipt unread";
-            rec.textContent = "未读";
-            row.appendChild(rec);
-            if (t) row.appendChild(t);
-            else {
-              const tm = document.createElement("span");
-              tm.className = "time";
-              tm.textContent = "";
-              row.appendChild(tm);
-            }
-            col.appendChild(row);
-          }
-        });
-        saveChat();
-        refreshAvatars();
-        scrollBottom();
-        return true;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.v >= 2 && Array.isArray(parsed.msgs)) return applyChatLogs(parsed.msgs);
+        if (Array.isArray(parsed)) return applyChatLogs(parsed);
+        return false;
       } catch (e) {
         return false;
       }
@@ -1991,28 +3339,97 @@
       el.className = "sys";
       el.dataset.log = "1";
       el.dataset.role = "sys";
+      el.dataset.ts = String(Date.now());
       el.textContent = text;
       chatEl.appendChild(el);
       saveChat();
       scrollBottom();
     }
-    function addUser(text) {
+    function addChoiceUser(q, opts) {
       const wrap = document.createElement("div");
       wrap.className = "msg user";
       wrap.dataset.log = "1";
       wrap.dataset.role = "user";
-      wrap.innerHTML = `<div class="bubble-col"><div class="bubble">${escapeHtml(text)}</div><div class="time-row"><span class="receipt unread">未读</span><span class="time">${formatTime()}</span></div></div>${avaHtml("me")}`;
+      const items = opts.map((t, i) => `<div class="ch-opt"><span class="ch-no">${i + 1}</span><span>${escapeHtml(t)}</span></div>`).join("");
+      wrap.innerHTML = `<div class="bubble-col"><div class="bubble choice-ask"><div class="ch-kicker">二选一 · ASK</div><div class="ch-q">${escapeHtml(q)}</div>${items}</div><div class="time-row"><span class="receipt unread">未读</span><span class="time">${formatTime()}</span></div></div>${avaHtml("me")}`;
       chatEl.appendChild(wrap);
       saveChat();
       scrollBottom();
-      rollReceipt(wrap);
     }
-    function addBot(card, silent) {
+    function addChoiceBot(ans) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg bot";
+      wrap.dataset.log = "1";
+      wrap.dataset.role = "bot";
+      wrap.innerHTML = `${avaHtml("him")}<div class="bubble-col"><div class="bubble choice-pick"><div class="ch-kicker">他的选择</div><div class="ch-ans">${escapeHtml(ans)}</div></div><div class="time">${formatTime()}</div></div>`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+    }
+    function addUser(text, skipRoll, quote) {
+      const wrap = document.createElement("div");
+      wrap.className = "msg user";
+      wrap.dataset.log = "1";
+      wrap.dataset.role = "user";
+      wrap.innerHTML = `<div class="bubble-col"><div class="bubble">${quoteHtml(quote)}${escapeHtml(text)}</div><div class="time-row"><span class="receipt unread">未读</span><span class="time">${formatTime()}</span></div></div>${avaHtml("me")}`;
+      chatEl.appendChild(wrap);
+      saveChat();
+      scrollBottom();
+      if (!skipRoll) rollReceipt(wrap);
+    }
+    function userTextFromBubble(wrap) {
+      const bubble = wrap.querySelector(".bubble");
+      if (!bubble || bubble.classList.contains("media") || bubble.querySelector("img, video")) return "";
+      const clone = bubble.cloneNode(true);
+      clone.querySelectorAll(".quote, .ch-opt, .ch-kicker").forEach((n) => n.remove());
+      return (clone.textContent || "").trim();
+    }
+    function collectUserTexts() {
+      const out = [];
+      chatEl.querySelectorAll(".msg.user").forEach((wrap) => {
+        const t = userTextFromBubble(wrap);
+        if (t) out.push(t);
+      });
+      return out;
+    }
+    function quoteKey(text) {
+      const t = String(text || "").trim();
+      if (!t) return "";
+      return t.length > 72 ? t.slice(0, 72) + "…" : t;
+    }
+    function quotedCountMap() {
+      const map = Object.create(null);
+      chatEl.querySelectorAll(".msg.bot .quote").forEach((el) => {
+        const t = (el.textContent || "").trim();
+        if (!t) return;
+        map[t] = (map[t] || 0) + 1;
+      });
+      return map;
+    }
+    function pickQuote(fromIdle, extraUsed) {
+      const chance = isRand(chatSet.quote) ? (fromIdle ? 0.22 : 0.4) : chatPct("quote", 0.4);
+      if (Math.random() >= chance) return "";
+      const used = quotedCountMap();
+      (extraUsed || []).forEach((t) => {
+        const k = quoteKey(t);
+        if (!k) return;
+        used[k] = (used[k] || 0) + 1;
+      });
+      const pool = collectUserTexts().filter((t) => (used[quoteKey(t)] || 0) < 2);
+      if (!pool.length) return "";
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+    function quoteHtml(text) {
+      if (!text) return "";
+      const clipped = text.length > 72 ? text.slice(0, 72) + "…" : text;
+      return `<div class="quote">${escapeHtml(clipped)}</div>`;
+    }
+    function addBot(card, silent, quote) {
       const wrap = document.createElement("div");
       wrap.className = "msg bot" + (Math.random() > 0.5 ? " fall" : "");
       wrap.dataset.log = "1";
       wrap.dataset.role = "bot";
-      wrap.innerHTML = `${avaHtml("him")}<div class="bubble-col"><div class="bubble">${escapeHtml(card.text)}</div><div class="time">${formatTime()}</div></div>`;
+      wrap.innerHTML = `${avaHtml("him")}<div class="bubble-col"><div class="bubble">${quoteHtml(quote)}${escapeHtml(card.text)}</div><div class="time">${formatTime()}</div></div>`;
       chatEl.appendChild(wrap);
       saveChat();
       scrollBottom();
@@ -2029,7 +3446,7 @@
       chatEl.appendChild(wrap);
       saveChat();
       scrollBottom();
-      if (who === "me") rollReceipt(wrap);
+      if (who === "me" && !chatPersistLock) rollReceipt(wrap);
     }
     function addVideo(who, url) {
       const wrap = document.createElement("div");
@@ -2043,7 +3460,7 @@
       chatEl.appendChild(wrap);
       saveChat();
       scrollBottom();
-      if (who === "me") rollReceipt(wrap);
+      if (who === "me" && !chatPersistLock) rollReceipt(wrap);
     }
     function escapeHtml(s) {
       return String(s)
@@ -2271,8 +3688,10 @@
     function incomingCall(kind) {
       if (callState !== "idle") return;
       callKind = kind || (Math.random() < 0.5 ? "video" : "voice");
-      callState = "in";
-      addCallInvite();
+      askNotify();
+      startRing();
+      addSys(callKind === "video" ? "对方想跟你视频通话" : "对方想跟你语音通话");
+      openCall("in", "邀请你" + kindName() + "…");
       scheduleHimRingEnd();
     }
     function addCallInvite() {
@@ -2310,8 +3729,105 @@
         else acceptCall();
       }, randomDelayMs(2500, 9000));
     }
+    function loadPokeTxt() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_POKE) || "{}");
+        pokeTxt = {
+          me: String(raw.me || "").trim() || DEFAULT_POKE.me,
+          you: String(raw.you || "").trim() || DEFAULT_POKE.you
+        };
+      } catch (e) {
+        pokeTxt = Object.assign({}, DEFAULT_POKE);
+      }
+    }
+    function savePokeTxt() {
+      try { localStorage.setItem(LS_POKE, JSON.stringify(pokeTxt)); } catch (e) {}
+    }
     function pokeYou() {
-      addSys("对方戳了戳你");
+      addSys(pokeTxt.you || DEFAULT_POKE.you);
+    }
+    function pokeHim() {
+      addSys(pokeTxt.me || DEFAULT_POKE.me);
+      if (Math.random() < (isRand(chatSet.poke) ? 0.45 : chatPct("poke", 0.45))) {
+        setTimeout(() => pokeYou(), randomDelayMs(800, 4000));
+      }
+    }
+    function openHisHome() {
+      document.getElementById("hisHomeName").textContent = himName();
+      paintAva(document.getElementById("hisHomeAva"), "him");
+      document.getElementById("hisHomePage").classList.add("show");
+    }
+    function closeHisHome() {
+      document.getElementById("hisHomePage").classList.remove("show");
+    }
+    function openMyHome() {
+      document.getElementById("myHomeName").textContent = profile.nick || "我";
+      const bg = profile.cover ? "url(" + profile.cover + ")" : "";
+      document.getElementById("myHomeHero").style.backgroundImage = bg;
+      paintAva(document.getElementById("myHomeAva"), "me");
+      document.getElementById("myHomePage").classList.add("show");
+    }
+    function closeMyHome() {
+      document.getElementById("myHomePage").classList.remove("show");
+    }
+    function openMyMoments() {
+      document.getElementById("momentsPage").classList.add("show");
+      refreshStatusBar();
+      renderMoments();
+    }
+    let hisAvaTapTimer = null;
+    function onHisAvatarTap() {
+      if (hisAvaTapTimer) {
+        clearTimeout(hisAvaTapTimer);
+        hisAvaTapTimer = null;
+        pokeHim();
+        return;
+      }
+      hisAvaTapTimer = setTimeout(() => {
+        hisAvaTapTimer = null;
+        openHisHome();
+      }, 280);
+    }
+    function setupGate() {
+      const gate = document.getElementById("gate");
+      const btn = document.getElementById("gateAck");
+      if (localStorage.getItem(LS_GATE) === "1") {
+        gate.classList.add("hide");
+        return false;
+      }
+      let left = 5;
+      btn.disabled = true;
+      btn.textContent = "请阅读（" + left + "）";
+      const tick = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(tick);
+          btn.disabled = false;
+          btn.textContent = "我已阅读并知晓";
+        } else {
+          btn.textContent = "请阅读（" + left + "）";
+        }
+      }, 1000);
+      btn.addEventListener("click", () => {
+        if (btn.disabled) return;
+        localStorage.setItem(LS_GATE, "1");
+        gate.classList.add("hide");
+        showHall();
+      });
+      return true;
+    }
+    function showHall() {
+      document.getElementById("hall").classList.remove("hide");
+      resetIdle();
+    }
+    function enterChat() {
+      const fromHall = !document.getElementById("hall").classList.contains("hide");
+      document.getElementById("hall").classList.add("hide");
+      if (fromHall) afterEnterApp();
+    }
+    function afterEnterApp() {
+      if (hasUnreadUser()) ensureHisReplyToUser();
+      else resetIdle();
     }
     document.getElementById("callMini").addEventListener("click", (e) => {
       e.stopPropagation();
@@ -2382,10 +3898,76 @@
       const filled = cardLib.filter((c) => (c.text || "").trim());
       return filled.length ? filled : DEFAULT_CARDS;
     }
+    function poolByCat(cat) {
+      return fullPool().filter((c) => (c.cat || "其他回复") === cat && (c.text || "").trim());
+    }
     function pickCard(exclude) {
       const pool = fullPool().filter((c) => !exclude || !exclude.has(c.text));
       const src = pool.length ? pool : fullPool();
       return src[Math.floor(Math.random() * src.length)];
+    }
+    function composeCardCombo(maxN) {
+      const n = 1 + Math.floor(Math.random() * Math.max(1, maxN || 5));
+      const used = new Set();
+      const bits = [];
+      for (let i = 0; i < n; i++) {
+        const c = pickCard(used);
+        if (!c || !(c.text || "").trim()) break;
+        used.add(c.text);
+        bits.push(String(c.text).trim());
+      }
+      return bits.join(randomGlue()).replace(/\s*\n+\s*/g, " ").replace(/\s{2,}/g, " ").trim();
+    }
+    function pickFromPool(list, exclude) {
+      const pool = (list || []).filter((c) => c && (c.text || "").trim() && (!exclude || !exclude.has(c.text)));
+      const src = pool.length ? pool : (list || []).filter((c) => (c.text || "").trim());
+      if (!src.length) return null;
+      return src[Math.floor(Math.random() * src.length)];
+    }
+    function pickBodyCard(exclude) {
+      const mood = poolByCat("心情");
+      const doing = poolByCat("在做什么");
+      const other = poolByCat("其他回复");
+      const r = Math.random();
+      let list;
+      if (r < 0.4 && mood.length) list = mood;
+      else if (r < 0.7 && doing.length) list = doing;
+      else if (other.length) list = other;
+      else list = fullPool().filter((c) => c.cat !== "颜文字" && c.cat !== "Emoji");
+      return pickFromPool(list, exclude) || pickCard(exclude);
+    }
+    function randomGlue() {
+      const r = Math.random();
+      if (r < 0.45) return " ";
+      if (r < 0.7) return "";
+      if (r < 0.9) return "  ";
+      return "\n";
+    }
+    function decorateLine(base) {
+      const text = String(base || "").trim();
+      if (!text) return text;
+      const faces = poolByCat("颜文字");
+      const emos = poolByCat("Emoji");
+      const r = Math.random();
+      const one = (list) => {
+        const c = pickFromPool(list);
+        return c ? c.text : "";
+      };
+      let bits = [];
+      const bothRand = isRand(chatSet.face) && isRand(chatSet.emoji);
+      if (bothRand) {
+        if (r < 0.42) bits = [];
+        else if (r < 0.66) bits = [one(faces)];
+        else if (r < 0.82) bits = [one(emos)];
+        else if (r < 0.94) bits = Math.random() < 0.5 ? [one(faces), one(emos)] : [one(emos), one(faces)];
+        else bits = [one(faces), one(faces), one(emos)];
+      } else {
+        if (Math.random() < (isRand(chatSet.face) ? 0.32 : chatPct("face", 0.32))) bits.push(one(faces));
+        if (Math.random() < (isRand(chatSet.emoji) ? 0.35 : chatPct("emoji", 0.35))) bits.push(one(emos));
+      }
+      bits = bits.filter((s) => s && s !== text && !text.includes(s));
+      if (!bits.length) return text;
+      return [text].concat(bits).join(randomGlue());
     }
     function drawCards(n) {
       const used = new Set();
@@ -2395,6 +3977,25 @@
         if (!card) break;
         used.add(card.text);
         out.push(card);
+      }
+      return out;
+    }
+    function drawChatLines(n) {
+      const used = new Set();
+      const out = [];
+      for (let i = 0; i < n; i++) {
+        if (Math.random() < 0.07) {
+          const only = pickFromPool(poolByCat("颜文字").concat(poolByCat("Emoji")), used);
+          if (only) {
+            used.add(only.text);
+            out.push({ text: only.text });
+            continue;
+          }
+        }
+        const body = pickBodyCard(used);
+        if (!body) break;
+        used.add(body.text);
+        out.push({ text: decorateLine(body.text) });
       }
       return out;
     }
@@ -2419,13 +4020,17 @@
         pendingUserReply = false;
         markAllUserRead();
       }
-      if (fromIdle && stickers.length && Math.random() < 0.28) {
+      const stickerP = chatPct("sticker", fromIdle ? 0.28 : 0.22);
+      if (fromIdle && stickers.length && Math.random() < stickerP) {
         himSendSticker(true);
-      } else if (!fromIdle && stickers.length && Math.random() < 0.22) {
+      } else if (!fromIdle && stickers.length && Math.random() < stickerP) {
         himSendSticker(false);
       } else {
+        const batchQuotes = [];
         cards.forEach((card, i) => {
-          setTimeout(() => addBot(card, !fromIdle), i * 480);
+          const quote = pickQuote(fromIdle, batchQuotes);
+          if (quote) batchQuotes.push(quote);
+          setTimeout(() => addBot(card, !fromIdle, quote), i * 480);
         });
       }
       pendingReplies = Math.max(0, pendingReplies - 1);
@@ -2439,7 +4044,7 @@
       pendingReplies += 1;
       clearTimeout(idleTimer);
       const count = fromIdle ? 1 : (Math.random() < 0.55 ? 1 : 2);
-      const cards = drawCards(count);
+      const cards = drawChatLines(count);
       const typingLead = Math.min(1600, Math.max(400, delay * 0.08));
       setTimeout(() => {
         if (delay > 1800) showTyping();
@@ -2449,8 +4054,7 @@
     function ensureHisReplyToUser() {
       if (pendingUserReply) return;
       pendingUserReply = true;
-      const delay = Math.min(USER_REPLY_MAX, Math.max(USER_REPLY_MIN, randomDelayMs(USER_REPLY_MIN, USER_REPLY_MAX)));
-      queueHisCards(false, delay);
+      queueHisCards(false, userReplyDelay());
     }
     function scheduleHisReply(fromIdle) {
       if (!fromIdle) {
@@ -2467,18 +4071,37 @@
       if (callState === "in" || callState === "out") return;
       if (callState === "talk") {
         if (hasUnreadUser()) scheduleHisReply(false);
-        else if (stickers.length && Math.random() < 0.28) himSendSticker(true);
+        else if (stickers.length && Math.random() < chatPct("sticker", 0.28)) himSendSticker(true);
+        else scheduleHisReply(true);
+        return;
+      }
+      if (!isRand(chatSet.idle)) {
+        const picks = [];
+        if (Math.random() * 100 < Math.max(0, Math.min(100, Number(chatSet.idleCall) || 0))) picks.push("call");
+        if (Math.random() * 100 < Math.max(0, Math.min(100, Number(chatSet.idlePoke) || 0))) picks.push("poke");
+        if (Math.random() * 100 < Math.max(0, Math.min(100, Number(chatSet.idleMsg) || 0))) picks.push("msg");
+        if (!picks.length) {
+          resetIdle();
+          return;
+        }
+        const act = picks[Math.floor(Math.random() * picks.length)];
+        if (act === "call") incomingCall(Math.random() < 0.5 ? "video" : "voice");
+        else if (act === "poke") {
+          pokeYou();
+          resetIdle();
+        }
+        else if (stickers.length && Math.random() < chatPct("sticker", 0.28)) himSendSticker(true);
         else scheduleHisReply(true);
         return;
       }
       const r = Math.random();
+      const pokeP = isRand(chatSet.poke) ? 0.08 : chatPct("poke", 0.08);
       if (r < 0.10) incomingCall(Math.random() < 0.5 ? "video" : "voice");
-      else if (r < 0.18) pokeYou();
-      else if (r < 0.28) {
-        if (statusHim.text && statusHim.until > Date.now() && Math.random() < 0.45) himEndStatusEarly();
-        else himSetRandomStatus();
+      else if (r < 0.10 + pokeP) {
+        pokeYou();
+        resetIdle();
       }
-      else if (r < 0.40 && stickers.length) himSendSticker(true);
+      else if (r < 0.10 + pokeP + 0.22 && stickers.length) himSendSticker(true);
       else scheduleHisReply(true);
     }
     function resetIdle() {
@@ -2498,6 +4121,14 @@
     }
     function rollReceipt(wrap) {
       if (!wrap || !wrap.querySelector(".receipt")) return;
+      const skipP = isRand(chatSet.skipReply) ? 0 : chatPct("skipReply", 0);
+      if (skipP > 0 && Math.random() < skipP) {
+        setTimeout(() => {
+          markWrapRead(wrap);
+          saveChat();
+        }, userReplyDelay());
+        return;
+      }
       ensureHisReplyToUser();
     }
     function syncComposer() {
@@ -2516,9 +4147,125 @@
       inputEl.value = "";
       syncComposer();
       closePlus();
-      addUser(text);
+      const q = pendingQuote;
+      clearPendingQuote();
+      addUser(text, false, q);
     }
     document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    let pendingQuote = "";
+    function clearPendingQuote() {
+      pendingQuote = "";
+      const bar = document.getElementById("quoteBar");
+      if (bar) bar.hidden = true;
+      const txt = document.getElementById("quoteBarTxt");
+      if (txt) txt.textContent = "";
+    }
+    function setPendingQuote(text) {
+      const t = String(text || "").trim();
+      if (!t) return;
+      pendingQuote = t.length > 72 ? t.slice(0, 72) + "…" : t;
+      document.getElementById("quoteBarTxt").textContent = pendingQuote;
+      document.getElementById("quoteBar").hidden = false;
+      inputEl.focus();
+      toast("已引用他的话，发送时会带上");
+    }
+    document.getElementById("quoteBarClear").addEventListener("click", clearPendingQuote);
+    (function bindQuoteLongPress() {
+      const menu = document.getElementById("bubbleMenu");
+      let timer = null;
+      let sx = 0;
+      let sy = 0;
+      let armed = null;
+      let suppressClick = false;
+      function hideMenu() {
+        if (menu) menu.hidden = true;
+      }
+      function cancel() {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      }
+      function textFromBubble(bubble) {
+        if (!bubble || bubble.classList.contains("media") || bubble.querySelector("img, video")) return "";
+        const wrap = bubble.closest(".msg");
+        if (!wrap) return "";
+        return userTextFromBubble(wrap);
+      }
+      function showMenu(x, y, text) {
+        if (!menu || !text) return;
+        armed = text;
+        menu.hidden = false;
+        const pad = 8;
+        const w = menu.offsetWidth || 128;
+        const h = menu.offsetHeight || 88;
+        let left = x - w / 2;
+        let top = y - h - 12;
+        left = Math.max(pad, Math.min(left, window.innerWidth - w - pad));
+        top = Math.max(pad, top);
+        menu.style.left = left + "px";
+        menu.style.top = top + "px";
+      }
+      chatEl.addEventListener("pointerdown", (e) => {
+        if (e.target.closest(".ava")) return;
+        const bubble = e.target.closest(".msg .bubble");
+        if (!bubble) return;
+        hideMenu();
+        sx = e.clientX;
+        sy = e.clientY;
+        cancel();
+        timer = setTimeout(() => {
+          timer = null;
+          const t = textFromBubble(bubble);
+          if (!t) return;
+          suppressClick = true;
+          showMenu(sx, sy, t);
+        }, 520);
+      });
+      ["pointerup", "pointercancel"].forEach((ev) => chatEl.addEventListener(ev, cancel));
+      chatEl.addEventListener("pointermove", (e) => {
+        if (!timer) return;
+        if (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12) cancel();
+      });
+      chatEl.addEventListener("contextmenu", (e) => {
+        const bubble = e.target.closest(".msg .bubble");
+        if (!bubble) return;
+        e.preventDefault();
+        cancel();
+        const t = textFromBubble(bubble);
+        if (t) {
+          suppressClick = true;
+          showMenu(e.clientX, e.clientY, t);
+        }
+      });
+      chatEl.addEventListener("click", (e) => {
+        if (!suppressClick) return;
+        if (e.target.closest(".msg .bubble")) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        suppressClick = false;
+      }, true);
+      menu.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const t = armed;
+          hideMenu();
+          armed = null;
+          if (!t) return;
+          if (btn.dataset.act === "quote") setPendingQuote(t);
+          else if (btn.dataset.act === "copy") {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(t).then(() => toast("已复制"), () => toast("复制失败"));
+            } else toast("这台设备不能复制");
+          }
+        });
+      });
+      document.addEventListener("pointerdown", (e) => {
+        if (menu.hidden) return;
+        if (menu.contains(e.target)) return;
+        hideMenu();
+      });
+    })();
     inputEl.addEventListener("input", syncComposer);
     inputEl.addEventListener("focus", closePlus);
     inputEl.addEventListener("keydown", (e) => {
@@ -2528,14 +4275,33 @@
       }
     });
 
-    /* ========== 九、他的字卡库（折叠 + 分页） ========== */
+    /* ========== 九、他的字卡库（折叠 + 分页 + 分类导入） ========== */
     let poolPage = 0;
     const POOL_PAGE = 20;
     let poolOpen = false;
+    let poolCat = "全部";
+    function renderPoolCats() {
+      const box = document.getElementById("poolCats");
+      const cats = ["全部"].concat(CARD_CATS);
+      box.innerHTML = cats.map((c) => `<button type="button" data-cat="${c}" class="${c === poolCat ? "on" : ""}">${c}</button>`).join("");
+      box.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          poolCat = btn.dataset.cat;
+          poolPage = 0;
+          renderPoolCats();
+          renderPool();
+        });
+      });
+      const sel = document.getElementById("poolImportCat");
+      sel.innerHTML = CARD_CATS.map((c) => `<option value="${c}">${c}</option>`).join("");
+    }
     function filteredPool() {
       const q = (document.getElementById("poolSearch").value || "").trim();
-      if (!q) return cardLib;
-      return cardLib.filter((c) => (c.text || "").includes(q));
+      return cardLib.filter((c) => {
+        if (poolCat !== "全部" && (c.cat || "其他回复") !== poolCat) return false;
+        if (q && !(c.text || "").includes(q)) return false;
+        return true;
+      });
     }
     function renderPool() {
       document.getElementById("poolCount").textContent = cardLib.length + " / " + CARD_LIMIT;
@@ -2553,6 +4319,7 @@
       ul.innerHTML = slice
         .map(
           (c) => `<li class="card-item" data-id="${c.id}">
+            <span class="cat-tag">${escapeHtml(c.cat || "其他回复")}</span>
             <textarea class="card-edit" placeholder="他可能会对你说…">${escapeHtml(c.text || "")}</textarea>
             <button type="button" class="del-btn">删除</button>
           </li>`
@@ -2574,6 +4341,31 @@
         });
       });
     }
+    function importCardTexts(texts, cat) {
+      const kind = CARD_CATS.includes(cat) ? cat : "其他回复";
+      const have = new Set(cardLib.map((c) => (c.text || "").trim()));
+      let n = 0;
+      texts.forEach((raw) => {
+        if (cardLib.length >= CARD_LIMIT) return;
+        const t = String(raw || "").trim();
+        if (!t || have.has(t)) return;
+        have.add(t);
+        cardLib.push({ id: Date.now() + Math.random() + n, text: t, cat: kind });
+        n += 1;
+      });
+      if (n) savePrivate();
+      return n;
+    }
+    function parseEmojiBlob(s) {
+      let found = [];
+      try {
+        found = s.match(/\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/gu) || [];
+      } catch (err) {
+        found = [];
+      }
+      const lines = s.split(/[\s,，]+/).map((t) => t.trim()).filter(Boolean);
+      return [...new Set(found.concat(lines))];
+    }
     document.getElementById("foldPool").addEventListener("click", () => {
       poolOpen = !poolOpen;
       renderPool();
@@ -2587,13 +4379,14 @@
     document.getElementById("poolNext").addEventListener("click", () => { poolPage += 1; renderPool(); });
     document.getElementById("btnAddCard").addEventListener("click", () => {
       if (cardLib.length >= CARD_LIMIT) {
-        toast("字卡库已满，上限 2000 条");
+        toast("字卡库已满，上限 20000 条");
         return;
       }
-      cardLib.push({ id: Date.now() + Math.random(), text: "" });
+      const cat = poolCat === "全部" ? "其他回复" : poolCat;
+      cardLib.push({ id: Date.now() + Math.random(), text: "", cat });
       savePrivate();
       poolOpen = true;
-      poolPage = Math.floor((cardLib.length - 1) / POOL_PAGE);
+      poolPage = Math.floor((filteredPool().length - 1) / POOL_PAGE);
       renderPool();
       setTimeout(() => {
         const areas = document.querySelectorAll("#poolList .card-edit");
@@ -2601,86 +4394,777 @@
         if (last) last.focus();
       }, 0);
     });
+    document.getElementById("btnImportCards").addEventListener("click", () => {
+      const cat = document.getElementById("poolImportCat").value;
+      const lines = document.getElementById("poolImportText").value.split(/\r?\n/);
+      const n = importCardTexts(lines, cat);
+      document.getElementById("poolImportText").value = "";
+      poolOpen = true;
+      renderPool();
+      toast(n ? "已导入 " + n + " 条" : "没有新内容（可能重复或为空）");
+    });
+    document.getElementById("btnImportEmoji").addEventListener("click", () => {
+      const bits = parseEmojiBlob(document.getElementById("poolImportText").value);
+      const n = importCardTexts(bits, "Emoji");
+      document.getElementById("poolImportText").value = "";
+      poolCat = "Emoji";
+      poolOpen = true;
+      renderPoolCats();
+      renderPool();
+      toast(n ? "已导入 " + n + " 个 emoji" : "没有识别到新的 emoji");
+    });
+    document.getElementById("btnImportStickers").addEventListener("click", () => document.getElementById("fileSticker").click());
+    document.getElementById("btnImportCardFile").addEventListener("click", () => document.getElementById("filePoolTxt").click());
+    document.getElementById("filePoolTxt").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let texts = [];
+        let cat = document.getElementById("poolImportCat").value;
+        try {
+          const parsed = JSON.parse(String(reader.result));
+          if (Array.isArray(parsed)) {
+            parsed.forEach((item) => {
+              if (typeof item === "string") texts.push(item);
+              else if (item && item.text) {
+                texts.push(item.text);
+                if (item.cat) cat = item.cat;
+              }
+            });
+          }
+        } catch (err) {
+          texts = String(reader.result).split(/\r?\n/);
+        }
+        const n = importCardTexts(texts, cat);
+        poolOpen = true;
+        renderPool();
+        toast(n ? "从文件导入 " + n + " 条" : "文件里没有新字卡");
+      };
+      reader.readAsText(f, "utf-8");
+    });
     document.getElementById("btnPool").addEventListener("click", () => {
       poolOpen = false;
+      renderPoolCats();
       renderPool();
       openModal("modalPool");
     });
+    function renderChoiceOpts() {
+      const n = Math.max(2, Math.min(8, Number(document.getElementById("choiceN").value) || 2));
+      document.getElementById("choiceN").value = n;
+      const box = document.getElementById("choiceOpts");
+      const old = Array.from(box.querySelectorAll("input")).map((el) => el.value);
+      box.innerHTML = "";
+      for (let i = 0; i < n; i++) {
+        const lab = document.createElement("label");
+        lab.className = "choice-opt";
+        lab.textContent = "选项 " + (i + 1);
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.maxLength = 80;
+        inp.placeholder = "选项内容";
+        inp.value = old[i] || "";
+        box.appendChild(lab);
+        box.appendChild(inp);
+      }
+    }
+    function pickUniform(list) {
+      const n = list.length;
+      if (n <= 1) return list[0];
+      const buf = new Uint32Array(1);
+      const limit = Math.floor(0x100000000 / n) * n;
+      let x = 0;
+      do {
+        crypto.getRandomValues(buf);
+        x = buf[0];
+      } while (x >= limit);
+      return list[x % n];
+    }
+    document.getElementById("btnChoice").addEventListener("click", () => {
+      renderChoiceOpts();
+      openModal("modalChoice");
+    });
+    document.getElementById("choiceN").addEventListener("input", renderChoiceOpts);
+    document.getElementById("sendChoice").addEventListener("click", () => {
+      const q = document.getElementById("choiceQ").value.trim();
+      const opts = Array.from(document.getElementById("choiceOpts").querySelectorAll("input"))
+        .map((el) => el.value.trim())
+        .filter(Boolean);
+      if (!q) {
+        toast("先写下你要问他的问题");
+        return;
+      }
+      if (opts.length < 2) {
+        toast("至少写满两个选项");
+        return;
+      }
+      closeModal("modalChoice");
+      enterChat();
+      addChoiceUser(q, opts);
+      pendingUserReply = true;
+      pendingReplies += 1;
+      clearTimeout(idleTimer);
+      const delay = userReplyDelay();
+      const typingLead = Math.min(1600, Math.max(400, delay * 0.08));
+      setTimeout(() => {
+        if (delay > 1800) showTyping();
+      }, Math.max(0, delay - typingLead));
+      setTimeout(() => {
+        hideTyping();
+        pendingUserReply = false;
+        pendingReplies = Math.max(0, pendingReplies - 1);
+        markAllUserRead();
+        addChoiceBot(pickUniform(opts));
+        if (pendingReplies === 0) resetIdle();
+      }, delay);
+    });
 
-
-    /* ========== 十一、今日占卜（每日一次） ========== */
+    /* ========== 十一、占卜链接 / 塔罗 ========== */
     function todayStr() {
       const d = new Date();
       return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     }
-    function pickForFortune() {
-      const labels = ["过去", "现在", "未来"];
-      const reads = [
-        "过去已定，那些心跳不必改写。",
-        "现在正行，把温柔握在手里。",
-        "未来可期，故事还会朝你走来。"
-      ];
-      return drawCards(3).map((c, i) => ({ ...c, label: labels[i], read: reads[i] }));
+    const LS_TAROT = "ui_tarot_v1";
+    const TAROT_MAJ = [
+      ["愚者", "✦", "天真迈步，信任尚未成形的路，允许自己从零开始。", "脚步发飘，缺少准备，容易把冲动当成勇气。"],
+      ["魔术师", "✧", "手头资源齐备，意志可以落到实处，适合动手。", "注意力散开，话说得多、落地少，技巧压过真心。"],
+      ["女祭司", "☾", "静下来听直觉，答案在未说出口的那一层。", "信息被挡住，内心关门，或把感觉压住不看。"],
+      ["女皇", "❀", "滋养、丰盛、被温柔托住，关系与身体都需要被照顾。", "过度付出或黏住安全感，丰盛变成消耗。"],
+      ["皇帝", "♔", "建立秩序与边界，用担当把局面稳住。", "控制欲上升，规则变硬，情感被结构压住。"],
+      ["教皇", "✝", "寻求指引、传统与信念，适合问过来人。", "盲从或说教，把自己的声音让给外界。"],
+      ["恋人", "♡", "真心对齐的选择，关系里出现契合与承诺的可能。", "价值打架，犹豫不决，或被诱惑带偏。"],
+      ["战车", "⚔", "意志向前，把方向握紧，适合推进与赢下一程。", "两边拉扯，外表强硬内心失控。"],
+      ["力量", "∞", "柔而有力，用耐心驯服冲动，而不是硬碰。", "自我怀疑，情绪被压着，勇气暂时接不上。"],
+      ["隐者", "🕯", "向内求，独自把路照亮，适合沉淀。", "孤立过久，迟迟不回头，把安静变成逃避。"],
+      ["命运之轮", "☯", "周期翻面，转机正在转来，不必死守旧位置。", "抗拒变化，觉得被抛下，运气像在和你作对。"],
+      ["正义", "⚖", "因果对齐，把账算清，适合诚实与公平。", "偏袒自己或别人，不愿承担该负的那一份。"],
+      ["倒吊人", "▽", "换角度看，暂停即功课，先松手再理解。", "空耗、卡在牺牲里，停着却没有长出新视角。"],
+      ["死神", "☠", "旧的一层结束，腾出位置给下一程。", "死抓不放，害怕结束，变化被拖住。"],
+      ["节制", "⚗", "调和两边，慢慢融合，节奏刚好。", "失衡、极端摇摆，分寸拿捏不住。"],
+      ["恶魔", "⛓", "欲望与契约现身，看清自己被什么吸引。", "捆绑、沉溺，把习惯当成离不开的链。"],
+      ["高塔", "⚡", "旧结构震碎，真相露出来，崩塌是为了重建。", "余震未完，迟迟不醒，或死守已经裂开的墙。"],
+      ["星星", "☆", "希望回笼，被轻轻接住，适合许愿与疗愈。", "信心稀薄，找不到光，恢复得比想象慢。"],
+      ["月亮", "☽", "梦境、潮汐与看不清的感觉，允许模糊。", "幻觉与焦虑放大，把影子当成事实。"],
+      ["太阳", "☀", "澄明、温暖、生命力回来，适合被看见。", "过亮或虚火，欢喜浅一层，核心还没晒透。"],
+      ["审判", "📯", "被唤醒、重新点名，过去可以翻篇。", "苛责自己，不愿醒来，旧身份还在叫人。"],
+      ["世界", "◎", "完成、圆融、一圈走完，可以收束也可以开启下一轮。", "差临门一脚，圆没有合拢，结束被推迟。"]
+    ];
+    const TAROT_MIN = { wands: "权杖", cups: "圣杯", swords: "宝剑", pents: "星币" };
+    const TAROT_RANK = ["王牌", "二", "三", "四", "五", "六", "七", "八", "九", "十", "侍从", "骑士", "王后", "国王"];
+    const TAROT_GLYPH = { wands: "🜂", cups: "🜄", swords: "🜁", pents: "🜃" };
+    const RANK_UP = [
+      "一枚新的种子落到手里，事情刚起头。",
+      "两条路同时出现，需要做选择。",
+      "有人会合，局面开始成形。",
+      "先稳住已有的，不必再加码。",
+      "冲突或失落露出来，诚实面对才过得去。",
+      "过渡与调整，把步子迈向下一处。",
+      "考验意志，看你是否还信这件事。",
+      "行动加快，熟练之后更要守住分寸。",
+      "接近完成，成果已经看得见。",
+      "一段告一段落，负担与收获一起到齐。",
+      "带着消息或学习的心靠近。",
+      "往前冲，热情够，方向要看清。",
+      "用成熟的心照看这块领域。",
+      "把主导权握在手里，对外负责。"
+    ];
+    const RANK_DN = [
+      "机会还没成形，空转或开始得太猛。",
+      "卡住、对峙，选择迟迟落不下去。",
+      "合作不顺，计划散了。",
+      "稳成了停滞，该动的时候没动。",
+      "争执被放大，或把失败反复咀嚼。",
+      "过渡不顺，换轨时失重。",
+      "信心被抽走，怀疑压过行动。",
+      "忙乱、过劳，速度把人带走。",
+      "差一口气，满足感落空。",
+      "结束拖着，包袱还没放下。",
+      "消息不准，或还没准备好上场。",
+      "冲太快，方向跑偏。",
+      "照顾变成控制，成熟变成说教。",
+      "权威发虚，主导权握不稳。"
+    ];
+    const SUIT_HINT = {
+      wands: "行动与热情这一层",
+      cups: "情感与关系这一层",
+      swords: "念头与沟通这一层",
+      pents: "现实与资源这一层"
+    };
+    function buildTarotDeck() {
+      const deck = TAROT_MAJ.map((c) => ({ name: c[0], suit: "major", glyph: c[1], up: c[2], dn: c[3] }));
+      Object.keys(TAROT_MIN).forEach((sk) => {
+        TAROT_RANK.forEach((rk, i) => {
+          deck.push({
+            name: TAROT_MIN[sk] + rk,
+            suit: sk,
+            glyph: TAROT_GLYPH[sk],
+            up: RANK_UP[i] + SUIT_HINT[sk] + "正在被点亮。",
+            dn: RANK_DN[i] + SUIT_HINT[sk] + "需要先被看清。"
+          });
+        });
+      });
+      return deck;
     }
-    document.getElementById("btnFortune").addEventListener("click", () => {
-      const today = todayStr();
-      const last = localStorage.getItem(LS_DIV);
-      const board = document.getElementById("fortuneBoard");
-      if (last === today && board.dataset.done !== "1") {
-        board.innerHTML = "<p>今日已经占卜过啦，把这份解读留到明天再翻新页。</p>";
-        openModal("modalFortune");
+    const TAROT_DECK = buildTarotDeck();
+    let tarotStore = { day: "", bond: 0, loc: null, remind: null, bondLog: [], remindLog: [] };
+    let drawMode = "bond";
+    function loadTarotStore() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_TAROT) || "{}");
+        tarotStore = Object.assign({ day: "", bond: 0, loc: null, remind: null, bondLog: [], remindLog: [] }, raw);
+        if (!Array.isArray(tarotStore.bondLog)) tarotStore.bondLog = [];
+        if (!Array.isArray(tarotStore.remindLog)) tarotStore.remindLog = [];
+      } catch (e) {
+        tarotStore = { day: "", bond: 0, loc: null, remind: null, bondLog: [], remindLog: [] };
+      }
+      const d = todayStr();
+      if (tarotStore.day !== d) {
+        tarotStore.day = d;
+        tarotStore.bond = dailyBond(d);
+        tarotStore.remind = null;
+        saveTarotStore();
+      }
+    }
+    function saveTarotStore() {
+      try { localStorage.setItem(LS_TAROT, JSON.stringify(tarotStore)); } catch (e) {}
+    }
+    function dailyBond(d) {
+      let h = 2166136261;
+      const s = String(d);
+      for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+      return 48 + (Math.abs(h) % 51);
+    }
+    function weatherWord(code) {
+      const n = Number(code);
+      if (n === 0) return "晴";
+      if (n <= 3) return "多云";
+      if (n <= 48) return "雾";
+      if (n <= 57) return "毛毛雨";
+      if (n <= 67) return "雨";
+      if (n <= 77) return "雪";
+      if (n <= 82) return "阵雨";
+      if (n <= 86) return "阵雪";
+      return "雷雨";
+    }
+    function weatherArt(sky) {
+      const s = String(sky || "");
+      if (!s) return { ico: "📍", cls: "off" };
+      if (s.indexOf("雷") >= 0) return { ico: "⛈️", cls: "storm" };
+      if (s.indexOf("雪") >= 0) return { ico: "❄️", cls: "snow" };
+      if (s.indexOf("雨") >= 0) return { ico: "🌧️", cls: "rain" };
+      if (s.indexOf("雾") >= 0) return { ico: "🌫️", cls: "cloud" };
+      if (s.indexOf("云") >= 0) return { ico: "⛅", cls: "cloud" };
+      if (s.indexOf("晴") >= 0) return { ico: "☀️", cls: "sun" };
+      return { ico: "🌤️", cls: "sun" };
+    }
+    function renderLoc() {
+      const box = document.getElementById("divLocInner");
+      const loc = tarotStore.loc;
+      if (!loc) {
+        box.innerHTML = '<div class="loc-art off">📍</div><div><div class="loc-place">定位未开启</div><div class="loc-sky">开启后可看到地区、天气和温度</div></div>';
         return;
       }
-      if (last === today && board.innerHTML) {
-        openModal("modalFortune");
-        return;
-      }
-      const cards = pickForFortune();
-      board.dataset.done = "1";
-      board.innerHTML = cards
-        .map(
-          (c) => `<div class="fortune-card"><b>${c.label}</b>
-            <div>${escapeHtml(c.text)}</div>
-            <div class="read">${c.read} 过去已定，现在正行，未来可期。</div></div>`
-        )
-        .join("");
-      localStorage.setItem(LS_DIV, today);
-      openModal("modalFortune");
-    });
-
-    /* ========== 十二、写信 ========== */
-    document.getElementById("btnLetter").addEventListener("click", () => {
-      document.getElementById("letterEditor").style.display = "block";
-      document.getElementById("letterReply").style.display = "none";
-      document.getElementById("letterTitle").value = "";
-      document.getElementById("letterBody").value = "";
-      openModal("modalLetter");
-    });
-    document.getElementById("sendLetter").addEventListener("click", () => {
-      const title = document.getElementById("letterTitle").value.trim();
-      const body = document.getElementById("letterBody").value.trim();
-      if (!title && !body) {
-        toast("先写下一点心里话");
-        return;
-      }
-      const draws = drawCards(3);
-      document.getElementById("letterEditor").style.display = "none";
-      const box = document.getElementById("letterReply");
-      box.style.display = "block";
+      const art = weatherArt(loc.sky);
+      const temp = loc.temp != null ? loc.temp + "°" : "";
       box.innerHTML =
-        `<p style="margin-bottom:10px;color:#7e22ce;font-weight:700;">信已寄出，他正在看…</p>` +
-        draws
-          .map(
-            (card, i) =>
-              `<div class="fortune-card"><b>回信 ${i + 1}</b><div>${escapeHtml(card.text)}</div></div>`
-          )
-          .join("");
-    });
+        '<div class="loc-art ' + art.cls + '">' + art.ico + "</div><div>" +
+        '<div class="loc-pin">所在地区</div>' +
+        '<div class="loc-place">' + escapeHtml(loc.place || "未知地点") + "</div>" +
+        '<div class="loc-row">' +
+        (temp ? '<span class="loc-temp">' + temp + "</span>" : "") +
+        '<span class="loc-sky">' + escapeHtml(loc.sky || "") + "</span></div></div>";
+    }
+    function requestGeo() {
+      if (!navigator.geolocation) {
+        toast("这台设备不支持定位");
+        return;
+      }
+      document.getElementById("divLocInner").innerHTML = '<div class="loc-art off">📡</div><div><div class="loc-place">正在获取定位…</div><div class="loc-sky">请在弹窗里允许位置</div></div>';
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const q1 = "https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&timezone=auto";
+        const q2 = "https://geocoding-api.open-meteo.com/v1/reverse?latitude=" + lat + "&longitude=" + lon + "&language=zh&format=json";
+        Promise.all([
+          fetch(q1).then((r) => r.json()).catch(() => null),
+          fetch(q2).then((r) => r.json()).catch(() => null)
+        ]).then(([w, g]) => {
+          const cur = w && w.current ? w.current : {};
+          const r0 = g && g.results && g.results[0];
+          const place = r0
+            ? [r0.admin1, r0.admin2, r0.name].filter(Boolean).join(" ")
+            : lat.toFixed(2) + "," + lon.toFixed(2);
+          tarotStore.loc = {
+            place: place,
+            temp: cur.temperature_2m != null ? Math.round(cur.temperature_2m) : null,
+            sky: cur.weather_code != null ? weatherWord(cur.weather_code) : ""
+          };
+          saveTarotStore();
+          renderLoc();
+        });
+      }, () => {
+        document.getElementById("divLocInner").innerHTML = '<div class="loc-art off">📍</div><div><div class="loc-place">定位被拒绝</div><div class="loc-sky">可到系统里允许位置权限后再点一次</div></div>';
+      }, { enableHighAccuracy: false, timeout: 12000 });
+    }
+    function renderCal() {
+      const now = new Date();
+      const wd = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][now.getDay()];
+      document.getElementById("calTitle").textContent = now.getFullYear() + "年" + (now.getMonth() + 1) + "月" + now.getDate() + "日";
+      document.getElementById("calSub").textContent = wd;
+      renderHimAgenda();
+      renderMeAgenda();
+    }
+    function clockHM(ts) {
+      const x = new Date(ts);
+      return String(x.getHours()).padStart(2, "0") + ":" + String(x.getMinutes()).padStart(2, "0");
+    }
+    function clockWhen(ts) {
+      if (!ts) return "—";
+      const x = new Date(ts);
+      const hm = clockHM(ts);
+      const today = new Date();
+      if (x.toDateString() === today.toDateString()) return hm;
+      return (x.getMonth() + 1) + "月" + x.getDate() + "日 " + hm;
+    }
+    function loadAgendaFold() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_AGENDA_FOLD) || "{}");
+        agendaFold = {
+          him: raw.him !== false,
+          me: raw.me !== false
+        };
+      } catch (e) {
+        agendaFold = { him: true, me: true };
+      }
+    }
+    function saveAgendaFold() {
+      try { localStorage.setItem(LS_AGENDA_FOLD, JSON.stringify(agendaFold)); } catch (e) {}
+    }
+    function applyAgendaFold(who) {
+      const folded = !!agendaFold[who];
+      const box = document.getElementById(who === "him" ? "himAgendaBox" : "meAgendaBox");
+      const chev = document.getElementById(who === "him" ? "himAgendaChev" : "meAgendaChev");
+      if (box) box.hidden = folded;
+      if (chev) chev.textContent = folded ? "▸" : "▾";
+    }
+    function spanTxt(a, b) {
+      const m = Math.max(1, Math.round((b - a) / 60000));
+      if (m < 60) return m + "分钟";
+      return Math.floor(m / 60) + "小时" + (m % 60) + "分";
+    }
+    function loadAgenda() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_AGENDA) || "[]");
+        himAgenda = Array.isArray(raw) ? raw : [];
+      } catch (e) {
+        himAgenda = [];
+      }
+    }
+    function saveAgenda() {
+      try { localStorage.setItem(LS_AGENDA, JSON.stringify(himAgenda.slice(-80))); } catch (e) {}
+    }
+    function loadMeAgenda() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_ME_AGENDA) || "[]");
+        meAgenda = Array.isArray(raw) ? raw : [];
+      } catch (e) {
+        meAgenda = [];
+      }
+    }
+    function saveMeAgenda() {
+      try { localStorage.setItem(LS_ME_AGENDA, JSON.stringify(meAgenda.slice(-80))); } catch (e) {}
+    }
+    function logMeStatus(kind, text, mins) {
+      meAgenda.push({
+        ts: Date.now(),
+        kind: kind,
+        text: text || "",
+        mins: mins || 0
+      });
+      if (meAgenda.length > 80) meAgenda = meAgenda.slice(-80);
+      saveMeAgenda();
+      renderMeAgenda();
+    }
+    function plannedMinsTxt(mins) {
+      return "持续约" + Number(mins) + "分钟";
+    }
+    function sysEventTs(el) {
+      const n = Number(el && el.dataset ? el.dataset.ts : 0);
+      if (n) return n;
+      let p = el && el.previousElementSibling;
+      while (p) {
+        const t = p.querySelector ? p.querySelector(".time") : null;
+        const txt = t ? String(t.textContent || "").trim() : "";
+        const m = txt.match(/(\d{1,2}):(\d{2})$/);
+        if (m) {
+          const d = new Date();
+          d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+          return d.getTime();
+        }
+        p = p.previousElementSibling;
+      }
+      return 0;
+    }
+    function collectStatusEventsFromChat() {
+      const out = [];
+      chatEl.querySelectorAll(".sys[data-log]").forEach((el) => {
+        const raw = (el.textContent || "").replace(/\s+/g, " ").trim();
+        if (!raw) return;
+        const ts = sysEventTs(el);
+        if (ts && Date.now() - ts > DAY_MS) return;
+        const set = raw.match(/对方将状态设为「([^」]+)」，持续约(\d+)分钟/);
+        if (set) {
+          out.push({ kind: "set", text: set[1], mins: Number(set[2]), ts: ts });
+          return;
+        }
+        if (/提前结束了状态/.test(raw) && /在线/.test(raw)) {
+          out.push({ kind: "early", ts: ts });
+          return;
+        }
+        if (/状态到时结束/.test(raw) && /在线/.test(raw)) {
+          out.push({ kind: "expire", ts: ts });
+        }
+      });
+      return out;
+    }
+    function renderHimAgenda() {
+      const box = document.getElementById("himAgendaBox");
+      if (!box) return;
+      const events = collectStatusEventsFromChat();
+      if (!events.length) {
+        const prev0 = document.getElementById("himAgendaPrev");
+        if (prev0) prev0.textContent = "暂无记录";
+        box.innerHTML = '<div class="agenda-empty">聊天记录里今天还没有他改状态的系统消息。</div>';
+        applyAgendaFold("him");
+        return;
+      }
+      const rows = [];
+      let open = null;
+      events.forEach((ev) => {
+        const clock = ev.ts ? clockHM(ev.ts) : "—";
+        if (ev.kind === "set") {
+          open = ev;
+          rows.push({
+            clock: clock,
+            html: "将状态设为「" + escapeHtml(ev.text) + "」，" + plannedMinsTxt(ev.mins)
+          });
+          return;
+        }
+        if (ev.kind === "early" || ev.kind === "expire") {
+          const name = open ? "「" + escapeHtml(open.text) + "」" : "当前状态";
+          const why = ev.kind === "early" ? "提前结束了" : "到时结束了";
+          rows.push({ clock: clock, html: why + name + "，恢复在线" });
+          open = null;
+          rows.push({ clock: clock, html: "在线" });
+        }
+      });
+      if (rows.length) {
+        rows[rows.length - 1].now = true;
+        if (open) rows[rows.length - 1].html += "，进行中";
+      }
+      const prev = document.getElementById("himAgendaPrev");
+      if (prev) prev.textContent = rows.length ? rows[rows.length - 1].clock + " " + rows[rows.length - 1].html.replace(/<[^>]+>/g, "") : "暂无记录";
+      box.innerHTML = '<div class="agenda-log">' + rows.map((r) => {
+        return '<div class="agenda-item' + (r.now ? " now" : "") + '"><b>' + r.clock + '</b><p>' + r.html + "</p></div>";
+      }).join("") + "</div>";
+      applyAgendaFold("him");
+    }
+    function renderMeAgenda() {
+      const box = document.getElementById("meAgendaBox");
+      const prev = document.getElementById("meAgendaPrev");
+      if (!box) return;
+      const events = meAgenda.filter((x) => x && x.ts && Date.now() - x.ts <= DAY_MS);
+      if (!events.length) {
+        if (prev) prev.textContent = "还没写";
+        box.innerHTML = "";
+        applyAgendaFold("me");
+        return;
+      }
+      const rows = [];
+      events.forEach((ev) => {
+        const clock = clockHM(ev.ts);
+        if (ev.kind === "set") {
+          rows.push({
+            clock: clock,
+            html: "将状态设为「" + escapeHtml(ev.text) + "」" + (ev.mins ? "，" + plannedMinsTxt(ev.mins) : "")
+          });
+        } else if (ev.kind === "clear") {
+          rows.push({ clock: clock, html: "结束了「" + escapeHtml(ev.text || "当前状态") + "」，恢复在线" });
+        } else if (ev.kind === "expire") {
+          rows.push({ clock: clock, html: "「" + escapeHtml(ev.text || "当前状态") + "」到时结束，恢复在线" });
+        }
+      });
+      if (rows.length) rows[rows.length - 1].now = true;
+      if (prev) prev.textContent = rows.length ? rows[rows.length - 1].clock + " " + rows[rows.length - 1].html.replace(/<[^>]+>/g, "") : "";
+      box.innerHTML = '<div class="agenda-log">' + rows.map((r) => {
+        return '<div class="agenda-item' + (r.now ? " now" : "") + '"><b>' + r.clock + '</b><p>' + r.html + "</p></div>";
+      }).join("") + "</div>";
+      applyAgendaFold("me");
+    }
+    function showDivHome() {
+      document.getElementById("divHome").hidden = false;
+      document.getElementById("divDraw").hidden = true;
+    }
+    function openDraw(mode) {
+      drawMode = mode;
+      document.getElementById("divHome").hidden = true;
+      document.getElementById("divDraw").hidden = false;
+      document.getElementById("drawTitle").textContent = mode === "remind" ? "今日提醒 · 抽塔罗" : "链接强度 · 抽塔罗";
+      document.getElementById("tarotN").value = mode === "remind" ? 1 : 3;
+      const log = mode === "remind" ? (tarotStore.remindLog || []) : (tarotStore.bondLog || []);
+      const last = log[0];
+      if (last) replayTarot(last, true);
+      else {
+        document.getElementById("tarotStage").innerHTML = "";
+        document.getElementById("tarotRead").hidden = true;
+        document.getElementById("tarotRead").innerHTML = "";
+      }
+      renderTarotHist();
+    }
+    function cardByName(name, fallback) {
+      const hit = TAROT_DECK.find((c) => c.name === name);
+      if (hit) return hit;
+      return {
+        name: name || "未知",
+        glyph: (fallback && fallback.glyph) || "✦",
+        suit: (fallback && fallback.suit) || "major",
+        up: (fallback && fallback.mean) || "",
+        dn: (fallback && fallback.mean) || ""
+      };
+    }
+    function replayTarot(rec, silent) {
+      if (!rec || !rec.cards) return;
+      const list = rec.cards.map((c) => ({
+        card: cardByName(c.name, c),
+        rev: !!c.rev
+      }));
+      paintTarot(list, silent);
+    }
+    function pushTarotLog(key, rec) {
+      const arr = Array.isArray(tarotStore[key]) ? tarotStore[key].slice() : [];
+      arr.unshift(rec);
+      tarotStore[key] = arr.slice(0, 5);
+    }
+    function renderTarotHist() {
+      const box = document.getElementById("tarotHist");
+      if (!box) return;
+      const key = drawMode === "remind" ? "remindLog" : "bondLog";
+      const list = Array.isArray(tarotStore[key]) ? tarotStore[key] : [];
+      const title = drawMode === "remind" ? "最近提醒" : "最近连线";
+      if (!list.length) {
+        box.innerHTML = "<h3>" + title + "</h3><div class=\"agenda-empty\">还没有抽过。抽完后这里会留下最近 5 次。</div>";
+        return;
+      }
+      box.innerHTML = "<h3>" + title + " · 最近" + list.length + "次</h3>" + list.map((rec) => {
+        const names = (rec.cards || []).map((c) => c.name).join("、");
+        let extra = "";
+        if (drawMode === "remind") extra = rec.tip || rec.summary || "";
+        else extra = (rec.score != null ? "链接强度 " + rec.score + "。" : "") + (rec.summary || "");
+        return '<div class="hist-item"><b>' + clockWhen(rec.ts) + "</b><p>" + escapeHtml(names) + "</p><p>" + escapeHtml(extra) + "</p></div>";
+      }).join("");
+    }
+    function paintTarotTiles() {
+      const lastB = (tarotStore.bondLog || [])[0];
+      const lastR = (tarotStore.remindLog || [])[0];
+      const today = new Date().toDateString();
+      document.getElementById("bondHint").textContent = lastB && lastB.score != null
+        ? String(lastB.score)
+        : String(tarotStore.bond || "—");
+      document.getElementById("bondSub").textContent = lastB
+        ? clockWhen(lastB.ts) + " 抽过 · 点开看记录"
+        : "点开抽牌看连线";
+      const rToday = lastR && lastR.ts && new Date(lastR.ts).toDateString() === today;
+      document.getElementById("remindHintName").textContent = rToday
+        ? ((lastR.cards && lastR.cards[0] && lastR.cards[0].name) || "已抽")
+        : "待抽";
+      document.getElementById("remindHint").textContent = rToday
+        ? (lastR.tip || "点开看今日提醒")
+        : "点开抽牌看今日该做什么";
+    }
+    function drawTarot(n) {
+      const count = Math.max(1, Math.min(10, n || 1));
+      const pool = TAROT_DECK.slice();
+      const out = [];
+      for (let i = 0; i < count && pool.length; i++) {
+        const card = pickUniform(pool);
+        pool.splice(pool.indexOf(card), 1);
+        out.push({ card: card, rev: pickUniform([false, true]) });
+      }
+      return out;
+    }
+    function tarotScore(list) {
+      let s = 52;
+      list.forEach((item, i) => {
+        const w = item.card.suit === "major" ? 11 : 7;
+        s += item.rev ? -(w - (i % 3)) : (w - (i % 2));
+      });
+      return Math.max(0, Math.min(100, Math.round(s)));
+    }
+    function tarotSummary(list, score) {
+      const names = list.map((item) => item.card.name).join("、");
+      const hard = list.filter((item) => item.rev).length;
+      const major = list.filter((item) => item.card.suit === "major").length;
+      let tone = "整体偏平稳，链接还在，只是需要把细节看清楚。";
+      if (score >= 78) tone = "整体偏通畅，双方气场这阵子更容易对上，适合把真心话说出来。";
+      else if (score >= 58) tone = "有连上的地方，也有卡住的地方，适合慢慢靠近，不必一次问清全部。";
+      else if (score >= 38) tone = "链接偏薄或正在换季，先照顾各自的节奏，再谈更深的靠近。";
+      else tone = "眼下阻力更明显，先停一停、把混乱理开，比硬推进更合适。";
+      let extra = "";
+      if (major) extra += "大牌出现，说明这件事分量不轻。";
+      if (hard && hard === list.length) extra += "牌面整体偏收敛，提醒你看见阻力本身。";
+      else if (hard) extra += "其中几张偏沉，像是提醒你先处理没说完的部分。";
+      return "此番抽出「" + names + "」。" + tone + extra;
+    }
+    function remindAdvice(list) {
+      const tips = [];
+      list.forEach((item) => {
+        const n = item.card.name;
+        const rev = item.rev;
+        if (item.card.suit === "major") {
+          if (n === "愚者") tips.push(rev ? "今天先别急着跳，把该带的东西备齐再出门。" : "今天允许自己开一个很小的新头，不必一次走完全程。");
+          else if (n === "恋人" || n === "女皇") tips.push("把一句真心话写下来或发出去，关系比任务更优先。");
+          else if (n === "隐者") tips.push("给自己一段不被打扰的时间，少刷、少解释。");
+          else if (n === "战车" || n === "皇帝") tips.push("选一件最要紧的事推进到底，别同时开太多线。");
+          else if (n === "月亮" || n === "高塔") tips.push("先别下重大结论，等情绪落下来再回话。");
+          else if (n === "星星" || n === "太阳") tips.push("把身体带到光里走走，给自己一点看得见的好心情。");
+          else tips.push("今天把「" + n + "」当成关键词：看见它指向的那一层，再决定要不要行动。");
+        } else if (item.card.suit === "cups") {
+          tips.push(rev ? "情绪先落地，再处理关系里的误会。" : "主动问一句对方今天怎么样，比猜更有用。");
+        } else if (item.card.suit === "wands") {
+          tips.push(rev ? "热情别散掉，收成一件能完成的小事。" : "趁热行动，把想做的事开一个头。");
+        } else if (item.card.suit === "swords") {
+          tips.push(rev ? "少争对错，先把话说清楚、说完整。" : "把一团乱的念头写成三条，再挑一条去做。");
+        } else {
+          tips.push(rev ? "别硬花钱或硬撑场面，先把手头安顿好。" : "照顾现实：吃饭、睡觉、把一件具体的事办完。");
+        }
+      });
+      const uniq = [];
+      tips.forEach((t) => {
+        if (uniq.indexOf(t) < 0) uniq.push(t);
+      });
+      return uniq.slice(0, 3).map((t, i) => (i + 1) + ". " + t).join(" ");
+    }
+    function paintTarot(list, silent) {
+      const stage = document.getElementById("tarotStage");
+      stage.innerHTML = list.map((item) => {
+        const c = item.card;
+        const mean = item.rev ? c.dn : c.up;
+        const suitName = c.suit === "major" ? "大阿尔卡纳" : (TAROT_MIN[c.suit] || "");
+        return `<div class="tarot-pack"><div class="tarot-card ${c.suit}${item.rev ? " rev" : ""}"><div class="tarot-face"><div class="tarot-suit">${suitName}</div><div class="tarot-glyph">${c.glyph}</div><div class="tarot-name">${escapeHtml(c.name)}</div></div></div><div class="tarot-mean">${escapeHtml(mean)}</div></div>`;
+      }).join("");
+      const box = document.getElementById("tarotRead");
+      box.hidden = false;
+      const packedCards = list.map((item) => ({
+        name: item.card.name,
+        rev: !!item.rev,
+        glyph: item.card.glyph,
+        suit: item.card.suit,
+        mean: item.rev ? item.card.dn : item.card.up
+      }));
+      if (drawMode === "remind") {
+        const tip = remindAdvice(list);
+        const summary = tarotSummary(list, tarotScore(list));
+        box.innerHTML =
+          "<h3>综合评估</h3><p>" + escapeHtml(summary) +
+          "</p><h3>今日提醒</h3><p>" + escapeHtml(tip) +
+          "</p><p class=\"tarot-note\">以上提醒由本次牌面自行分析得出，仅供参考。</p>";
+        tarotStore.remind = { name: list[0].card.name, tip: tip };
+        if (!silent) {
+          pushTarotLog("remindLog", { ts: Date.now(), cards: packedCards, summary: summary, tip: tip });
+        }
+        saveTarotStore();
+        paintTarotTiles();
+        renderTarotHist();
+        return;
+      }
+      const score = tarotScore(list);
+      const summary = tarotSummary(list, score);
+      box.innerHTML =
+        "<h3>综合评估</h3><p>" + escapeHtml(summary) +
+        "</p><h3>链接强度</h3><div class=\"tarot-score\">" + score +
+        "</div><p class=\"tarot-note\">以上链接强度由本次抽牌自行分析得出，仅供参考。</p>";
+      tarotStore.bond = score;
+      if (!silent) {
+        pushTarotLog("bondLog", { ts: Date.now(), cards: packedCards, score: score, summary: summary });
+      }
+      saveTarotStore();
+      paintTarotTiles();
+      renderTarotHist();
+    }
+    function openFortune() {
+      loadTarotStore();
+      document.getElementById("divHimName").textContent = himName();
+      paintAva(document.getElementById("divHimAva"), "him");
+      paintTarotTiles();
+      renderLoc();
+      renderCal();
+      showDivHome();
+      document.getElementById("divPage").classList.add("show");
+    }
+    function closeFortune() {
+      if (!document.getElementById("divDraw").hidden) {
+        showDivHome();
+        return;
+      }
+      document.getElementById("divPage").classList.remove("show");
+    }
 
     /* ========== 十三、装扮与头像 ========== */
     ["colorUser", "colorBot", "rangeWallOp", "rangeWallBlur"].forEach((id) => {
       document.getElementById(id).addEventListener("input", () => applyTheme(currentTheme()));
     });
+    const CHAT_OPT_FIELDS = [
+      { key: "replyMin", input: "optReplyMin" },
+      { key: "replyMax", input: "optReplyMax" },
+      { key: "skipReply", input: "optSkipReply", val: "valSkipReply" },
+      { key: "poke", input: "optPoke", val: "valPoke" },
+      { key: "sticker", input: "optSticker", val: "valSticker" },
+      { key: "face", input: "optFace", val: "valFace" },
+      { key: "emoji", input: "optEmoji", val: "valEmoji" },
+      { key: "quote", input: "optQuote", val: "valQuote" }
+    ];
+    function chatOptDefaults(key) {
+      return { replyMin: 1, replyMax: 60, skipReply: 0, poke: 8, sticker: 25, face: 32, emoji: 35, quote: 40 }[key];
+    }
+    function fillChatSetForm() {
+      CHAT_OPT_FIELDS.forEach((f) => {
+        const box = document.querySelector('#themeViewChat [data-rand="' + f.key + '"]');
+        const inp = document.getElementById(f.input);
+        const rand = isRand(chatSet[f.key]);
+        if (box) box.checked = rand;
+        const n = rand ? chatOptDefaults(f.key) : Number(chatSet[f.key]);
+        inp.value = isFinite(n) ? n : chatOptDefaults(f.key);
+        inp.disabled = rand;
+        if (f.val) document.getElementById(f.val).textContent = inp.value + "%";
+      });
+      const idleRand = isRand(chatSet.idle);
+      const idleBox = document.querySelector('#themeViewChat [data-rand="idle"]');
+      if (idleBox) idleBox.checked = idleRand;
+      ["IdleMsg", "IdlePoke", "IdleCall"].forEach((name) => {
+        const key = "idle" + name.slice(4);
+        const inp = document.getElementById("opt" + name);
+        const n = Number(chatSet[key]);
+        inp.value = isFinite(n) ? n : CHATSET_DEF[key];
+        inp.disabled = idleRand;
+        document.getElementById("val" + name).textContent = inp.value + "%";
+      });
+    }
+    function readChatSetForm() {
+      const next = Object.assign({}, CHATSET_DEF);
+      CHAT_OPT_FIELDS.forEach((f) => {
+        const box = document.querySelector('#themeViewChat [data-rand="' + f.key + '"]');
+        if (box && box.checked) next[f.key] = "random";
+        else next[f.key] = Number(document.getElementById(f.input).value);
+      });
+      const idleBox = document.querySelector('#themeViewChat [data-rand="idle"]');
+      next.idle = idleBox && idleBox.checked ? "random" : "custom";
+      next.idleMsg = Number(document.getElementById("optIdleMsg").value);
+      next.idlePoke = Number(document.getElementById("optIdlePoke").value);
+      next.idleCall = Number(document.getElementById("optIdleCall").value);
+      chatSet = next;
+      saveChatSetObj();
+    }
     function showThemeView(name) {
       const map = {
         home: "themeViewHome",
@@ -2689,12 +5173,15 @@
         wallset: "themeViewWallSet",
         ava: "themeViewAva",
         bubble: "themeViewBubble",
-        contact: "themeViewContact"
+        contact: "themeViewContact",
+        backup: "themeViewBackup",
+        chatset: "themeViewChat"
       };
       const id = map[name] || "themeViewHome";
       document.querySelectorAll("#modalTheme .wx-view").forEach((v) => {
         v.hidden = v.id !== id;
       });
+      if (name === "chatset") fillChatSetForm();
     }
     document.getElementById("btnTheme").addEventListener("click", () => {
       showThemeView("home");
@@ -2702,6 +5189,195 @@
     });
     document.querySelectorAll("#modalTheme [data-theme-go]").forEach((btn) => {
       btn.addEventListener("click", () => showThemeView(btn.dataset.themeGo));
+    });
+    document.querySelectorAll("#themeViewChat [data-rand]").forEach((box) => {
+      box.addEventListener("change", () => {
+        if (box.dataset.rand === "idle") {
+          ["optIdleMsg", "optIdlePoke", "optIdleCall"].forEach((id) => {
+            document.getElementById(id).disabled = box.checked;
+          });
+          return;
+        }
+        const f = CHAT_OPT_FIELDS.find((x) => x.key === box.dataset.rand);
+        if (!f) return;
+        document.getElementById(f.input).disabled = box.checked;
+      });
+    });
+    ["SkipReply", "Poke", "Sticker", "Face", "Emoji", "Quote", "IdleMsg", "IdlePoke", "IdleCall"].forEach((name) => {
+      document.getElementById("opt" + name).addEventListener("input", (e) => {
+        document.getElementById("val" + name).textContent = e.target.value + "%";
+      });
+    });
+    document.getElementById("saveChatSet").addEventListener("click", () => {
+      readChatSetForm();
+      toast("自定义聊天已保存");
+    });
+    document.getElementById("resetChatSet").addEventListener("click", () => {
+      chatSet = Object.assign({}, CHATSET_DEF);
+      saveChatSetObj();
+      fillChatSetForm();
+      toast("已全部改回随机");
+    });
+    document.getElementById("btnExportChat").addEventListener("click", () => {
+      function slimPack(pack) {
+        pack.wallpaper = "";
+        pack.stickers = [];
+        pack.avatars = { him: "", me: "" };
+        if (pack.profile) pack.profile.cover = "";
+        pack.moments = (pack.moments || []).map((m) => ({
+          id: m.id,
+          text: String(m.text || "").slice(0, 500),
+          images: [],
+          time: m.time || "",
+          likes: [],
+          comments: []
+        }));
+        return pack;
+      }
+      let pack = {
+        kind: "lily-chat-backup",
+        v: 2,
+        at: new Date().toISOString(),
+        chat: collectChatLogs(2000),
+        cards: cardLib,
+        chatSet: chatSet,
+        status: { me: statusMe, him: statusHim, himLib: hisStatusLib, meLib: meStatusLib },
+        his: hisInfo,
+        poke: pokeTxt,
+        theme: currentTheme(),
+        avatars: avatars,
+        stickers: stickers,
+        profile: profile,
+        moments: moments,
+        tarot: tarotStore,
+        himAgenda: himAgenda,
+        meAgenda: meAgenda,
+        wallpaper: wallpaperData || ""
+      };
+      let json = "";
+      try { json = JSON.stringify(pack); } catch (e) {
+        toast("备份做不出来");
+        return;
+      }
+      if (json.length > 4500000) {
+        pack = slimPack(pack);
+        try { json = JSON.stringify(pack); } catch (e2) {
+          toast("备份还是太大");
+          return;
+        }
+        toast("图片太大，这份备份不含头像、背景和表情包");
+      } else {
+        toast("已导出，请保存这个文件");
+      }
+      const blob = new Blob([json], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "lily-amour-backup.json";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    });
+    document.getElementById("btnImportChat").addEventListener("click", () => document.getElementById("fileChatBackup").click());
+    document.getElementById("fileChatBackup").addEventListener("change", (e) => {
+      const f = e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const pack = JSON.parse(String(reader.result));
+          const logs = Array.isArray(pack) ? pack : (pack.chat && pack.chat.msgs ? pack.chat.msgs : pack.chat);
+          const hasMore = pack && pack.v >= 2 && (pack.cards || pack.chatSet || pack.status || pack.his);
+          if (!Array.isArray(logs) && !hasMore) {
+            toast("这个文件里没有可导入的数据");
+            return;
+          }
+          if (!confirm("导入会覆盖这台设备上的聊天" + (hasMore ? "、字卡和设置" : "") + "，确定吗？")) return;
+          if (Array.isArray(logs) && logs.length) applyChatLogs(logs);
+          if (pack && pack.v >= 2) {
+            if (Array.isArray(pack.cards)) {
+              cardLib = pack.cards.map((c) => ({
+                text: String((c && c.text) || "").trim().slice(0, 500),
+                cat: String((c && c.cat) || "其他回复")
+              })).filter((c) => c.text).slice(0, CARD_LIMIT);
+              savePrivate();
+            }
+            if (pack.chatSet && typeof pack.chatSet === "object") {
+              chatSet = Object.assign({}, CHATSET_DEF, pack.chatSet);
+              saveChatSetObj();
+            }
+            if (pack.status && typeof pack.status === "object") {
+              if (pack.status.me) statusMe = pack.status.me;
+              if (pack.status.him) statusHim = pack.status.him;
+              if (Array.isArray(pack.status.himLib)) hisStatusLib = pack.status.himLib.map((t) => String(t || "").trim()).filter(Boolean).slice(0, 40);
+              if (Array.isArray(pack.status.meLib)) meStatusLib = pack.status.meLib.map((t) => String(t || "").trim()).filter(Boolean).slice(0, 40);
+            }
+            if (pack.his && typeof pack.his === "object") {
+              hisInfo = Object.assign({ remark: "用户001", color: "#7d9fd3" }, pack.his);
+              hisInfo.remark = String(hisInfo.remark || "用户001").slice(0, 20);
+            }
+            persistHis();
+            if (pack.poke && typeof pack.poke === "object") {
+              pokeTxt = {
+                me: String(pack.poke.me || "").trim() || DEFAULT_POKE.me,
+                you: String(pack.poke.you || "").trim() || DEFAULT_POKE.you
+              };
+              savePokeTxt();
+            }
+            if (pack.theme && typeof pack.theme === "object") applyTheme(Object.assign({}, DEFAULT_THEME, pack.theme));
+            if (typeof pack.wallpaper === "string" && pack.wallpaper.indexOf("data:image/") === 0) wallpaperData = pack.wallpaper;
+            persistTheme();
+            if (pack.avatars && typeof pack.avatars === "object") {
+              avatars = {
+                him: safeDataImage(pack.avatars.him),
+                me: safeDataImage(pack.avatars.me)
+              };
+              saveAvatars();
+            }
+            if (Array.isArray(pack.stickers)) {
+              stickers = pack.stickers.map(safeDataImage).filter(Boolean).slice(0, STICKER_LIMIT);
+              saveStickers();
+            }
+            if (pack.profile && typeof pack.profile === "object") {
+              profile = {
+                nick: String(pack.profile.nick || "我").slice(0, 20),
+                cover: safeDataImage(pack.profile.cover)
+              };
+              try { localStorage.setItem(LS_PROFILE, JSON.stringify(profile)); } catch (err) {}
+              applyProfile();
+            }
+            if (Array.isArray(pack.moments)) {
+              moments = pack.moments.slice(0, 40).map((m) => ({
+                id: Number(m.id) || Date.now(),
+                text: String(m.text || "").slice(0, 800),
+                images: Array.isArray(m.images) ? m.images.map(safeDataImage).filter(Boolean).slice(0, 9) : [],
+                time: String(m.time || ""),
+                likes: [],
+                comments: Array.isArray(m.comments) ? m.comments.slice(0, 20) : []
+              }));
+              saveMoments();
+            }
+            if (pack.tarot && typeof pack.tarot === "object") {
+              tarotStore = Object.assign(tarotStore, pack.tarot);
+              try { localStorage.setItem(LS_TAROT, JSON.stringify(tarotStore)); } catch (err) {}
+            }
+            if (Array.isArray(pack.himAgenda)) {
+              himAgenda = pack.himAgenda.slice(-80);
+              try { localStorage.setItem(LS_AGENDA, JSON.stringify(himAgenda)); } catch (err) {}
+            }
+            if (Array.isArray(pack.meAgenda)) {
+              meAgenda = pack.meAgenda.slice(-80);
+              try { localStorage.setItem(LS_ME_AGENDA, JSON.stringify(meAgenda)); } catch (err) {}
+            }
+            refreshAvatars();
+            refreshStatusBar();
+            renderHisStatusLib();
+          }
+          toast("备份已导入");
+        } catch (err) {
+          toast("文件打不开，请用导出的 json");
+        }
+      };
+      reader.readAsText(f, "utf-8");
     });
     document.getElementById("saveTheme").addEventListener("click", () => {
       if (persistTheme()) toast("设置已保存");
@@ -2740,16 +5416,54 @@
       });
       e.target.value = "";
     });
-    document.getElementById("hisAvatarBtn").addEventListener("click", () => {
+    document.getElementById("hisAvatarBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      onHisAvatarTap();
+    });
+    chatEl.addEventListener("click", (e) => {
+      const ava = e.target.closest(".ava");
+      if (ava && chatEl.contains(ava)) {
+        const msg = ava.closest(".msg");
+        if (!msg) return;
+        if (msg.classList.contains("bot")) onHisAvatarTap();
+        else if (msg.classList.contains("user")) openMyHome();
+      }
+    });
+    document.getElementById("hisHomeBack").addEventListener("click", closeHisHome);
+    document.getElementById("hisHomeMsg").addEventListener("click", closeHisHome);
+    document.getElementById("hisHomeCall").addEventListener("click", () => {
+      closeHisHome();
+      outgoingCall("video");
+    });
+    document.getElementById("hisHomeMoments").addEventListener("click", () => {
+      document.getElementById("hisMomentsPage").classList.add("show");
+    });
+    document.getElementById("hisMomentsBack").addEventListener("click", () => {
+      document.getElementById("hisMomentsPage").classList.remove("show");
+    });
+    document.getElementById("hisHomeMore").addEventListener("click", () => toast("这里还是空的"));
+    document.getElementById("hisHomeRemark").addEventListener("click", () => {
       document.getElementById("hisRemarkInput").value = hisInfo.remark || "用户001";
       document.getElementById("hisStatusPreview").textContent = "当前：" + statusLabel(statusHim);
       renderHisStatusLib();
       openModal("modalHis");
     });
-    document.getElementById("myAvatarBtn").addEventListener("click", () => {
+    document.getElementById("mmAva").addEventListener("click", () => {
+      openMyHome();
+    });
+    document.getElementById("myHomeBack").addEventListener("click", closeMyHome);
+    document.getElementById("myHomeMsg").addEventListener("click", closeMyHome);
+    document.getElementById("myHomeCall").addEventListener("click", () => toast("这里还是空的"));
+    document.getElementById("myHomeMoments").addEventListener("click", () => {
+      closeMyHome();
+      openMyMoments();
+    });
+    document.getElementById("myHomeMore").addEventListener("click", () => toast("这里还是空的"));
+    document.getElementById("myHomeRemark").addEventListener("click", () => {
       document.getElementById("mePage").classList.add("show");
       applyProfile();
     });
+    document.getElementById("myHomeAva").addEventListener("click", () => document.getElementById("fileMine").click());
     document.getElementById("pickHis").addEventListener("click", () => document.getElementById("fileHis").click());
     document.getElementById("pickMine").addEventListener("click", () => document.getElementById("fileMine").click());
     document.getElementById("fileHis").addEventListener("change", (e) => {
@@ -2788,7 +5502,31 @@
     document.getElementById("plusSendVideo").addEventListener("click", () => document.getElementById("fileSendVideo").click());
     document.getElementById("plusVoice").addEventListener("click", () => { closePlus(); outgoingCall("voice"); });
     document.getElementById("plusVideo").addEventListener("click", () => { closePlus(); outgoingCall("video"); });
-    document.getElementById("plusCouple").addEventListener("click", () => document.getElementById("fileCouple").click());
+    function openPokeEditor() {
+      closeModal("modalTheme");
+      loadPokeTxt();
+      document.getElementById("pokeMeInput").value = pokeTxt.me;
+      document.getElementById("pokeYouInput").value = pokeTxt.you;
+      openModal("modalPoke");
+    }
+    document.getElementById("btnOpenCouple").addEventListener("click", () => document.getElementById("fileCouple").click());
+    document.getElementById("btnOpenPoke").addEventListener("click", openPokeEditor);
+    document.getElementById("savePoke").addEventListener("click", () => {
+      pokeTxt = {
+        me: document.getElementById("pokeMeInput").value.trim() || DEFAULT_POKE.me,
+        you: document.getElementById("pokeYouInput").value.trim() || DEFAULT_POKE.you
+      };
+      savePokeTxt();
+      closeModal("modalPoke");
+      toast("戳一戳已更新");
+    });
+    document.getElementById("resetPoke").addEventListener("click", () => {
+      pokeTxt = Object.assign({}, DEFAULT_POKE);
+      savePokeTxt();
+      document.getElementById("pokeMeInput").value = pokeTxt.me;
+      document.getElementById("pokeYouInput").value = pokeTxt.you;
+      toast("已恢复默认戳一戳");
+    });
     document.getElementById("stickerFromAlbum").addEventListener("click", () => document.getElementById("fileSticker").click());
     function onPickChatImage(e) {
       const f = e.target.files[0];
@@ -2802,15 +5540,21 @@
     document.getElementById("fileAlbum").addEventListener("change", onPickChatImage);
     document.getElementById("fileCamera").addEventListener("change", onPickChatImage);
     document.getElementById("fileSticker").addEventListener("change", (e) => {
-      const f = e.target.files[0];
+      const files = [...e.target.files];
       e.target.value = "";
-      if (!f) return;
-      compressImage(f, (data) => {
-        if (stickers.length >= 30) stickers.shift();
-        stickers.push(data);
-        saveStickers();
-        renderStickers();
-        toast("表情包已加入");
+      if (!files.length) return;
+      let left = files.length;
+      files.forEach((f) => {
+        compressImage(f, (data) => {
+          if (stickers.length >= STICKER_LIMIT) stickers.shift();
+          stickers.push(data);
+          left -= 1;
+          if (left <= 0) {
+            saveStickers();
+            renderStickers();
+            toast("表情包已加入（" + stickers.length + "）");
+          }
+        });
       });
     });
     document.getElementById("fileSendVideo").addEventListener("change", (e) => {
@@ -2858,8 +5602,24 @@
       return st.text + " · 剩余" + cd;
     }
     function refreshStatusBar() {
-      if (statusHim.until && statusHim.until < Date.now()) statusHim.text = "";
-      if (statusMe.until && statusMe.until < Date.now()) statusMe.text = "";
+      if (statusHim.until && statusHim.until < Date.now()) {
+        const had = statusHim.text;
+        statusHim = { text: "", until: 0 };
+        try { persistStatusBlob(); } catch (e) {}
+        if (had) {
+          addSys("对方状态到时结束，已恢复在线");
+          renderHimAgenda();
+        }
+      }
+      if (statusMe.until && statusMe.until < Date.now()) {
+        const had = statusMe.text;
+        statusMe = { text: "", until: 0 };
+        if (had) {
+          try { persistStatusBlob(); } catch (e) {}
+          logMeStatus("expire", had, 0);
+          addSys("你的状态到时结束，已恢复在线");
+        }
+      }
       document.getElementById("hisRemarkTitle").textContent = hisInfo.remark || "用户001";
       document.getElementById("onlineHint").textContent = statusLabel(statusHim);
       const prev = document.getElementById("hisStatusPreview");
@@ -2868,10 +5628,27 @@
       if (mine) mine.textContent = statusLabel(statusMe);
       const hint = document.getElementById("meStatusHint");
       if (hint) hint.textContent = statusLabel(statusMe);
+      const homeHint = document.getElementById("myHomeStatusHint");
+      if (homeHint) homeHint.textContent = statusLabel(statusMe);
+      const chatMine = document.getElementById("myChatStatus");
+      if (chatMine) {
+        chatMine.textContent = (!statusMe || !statusMe.text || statusMe.until < Date.now()) ? "在线" : statusMe.text;
+        chatMine.title = statusLabel(statusMe);
+      }
+      const mmSt = document.getElementById("mmStatusBtn");
+      if (mmSt) mmSt.textContent = statusMe && statusMe.text && statusMe.until > Date.now() ? statusLabel(statusMe) : "点击设置状态";
+    }
+    function persistStatusBlob() {
+      localStorage.setItem(LS_STATUS, JSON.stringify({
+        me: statusMe,
+        him: statusHim,
+        himLib: hisStatusLib,
+        meLib: meStatusLib
+      }));
     }
     function persistHis() {
       localStorage.setItem(LS_HIS, JSON.stringify(hisInfo));
-      localStorage.setItem(LS_STATUS, JSON.stringify({ me: statusMe, him: statusHim, himLib: hisStatusLib }));
+      persistStatusBlob();
       refreshStatusBar();
       refreshAvatars();
     }
@@ -2888,8 +5665,15 @@
           hisStatusLib = st.himLib.map((t) => String(t || "").trim()).filter((t) => t && t !== "睡觉中");
         }
         if (!hisStatusLib.length) hisStatusLib = HIS_STATUS_DEFAULT.slice();
+        if (Array.isArray(st.meLib)) {
+          meStatusLib = st.meLib.map((t) => String(t || "").trim()).filter(Boolean);
+        }
         if (statusHim.text === "睡觉中") statusHim = { text: "", until: 0 };
       } catch (e) {}
+      loadPokeTxt();
+      loadAgenda();
+      loadMeAgenda();
+      loadAgendaFold();
       const row = document.getElementById("hisColors");
       row.innerHTML = HIS_COLORS.map((c) => `<button type="button" data-c="${c}" style="background:${c}"></button>`).join("");
       row.querySelectorAll("button").forEach((b) => {
@@ -2950,22 +5734,86 @@
       toast("已加入他的状态库");
     }
     let statusPick = "忙碌中";
+    function myStatusOptions() {
+      const seen = new Set();
+      const out = [];
+      STATUS_PRESETS.concat(meStatusLib).forEach((t) => {
+        const x = String(t || "").trim();
+        if (!x || seen.has(x)) return;
+        seen.add(x);
+        out.push(x);
+      });
+      return out;
+    }
+    function rememberMeStatus(text) {
+      const t = String(text || "").trim();
+      if (!t) return;
+      if (STATUS_PRESETS.includes(t) || meStatusLib.includes(t)) return;
+      meStatusLib.push(t);
+      if (meStatusLib.length > 40) meStatusLib = meStatusLib.slice(-40);
+    }
+    function forgetMeStatus(text) {
+      meStatusLib = meStatusLib.filter((t) => t !== text);
+      persistStatusBlob();
+    }
+    function clampMyDurationInputs() {
+      const hEl = document.getElementById("statusHours");
+      const mEl = document.getElementById("statusMins");
+      if (!hEl || !mEl) return;
+      let h = Math.floor(Number(hEl.value));
+      let m = Math.floor(Number(mEl.value));
+      if (!Number.isFinite(h)) h = 0;
+      if (!Number.isFinite(m)) m = 0;
+      h = Math.max(0, Math.min(24, h));
+      m = Math.max(0, Math.min(59, m));
+      if (h === 24) m = 0;
+      hEl.value = String(h);
+      mEl.value = String(m);
+    }
+    function readMyDurationMins() {
+      clampMyDurationInputs();
+      const h = Number(document.getElementById("statusHours").value) || 0;
+      const m = Number(document.getElementById("statusMins").value) || 0;
+      return Math.max(1, h * 60 + m);
+    }
     function renderStatusChips() {
       const box = document.getElementById("statusChips");
-      box.innerHTML = STATUS_PRESETS.map((t) => `<button type="button" class="${t === statusPick ? "on" : ""}" data-t="${t}">${t}</button>`).join("");
-      box.querySelectorAll("button").forEach((b) => {
+      const opts = myStatusOptions();
+      box.innerHTML = opts.map((t) => {
+        const custom = !STATUS_PRESETS.includes(t);
+        return `<span class="status-chip-wrap${t === statusPick ? " on" : ""}"><button type="button" data-t="${escapeHtml(t)}">${escapeHtml(t)}</button>${custom ? `<button type="button" class="chip-x" data-del="${escapeHtml(t)}" aria-label="忘记这条">×</button>` : ""}</span>`;
+      }).join("");
+      box.querySelectorAll("button[data-t]").forEach((b) => {
         b.addEventListener("click", () => {
           statusPick = b.dataset.t;
           document.getElementById("statusCustom").value = "";
           renderStatusChips();
         });
       });
+      box.querySelectorAll("button[data-del]").forEach((b) => {
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const t = b.dataset.del;
+          forgetMeStatus(t);
+          if (statusPick === t) statusPick = STATUS_PRESETS[0];
+          renderStatusChips();
+        });
+      });
     }
     function openStatus() {
       const cur = statusMe;
-      statusPick = cur.text && STATUS_PRESETS.includes(cur.text) ? cur.text : "忙碌中";
+      const opts = myStatusOptions();
+      statusPick = cur.text && opts.includes(cur.text) ? cur.text : (opts[0] || "忙碌中");
       document.getElementById("statusTitle").textContent = "我的状态";
-      document.getElementById("statusCustom").value = cur.text && !STATUS_PRESETS.includes(cur.text) ? cur.text : "";
+      document.getElementById("statusCustom").value = cur.text && !opts.includes(cur.text) ? cur.text : "";
+      if (cur.until && cur.until > Date.now()) {
+        const left = Math.max(1, Math.round((cur.until - Date.now()) / 60000));
+        document.getElementById("statusHours").value = String(Math.min(24, Math.floor(left / 60)));
+        document.getElementById("statusMins").value = String(left >= 24 * 60 ? 0 : left % 60);
+      } else {
+        document.getElementById("statusHours").value = "1";
+        document.getElementById("statusMins").value = "0";
+      }
       renderStatusChips();
       refreshStatusBar();
       openModal("modalStatus");
@@ -2973,15 +5821,22 @@
     function applyStatus() {
       const custom = document.getElementById("statusCustom").value.trim();
       const text = custom || statusPick;
-      const dur = document.getElementById("statusDur").value;
-      let until = Date.now() + 30 * 60 * 1000;
-      if (dur === "today") {
-        const d = new Date();
-        d.setHours(23, 59, 59, 999);
-        until = d.getTime();
-      } else until = Date.now() + Number(dur) * 60 * 1000;
-      statusMe = { text, until };
+      if (!text) {
+        toast("先选一个状态");
+        return;
+      }
+      const mins = readMyDurationMins();
+      const until = Date.now() + mins * 60 * 1000;
+      if (statusMe.text && statusMe.until > Date.now()) {
+        logMeStatus("clear", statusMe.text, 0);
+      }
+      rememberMeStatus(text);
+      statusPick = text;
+      statusMe = { text, until, start: Date.now() };
       persistHis();
+      renderStatusChips();
+      logMeStatus("set", text, mins);
+      addSys("你将状态设为「" + text + "」，持续约" + mins + "分钟");
       refreshStatusBar();
       toast("已设为「" + text + "」");
     }
@@ -2991,40 +5846,104 @@
       statusHim = { text: "", until: 0 };
       persistHis();
       addSys("对方提前结束了状态，已恢复在线");
+      renderHimAgenda();
     }
     function himSetRandomStatus() {
       const dice = Math.random();
       if (dice < 0.42) return;
       if (dice < 0.58) {
         if (statusHim.text && statusHim.until > Date.now()) himEndStatusEarly();
-        else {
-          statusHim = { text: "", until: 0 };
-          persistHis();
-        }
         return;
       }
       const pool = hisStatusLib.filter(Boolean);
       if (!pool.length) return;
+      if (statusHim.text && statusHim.until > Date.now()) {
+        statusHim = { text: "", until: 0 };
+        persistHis();
+        addSys("对方提前结束了状态，已恢复在线");
+      }
       const text = pool[Math.floor(Math.random() * pool.length)];
-      const mins = [15, 30, 60, 90, 120, 240][Math.floor(Math.random() * 6)];
-      statusHim = { text, until: Date.now() + mins * 60 * 1000 };
+      const roll = Math.random();
+      let mins = 30;
+      if (roll < 0.22) mins = 1 + Math.floor(Math.random() * 29);
+      else if (roll < 0.55) mins = 30 + Math.floor(Math.random() * 90);
+      else if (roll < 0.82) mins = 120 + Math.floor(Math.random() * 360);
+      else mins = 480 + Math.floor(Math.random() * (24 * 60 - 479));
+      const until = Date.now() + mins * 60 * 1000;
+      const start = Date.now();
+      statusHim = { text, until, start };
       persistHis();
       addSys("对方将状态设为「" + text + "」，持续约" + mins + "分钟");
+      renderHimAgenda();
       clearTimeout(himStatusEarlyTimer);
       const full = mins * 60 * 1000;
       if (Math.random() < 0.55) {
         himStatusEarlyTimer = setTimeout(himEndStatusEarly, randomDelayMs(Math.min(25000, full * 0.2), Math.max(40000, full * 0.55)));
       }
     }
+    document.getElementById("btnHisStatusLib").addEventListener("click", () => {
+      document.getElementById("hisRemarkInput").value = hisInfo.remark || "用户001";
+      document.getElementById("hisStatusPreview").textContent = "当前：" + statusLabel(statusHim);
+      renderHisStatusLib();
+      openModal("modalHis");
+    });
+    document.getElementById("statusHours").addEventListener("change", clampMyDurationInputs);
+    document.getElementById("statusMins").addEventListener("change", clampMyDurationInputs);
     document.getElementById("goMyStatus").addEventListener("click", () => openStatus());
+    document.getElementById("btnMeStatus").addEventListener("click", () => openStatus());
+    document.getElementById("myHomeStatus").addEventListener("click", () => openStatus());
+    document.getElementById("mmStatusBtn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openStatus();
+    });
     document.getElementById("saveStatus").addEventListener("click", applyStatus);
     document.getElementById("clearStatus").addEventListener("click", () => {
+      if (statusMe.text) {
+        logMeStatus("clear", statusMe.text, 0);
+        addSys("你已恢复在线");
+      }
       statusMe = { text: "", until: 0 };
       persistHis();
       refreshStatusBar();
-      toast("已恢复在线");
+      toast("已提前结束");
     });
     setInterval(refreshStatusBar, 1000);
+    function isStatusSysText(raw) {
+      const t = String(raw || "");
+      return /对方将状态设为/.test(t) || /提前结束了状态/.test(t) || /状态到时结束/.test(t);
+    }
+    function purgeOldPunchData() {
+      const cut = Date.now() - DAY_MS;
+      let chatDirty = false;
+      chatEl.querySelectorAll(".sys[data-log]").forEach((el) => {
+        if (!isStatusSysText(el.textContent || "")) return;
+        const ts = sysEventTs(el);
+        if (ts && ts < cut) {
+          el.remove();
+          chatDirty = true;
+        }
+      });
+      if (chatDirty) saveChat();
+      const before = meAgenda.length;
+      meAgenda = meAgenda.filter((x) => x && x.ts && x.ts >= cut);
+      if (meAgenda.length !== before) saveMeAgenda();
+      if (statusHim.start && statusHim.start < cut) {
+        statusHim = { text: "", until: 0 };
+        try { persistStatusBlob(); } catch (e) {}
+      }
+      renderHimAgenda();
+      renderMeAgenda();
+    }
+    let statusTickTimer = null;
+    function scheduleStatusTick() {
+      clearTimeout(statusTickTimer);
+      statusTickTimer = setTimeout(() => {
+        himSetRandomStatus();
+        if (Math.random() < 0.34) maybeHimCommentMoment();
+        purgeOldPunchData();
+        scheduleStatusTick();
+      }, randomDelayMs(50000, 4 * 60 * 1000));
+    }
 
     /* ========== 我 / 朋友圈 ========== */
     let profile = { nick: "我", cover: "" };
@@ -3033,9 +5952,11 @@
     function applyProfile() {
       document.getElementById("myNick").value = profile.nick || "我";
       document.getElementById("mmNick").textContent = profile.nick || "我";
+      document.getElementById("myHomeName").textContent = profile.nick || "我";
       const bg = profile.cover ? "url(" + profile.cover + ")" : "";
       document.getElementById("meCover").style.backgroundImage = bg;
       document.getElementById("mmHero").style.backgroundImage = bg;
+      document.getElementById("myHomeHero").style.backgroundImage = bg;
       refreshAvatars();
       refreshStatusBar();
     }
@@ -3086,6 +6007,35 @@
         if (document.getElementById("momentsPage").classList.contains("show")) renderMoments();
         addSys(himName() + "赞了你的朋友圈 · " + when);
       }, delay);
+    }
+    function himHasCommented(m) {
+      return !!(m && (m.comments || []).some((c) => c.who === "him"));
+    }
+    function himCommentMoment(id) {
+      const m = moments.find((x) => String(x.id) === String(id));
+      if (!m) return false;
+      normMoment(m);
+      if (himHasCommented(m)) return false;
+      const text = composeCardCombo(5);
+      if (!text) return false;
+      const when = formatTime();
+      m.comments.push({ who: "him", name: himName(), text: text, time: when, ts: Date.now() });
+      saveMoments();
+      if (document.getElementById("momentsPage").classList.contains("show")) renderMoments();
+      addSys(himName() + "评论了你的朋友圈 · " + when);
+      return true;
+    }
+    function scheduleHimComment(id) {
+      if (Math.random() < 0.28) return;
+      setTimeout(() => himCommentMoment(id), randomDelayMs(8000, 12 * 60 * 1000));
+    }
+    function maybeHimCommentMoment() {
+      const open = moments.filter((x) => {
+        normMoment(x);
+        return !himHasCommented(x);
+      });
+      if (!open.length) return;
+      himCommentMoment(open[Math.floor(Math.random() * open.length)].id);
     }
     function toggleMyLike(id) {
       const m = moments.find((x) => String(x.id) === String(id));
@@ -3243,6 +6193,7 @@
       document.getElementById("mmCompose").classList.remove("show");
       renderMoments();
       scheduleHimLike(newId);
+      scheduleHimComment(newId);
     });
     document.addEventListener("click", () => {
       document.querySelectorAll(".mm-pop.show").forEach((p) => p.classList.remove("show"));
@@ -3250,6 +6201,7 @@
 
     /* ========== 十四、启动 ========== */
     loadPrivate();
+    loadChatSet();
     loadTheme();
     loadAvatars();
     loadStickers();
@@ -3257,10 +6209,35 @@
     loadProfile();
     const restored = restoreChat();
     if (!restored) {
-      addSys("莉莉已上线。你随便说，他从字卡库里回你。");
+      addSys("莉莉·Amour 已上线。你随便说，他从字卡库里回你。");
     }
-    if (hasUnreadUser()) ensureHisReplyToUser();
-    else resetIdle();
+    const gated = setupGate();
+    if (!gated) showHall();
+    document.getElementById("hallChat").addEventListener("click", enterChat);
+    document.getElementById("hallDiv").addEventListener("click", openFortune);
+    document.getElementById("hallContact").addEventListener("click", () => openModal("modalNotice"));
+    document.getElementById("btnToHall").addEventListener("click", showHall);
+    document.getElementById("divBack").addEventListener("click", closeFortune);
+    document.getElementById("btnGeo").addEventListener("click", requestGeo);
+    document.getElementById("goBond").addEventListener("click", () => openDraw("bond"));
+    document.getElementById("goRemind").addEventListener("click", () => openDraw("remind"));
+    document.getElementById("foldHimAgenda").addEventListener("click", () => {
+      agendaFold.him = !agendaFold.him;
+      saveAgendaFold();
+      applyAgendaFold("him");
+    });
+    document.getElementById("foldMeAgenda").addEventListener("click", () => {
+      agendaFold.me = !agendaFold.me;
+      saveAgendaFold();
+      applyAgendaFold("me");
+    });
+    document.getElementById("btnDrawTarot").addEventListener("click", () => {
+      const n = Number(document.getElementById("tarotN").value) || 1;
+      const list = drawTarot(n);
+      paintTarot(list);
+    });
+    purgeOldPunchData();
+    scheduleStatusTick();
   </script>
 </body>
 </html>
