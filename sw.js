@@ -176,7 +176,8 @@ async function startFromCfg(cfg) {
   running = true;
   await setCfg(cfg);
   try {
-    await showNote("莉莉·Amour 后台运行中", "正在接收消息。不要把这个应用划掉。", "bg");
+    const notes = await self.registration.getNotifications({ tag: "lily-bg" });
+    notes.forEach((n) => n.close());
   } catch (e) {}
   if (bursting) return;
   bursting = true;

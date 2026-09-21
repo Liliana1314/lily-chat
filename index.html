@@ -4742,11 +4742,11 @@
         bgKeepOn = true;
         saveBgKeep();
         syncBgUi();
+        clearBgNotify();
         startEngineKeepAlive();
-        popSystemNotify("莉莉·Amour 后台运行中", "正在接收消息。不要把这个应用划掉。", "bg");
         toast(isApplePhone()
-          ? "后台已开。去刷别的时不要划掉应用，也不要开静音太久"
-          : "后台已开。系统设置里把 Chrome/Edge 电池设为不受限制，不要划掉应用");
+          ? "后台已开"
+          : "后台已开");
         resetIdle();
         scheduleHimStatusLoop();
       };
