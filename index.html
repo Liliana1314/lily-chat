@@ -1541,6 +1541,42 @@
       cursor: pointer;
       letter-spacing: 0.08em;
     }
+    .hall-bg {
+      position: absolute;
+      z-index: 2;
+      left: 22px;
+      bottom: 22px;
+      border: 1px solid rgba(212, 175, 130, 0.55);
+      background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,244,248,0.4));
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 12px;
+      color: #8a4a62;
+      border-radius: 999px;
+      cursor: pointer;
+      letter-spacing: 0.08em;
+    }
+    .hall-bg.on {
+      background: #5c3d48;
+      color: #fff8fb;
+      border-color: #5c3d48;
+    }
+    #bgChip {
+      display: none;
+      position: fixed;
+      top: calc(10px + env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 86;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(92, 61, 72, 0.88);
+      color: #fff8fb;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      pointer-events: none;
+    }
+    #bgChip.show { display: block; }
     .notice-sheet h2 { font-size: 17px; line-height: 1.45; margin-bottom: 10px; }
     .notice-sheet p { margin-bottom: 10px; line-height: 1.75; font-size: 14px; color: #5c3d48; }
     .choice-opt {
@@ -2061,7 +2097,31 @@
       font-size: 12px;
       cursor: pointer;
     }
-    .pool-cats button.on { background: #e8c5d1; font-weight: 700; }
+    .pool-origin, .pool-cat-add {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 10px;
+    }
+    .pool-origin button, .pool-cat-add button {
+      width: auto;
+      margin: 0;
+      flex: 1;
+      min-width: 140px;
+    }
+    .pool-cat-add input {
+      flex: 1;
+      min-width: 120px;
+      margin: 0;
+    }
+    .pool-cats button .cat-x {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0.45;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .pool-cats button .cat-x:hover { opacity: 1; color: #c45; }
     .pool-import textarea {
       width: 100%;
       min-height: 72px;
@@ -2285,6 +2345,7 @@
         <cite>埃尔泽·拉斯克·许勒尔</cite>
       </blockquote>
     </div>
+    <button type="button" class="hall-bg" id="hallBg">开后台</button>
     <button type="button" class="hall-contact" id="hallContact">联系我</button>
   </div>
 
@@ -2352,6 +2413,7 @@
       <div class="wx-view" id="themeViewHome">
         <h2>设置</h2>
         <div class="wx-group">
+          <button type="button" class="wx-cell" id="btnBgKeep"><span class="wx-ico">☾</span><span class="wx-cell-txt">后台运行</span><span class="wx-chev" id="bgKeepState">关</span></button>
           <button type="button" class="wx-cell" data-theme-go="dress"><span class="wx-ico">🎨</span><span class="wx-cell-txt">装扮</span><span class="wx-chev">›</span></button>
           <button type="button" class="wx-cell" id="btnOpenPoke"><span class="wx-ico">👉</span><span class="wx-cell-txt">修改戳一戳</span><span class="wx-chev">›</span></button>
           <button type="button" class="wx-cell" data-theme-go="chatset"><span class="wx-ico">🎛</span><span class="wx-cell-txt">自定义聊天</span><span class="wx-chev">›</span></button>
@@ -2527,8 +2589,16 @@
   <div class="modal-mask" id="modalPool">
     <div class="sheet">
       <h2>📒 他的字卡库</h2>
-      <p class="pool-meta">可按分类查看、批量导入。上限 20000。当前 <span id="poolCount">0 / 20000</span></p>
+      <p class="pool-meta">可按分类查看、批量导入。分类能自己加、也能删。上限 20000。当前 <span id="poolCount">0 / 20000</span></p>
+      <div class="pool-origin">
+        <button type="button" class="ghost-btn" id="btnClearOrigin">一键删除系统原始字卡</button>
+        <button type="button" class="ghost-btn" id="btnRestoreOrigin">恢复系统原始字卡</button>
+      </div>
       <div class="pool-cats" id="poolCats"></div>
+      <div class="pool-cat-add">
+        <input type="text" id="poolNewCat" maxlength="12" placeholder="新分类名称" />
+        <button type="button" class="ghost-btn" id="btnAddCat">添加分类</button>
+      </div>
       <input type="text" id="poolSearch" placeholder="搜索字卡…" />
       <button type="button" class="fold-head" id="foldPool">已存字卡 ▸ 展开</button>
       <div id="poolFold" style="display:none">
@@ -2607,7 +2677,7 @@
           </button>
         </div>
       </div>
-      <div class="agenda-note">后台开着才会同步他的状态（不必盯着聊天）。打卡只保留 24 小时，超时会自动清空。</div>
+      <div class="agenda-note">点大厅左下角「开后台」并允许通知后，切去玩别的也可以继续收消息、来电和朋友圈互动（网页要留在浏览器里，不要划掉）。打卡只保留 24 小时，超时会自动清空。</div>
       <div class="agenda-wrap">
         <button type="button" class="agenda-head" id="foldHimAgenda">
           <span class="lab">他的今日打卡</span>
@@ -2848,6 +2918,7 @@
   <input type="file" id="fileHisCover" accept="image/*" hidden />
   <input type="file" id="fileMmPhotos" accept="image/*" multiple hidden />
 
+  <div id="bgChip">后台运行中</div>
   <div class="wx-banner" id="wxBanner">
     <div class="b-ava" id="wxBannerAva"></div>
     <div class="b-txt"><b id="wxBannerTitle">莉莉·Amour</b><span id="wxBannerBody">对方发来一条消息</span></div>
@@ -3235,7 +3306,9 @@
 乖小猫
 小祖宗
 坏孩子`.trim().split("\n").map((s) => s.trim()).filter(Boolean);
-    const CARD_CATS = ["其他回复", "情话", "心情", "在做什么", "称呼", "颜文字", "Emoji"];
+    const DEFAULT_CATS = ["其他回复", "情话", "心情", "在做什么", "称呼", "颜文字", "Emoji"];
+    let cardCats = DEFAULT_CATS.slice();
+    let originCardsOn = true;
     const EXTRA_PRESETS = {
       "主字卡": ["我在工作","在忙","有事","没事","有空","没空","我在学习","在学习","在学校","在外面","最近很忙","最近空闲时间很多","现在有空","现在没空","现在有事","现在没事","等会有事","等会要忙","下班了","我下班了","我去上班了","去上班","去学校","去外面","出门了","刚出门","今天天气怎么样？","今天天气很好","今天天气很舒服","今天很热","今天很冷","出去吃饭了","在家吃饭","在家"],
       "常用语": ["想不想","是不是","好不好","对不对","会不会","能不能","需要不需要","懂不懂","喜欢不喜欢","讨厌不讨厌","如果我说是","如果我说不是","我是","你是","他是","我觉得","我感觉","我感觉到了","我听到","我看到","我听到了","我看到了","我不喜欢","我喜欢","我讨厌","我不讨厌","没关系","抱歉","有没有","确实","对了","错了","你误会我了","要不要","怪你","怪我","习惯了","那就好","行不行","ok","no","我希望","我不希望","我期待","我不期待","我想要","我不想要","我想","我不想","我知道了","我不知道","不要卖萌","你很可爱","我等你","不客气","我不是","你不是","以后不会了","很好","嗯","我相信你","我相信","狗派","猫派","哭哭","谢谢","像不像","可以不可以","你是我女朋友","我错了","我没错","有点","必须","我需要你","我喜欢你","我爱你","讨厌你","我在听","我在看","爱不爱","嗯……","我想一下","我思考一下","我还在想","我还在思考","我在","不过","也是","看来","话说","好了","但是","或许","没问题","是我","对不起","意料之外","意料之中","待会见","当然","我很抱歉","晚了","不要不理我","知道不知道","我一直在","我会对你负责","我们都在一起了","想你了","我想你","我想见你","好想你","我会改正的","像小猫","像小狗","喜欢","讨厌","记得","忘了","不可以","够了","不满足","知道了","不清楚","很好看","不怎么样","差不多","完全不对","不可能","有一定概率","长短"],
@@ -3304,6 +3377,8 @@
     let cardLib = [];
     const LS_CARDS = "my_cards";
     const LS_LIB_VER = "card_lib_ver";
+    const LS_CATS = "ui_card_cats";
+    const LS_ORIGIN = "ui_origin_cards_on";
     const LIB_VER = "origin-9-love-cat";
     const LS_CHAT = "chat_history";
     const LS_DIV = "today_divination";
@@ -3330,6 +3405,7 @@
     const LS_GATE = "gate_ack_amour_v1";
     const LS_CHATSET = "ui_chat_custom";
     const LS_THEME_VER = "ui_theme_ver";
+    const LS_BG = "ui_bg_keep";
     const THEME_VER = "pink-grey-1";
     const DEFAULT_THEME = {
       bgA: "#f4dce4",
@@ -3456,13 +3532,50 @@
     })();
 
     /* ========== 五、持久化 ========== */
+    function fallbackCat() {
+      return cardCats.includes("其他回复") ? "其他回复" : (cardCats[0] || "其他回复");
+    }
+    function keepCat(cat, text) {
+      const c = String(cat || "").trim();
+      if (c && cardCats.includes(c)) return c;
+      const guessed = classifyCard(text);
+      if (cardCats.includes(guessed)) return guessed;
+      return fallbackCat();
+    }
+    function saveCardCats() {
+      try { localStorage.setItem(LS_CATS, JSON.stringify(cardCats)); } catch (e) {}
+    }
+    function saveOriginFlag() {
+      try { localStorage.setItem(LS_ORIGIN, originCardsOn ? "1" : "0"); } catch (e) {}
+    }
+    function loadCardMeta() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(LS_CATS) || "null");
+        if (Array.isArray(raw) && raw.length) {
+          cardCats = [...new Set(raw.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
+        }
+      } catch (e) {}
+      if (!cardCats.length) cardCats = DEFAULT_CATS.slice();
+      originCardsOn = localStorage.getItem(LS_ORIGIN) !== "0";
+    }
+    function originTextSet() {
+      return new Set(DEFAULT_CARDS.map((c) => c.text));
+    }
+    function defaultCardsMapped() {
+      return DEFAULT_CARDS.map((c) => ({
+        id: c.id || Date.now() + Math.random(),
+        text: c.text,
+        cat: keepCat(c.cat, c.text)
+      }));
+    }
     function loadPrivate() {
+      loadCardMeta();
       function norm(c) {
         const text = (c.text || "").trim();
         return {
           id: c.id || Date.now() + Math.random(),
           text,
-          cat: CARD_CATS.includes(c.cat) ? c.cat : classifyCard(text)
+          cat: keepCat(c.cat, text)
         };
       }
       try {
@@ -3471,22 +3584,26 @@
         const list = (Array.isArray(saved) ? saved : []).map(norm).filter((c) => c.text);
         const ver = localStorage.getItem(LS_LIB_VER);
         if (ver !== LIB_VER) {
-          const seeded = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
-          const have = new Set(seeded.map((s) => s.text));
-          list.forEach((c) => {
-            if (c.text && !have.has(c.text) && seeded.length < CARD_LIMIT) {
-              seeded.push({ id: c.id || Date.now() + Math.random(), text: c.text, cat: classifyCard(c.text) });
-              have.add(c.text);
-            }
-          });
-          cardLib = seeded;
+          if (originCardsOn) {
+            const seeded = defaultCardsMapped();
+            const have = new Set(seeded.map((s) => s.text));
+            list.forEach((c) => {
+              if (c.text && !have.has(c.text) && seeded.length < CARD_LIMIT) {
+                seeded.push({ id: c.id || Date.now() + Math.random(), text: c.text, cat: keepCat(c.cat, c.text) });
+                have.add(c.text);
+              }
+            });
+            cardLib = seeded;
+          } else {
+            cardLib = list;
+          }
           savePrivate();
           localStorage.setItem(LS_LIB_VER, LIB_VER);
           return;
         }
-        cardLib = list.length ? list : DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
+        cardLib = list.length ? list : (originCardsOn ? defaultCardsMapped() : []);
       } catch (e) {
-        cardLib = DEFAULT_CARDS.map((c) => ({ id: c.id, text: c.text, cat: classifyCard(c.text) }));
+        cardLib = originCardsOn ? defaultCardsMapped() : [];
       }
     }
     function savePrivate() {
@@ -4090,19 +4207,22 @@
     let titleTimer = null;
     const baseTitle = document.title;
     let keepAudio = null;
+    let keepAudioEl = null;
     let wakeLockSentinel = null;
     let engineWorker = null;
+    let bgTick = null;
     let nextIdleAt = 0;
     let nextStatusAt = 0;
+    let bgKeepOn = localStorage.getItem(LS_BG) === "1";
     function lookingAtChat() {
       const hall = document.getElementById("hall");
       const div = document.getElementById("divPage");
       return !document.hidden && hall && hall.classList.contains("hide") && div && !div.classList.contains("show");
     }
-    function pingAway(title, body) {
+    function pingAway(title, body, kind) {
       const t = title || himName();
       const b = String(body || "发来一条消息").replace(/\s+/g, " ").slice(0, 48);
-      if (lookingAtChat()) return;
+      if (lookingAtChat() && kind !== "call") return;
       const banner = document.getElementById("wxBanner");
       const bt = document.getElementById("wxBannerTitle");
       const bb = document.getElementById("wxBannerBody");
@@ -4119,7 +4239,8 @@
       }, 900);
       if (window.Notification && Notification.permission === "granted") {
         try {
-          const note = new Notification(t, { body: b, tag: "lily-amour-msg" });
+          const tag = kind === "call" ? "lily-call" : (kind === "mm" ? "lily-mm-" + Date.now() : "lily-msg");
+          const note = new Notification(t, { body: b, tag: tag, renotify: true });
           note.onclick = () => { try { window.focus(); } catch (e) {} note.close(); };
         } catch (e) {}
       }
@@ -4127,24 +4248,51 @@
     function askNotify() {
       if (window.Notification && Notification.permission === "default") Notification.requestPermission();
     }
+    function syncBgUi() {
+      const btn = document.getElementById("hallBg");
+      if (btn) {
+        btn.classList.toggle("on", bgKeepOn);
+        btn.textContent = bgKeepOn ? "后台开着" : "开后台";
+      }
+      const st = document.getElementById("bgKeepState");
+      if (st) st.textContent = bgKeepOn ? "开" : "关";
+      const chip = document.getElementById("bgChip");
+      if (chip) chip.classList.toggle("show", bgKeepOn);
+    }
+    function saveBgKeep() {
+      try { localStorage.setItem(LS_BG, bgKeepOn ? "1" : "0"); } catch (e) {}
+    }
     function startSilentAudio() {
+      if (!bgKeepOn) return;
       try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        if (!keepAudio) {
-          keepAudio = new AC();
-          const osc = keepAudio.createOscillator();
-          const g = keepAudio.createGain();
-          g.gain.value = 0.00001;
-          osc.frequency.value = 18;
-          osc.connect(g);
-          g.connect(keepAudio.destination);
-          osc.start();
+        if (!keepAudioEl) {
+          keepAudioEl = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+          keepAudioEl.loop = true;
+          keepAudioEl.volume = 0.01;
         }
-        if (keepAudio.state === "suspended") keepAudio.resume();
+        keepAudioEl.play().catch(function () {});
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) {
+          if (!keepAudio) {
+            keepAudio = new AC();
+            const osc = keepAudio.createOscillator();
+            const g = keepAudio.createGain();
+            g.gain.value = 0.00001;
+            osc.frequency.value = 18;
+            osc.connect(g);
+            g.connect(keepAudio.destination);
+            osc.start();
+          }
+          if (keepAudio.state === "suspended") keepAudio.resume();
+        }
       } catch (e) {}
     }
+    function stopSilentAudio() {
+      try { if (keepAudioEl) { keepAudioEl.pause(); } } catch (e) {}
+      try { if (keepAudio && keepAudio.state !== "closed") keepAudio.suspend(); } catch (e) {}
+    }
     async function startWakeLock() {
+      if (!bgKeepOn) return;
       try {
         if (!navigator.wakeLock || document.hidden) return;
         if (wakeLockSentinel) return;
@@ -4155,27 +4303,68 @@
       }
     }
     function startEngineKeepAlive() {
+      if (!bgKeepOn) return;
       askNotify();
       startSilentAudio();
       startWakeLock();
+      if (!bgTick) bgTick = setInterval(catchUpEngine, 4000);
       if (engineWorker) return;
       try {
-        const blob = new Blob(["setInterval(function(){postMessage(1)},12000);"], { type: "text/javascript" });
+        const blob = new Blob(["setInterval(function(){postMessage(1)},4000);"], { type: "text/javascript" });
         const url = URL.createObjectURL(blob);
         engineWorker = new Worker(url);
         engineWorker.onmessage = () => catchUpEngine();
       } catch (e) {}
     }
-    function catchUpEngine() {
-      if (pendingReplies === 0 && !pendingUserReply && nextIdleAt && Date.now() >= nextIdleAt) {
-        const at = nextIdleAt;
-        idleEvent(at);
-      } else if (pendingReplies === 0 && !pendingUserReply && !idleTimer) {
-        resetIdle();
+    function stopEngineKeepAlive() {
+      if (bgTick) { clearInterval(bgTick); bgTick = null; }
+      if (engineWorker) {
+        try { engineWorker.terminate(); } catch (e) {}
+        engineWorker = null;
       }
+      stopSilentAudio();
+      try { if (wakeLockSentinel) wakeLockSentinel.release(); } catch (e) {}
+      wakeLockSentinel = null;
+    }
+    function toggleBgKeep() {
+      bgKeepOn = !bgKeepOn;
+      saveBgKeep();
+      syncBgUi();
+      if (bgKeepOn) {
+        startEngineKeepAlive();
+        if (window.Notification && Notification.permission === "default") {
+          Notification.requestPermission().then((p) => {
+            if (p !== "granted") toast("请允许通知，切出去才能弹消息和来电");
+          });
+        } else if (window.Notification && Notification.permission === "denied") {
+          toast("通知被系统关掉了，请到浏览器设置里打开");
+        }
+        toast("后台已开。可以切去玩别的，但不要把这个网页划掉。");
+        resetIdle();
+        scheduleHimStatusLoop();
+      } else {
+        stopEngineKeepAlive();
+        toast("后台已关");
+      }
+    }
+    function catchUpEngine() {
+      let n = 0;
+      while (pendingReplies === 0 && !pendingUserReply && nextIdleAt && Date.now() >= nextIdleAt && n < 4) {
+        idleEvent(nextIdleAt);
+        n += 1;
+        if (!nextIdleAt || nextIdleAt > Date.now()) break;
+      }
+      if (pendingReplies === 0 && !pendingUserReply && !idleTimer) resetIdle();
       if (nextStatusAt && Date.now() >= nextStatusAt) himDoRandomStatusAction();
-      startWakeLock();
-      if (keepAudio && keepAudio.state === "suspended") keepAudio.resume();
+      try {
+        const plan = JSON.parse(localStorage.getItem(LS_HIM_MM_PLAN) || "null");
+        if (plan && plan.at && Date.now() >= plan.at && typeof himPostedToday === "function" && !himPostedToday()) postHimMoment(plan.at);
+      } catch (e) {}
+      if (bgKeepOn) {
+        startWakeLock();
+        if (keepAudio && keepAudio.state === "suspended") keepAudio.resume();
+        if (keepAudioEl && keepAudioEl.paused) keepAudioEl.play().catch(function () {});
+      }
     }
     function notifyIncoming() {}
     function stopTitleFlash() {
@@ -4185,6 +4374,9 @@
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         stopTitleFlash();
+        catchUpEngine();
+        if (bgKeepOn) startEngineKeepAlive();
+      } else if (bgKeepOn) {
         catchUpEngine();
       }
     });
@@ -4401,7 +4593,7 @@
       askNotify();
       startRing();
       addSys(callKind === "video" ? "对方想跟你视频通话" : "对方想跟你语音通话");
-      pingAway(himName(), callKind === "video" ? "邀请你视频通话" : "邀请你语音通话");
+      pingAway(himName(), callKind === "video" ? "邀请你视频通话" : "邀请你语音通话", "call");
       openCall("in", "邀请你" + kindName() + "…");
       scheduleHimRingEnd();
     }
@@ -4456,7 +4648,7 @@
     }
     function pokeYou(at) {
       addSys(pokeTxt.you || DEFAULT_POKE.you, at);
-      pingAway(himName(), pokeTxt.you || "拍了拍你");
+      pingAway(himName(), pokeTxt.you || "拍了拍你", "msg");
     }
     function pokeHim() {
       addSys(pokeTxt.me || DEFAULT_POKE.me);
@@ -4613,7 +4805,8 @@
     /* ========== 七、他的回复：只从字卡库随机抽 ========== */
     function fullPool() {
       const filled = cardLib.filter((c) => (c.text || "").trim());
-      return filled.length ? filled : DEFAULT_CARDS;
+      if (filled.length) return filled;
+      return originCardsOn ? DEFAULT_CARDS : [];
     }
     function poolByCat(cat) {
       return fullPool().filter((c) => (c.cat || "其他回复") === cat && (c.text || "").trim());
@@ -4621,6 +4814,7 @@
     function pickCard(exclude) {
       const pool = fullPool().filter((c) => !exclude || !exclude.has(c.text));
       const src = pool.length ? pool : fullPool();
+      if (!src.length) return null;
       return src[Math.floor(Math.random() * src.length)];
     }
     function composeCardCombo(maxN) {
@@ -5001,18 +5195,109 @@
     let poolCat = "全部";
     function renderPoolCats() {
       const box = document.getElementById("poolCats");
-      const cats = ["全部"].concat(CARD_CATS);
-      box.innerHTML = cats.map((c) => `<button type="button" data-cat="${c}" class="${c === poolCat ? "on" : ""}">${c}</button>`).join("");
-      box.querySelectorAll("button").forEach((btn) => {
+      box.innerHTML = "";
+      ["全部"].concat(cardCats).forEach((c) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.cat = c;
+        if (c === poolCat) btn.classList.add("on");
+        btn.appendChild(document.createTextNode(c));
+        if (c !== "全部" && cardCats.length > 1) {
+          const x = document.createElement("span");
+          x.className = "cat-x";
+          x.textContent = "×";
+          x.title = "删除分类";
+          x.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteCardCat(c);
+          });
+          btn.appendChild(x);
+        }
         btn.addEventListener("click", () => {
           poolCat = btn.dataset.cat;
           poolPage = 0;
           renderPoolCats();
           renderPool();
         });
+        box.appendChild(btn);
       });
       const sel = document.getElementById("poolImportCat");
-      sel.innerHTML = CARD_CATS.map((c) => `<option value="${c}">${c}</option>`).join("");
+      sel.innerHTML = cardCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    }
+    function addCardCat(name) {
+      const n = String(name || "").trim().slice(0, 12);
+      if (!n || n === "全部") {
+        toast("请填写分类名");
+        return false;
+      }
+      if (cardCats.includes(n)) {
+        toast("已有这个分类");
+        return false;
+      }
+      if (cardCats.length >= 30) {
+        toast("分类最多 30 个");
+        return false;
+      }
+      cardCats.push(n);
+      saveCardCats();
+      poolCat = n;
+      renderPoolCats();
+      renderPool();
+      toast("已添加分类");
+      return true;
+    }
+    function deleteCardCat(name) {
+      if (cardCats.length <= 1) {
+        toast("至少留一个分类");
+        return;
+      }
+      const next = cardCats.filter((c) => c !== name);
+      const moveTo = next.includes("其他回复") ? "其他回复" : next[0];
+      if (!confirm("删除分类「" + name + "」？该分类里的字卡会挪到「" + moveTo + "」。")) return;
+      cardLib.forEach((c) => {
+        if ((c.cat || "") === name) c.cat = moveTo;
+      });
+      cardCats = next;
+      saveCardCats();
+      savePrivate();
+      if (poolCat === name) poolCat = "全部";
+      renderPoolCats();
+      renderPool();
+      toast("已删除分类");
+    }
+    function clearOriginCards() {
+      const set = originTextSet();
+      const n = cardLib.filter((c) => set.has((c.text || "").trim())).length;
+      if (!n) {
+        originCardsOn = false;
+        saveOriginFlag();
+        toast("库里已经没有系统原始字卡了");
+        return;
+      }
+      if (!confirm("将删除 " + n + " 条系统原始字卡，你自己加的会留下。之后可以再点恢复。确定吗？")) return;
+      cardLib = cardLib.filter((c) => !set.has((c.text || "").trim()));
+      originCardsOn = false;
+      saveOriginFlag();
+      savePrivate();
+      renderPool();
+      toast("已删除系统原始字卡");
+    }
+    function restoreOriginCards() {
+      const have = new Set(cardLib.map((c) => (c.text || "").trim()));
+      let n = 0;
+      DEFAULT_CARDS.forEach((c) => {
+        if (cardLib.length >= CARD_LIMIT) return;
+        const t = (c.text || "").trim();
+        if (!t || have.has(t)) return;
+        have.add(t);
+        cardLib.push({ id: Date.now() + Math.random() + n, text: t, cat: keepCat(c.cat, t) });
+        n += 1;
+      });
+      originCardsOn = true;
+      saveOriginFlag();
+      savePrivate();
+      renderPool();
+      toast(n ? "已恢复 " + n + " 条系统原始字卡" : "系统原始字卡都在，不用恢复");
     }
     function filteredPool() {
       const q = (document.getElementById("poolSearch").value || "").trim();
@@ -5061,7 +5346,7 @@
       });
     }
     function importCardTexts(texts, cat) {
-      const kind = CARD_CATS.includes(cat) ? cat : "其他回复";
+      const kind = cardCats.includes(cat) ? cat : fallbackCat();
       const have = new Set(cardLib.map((c) => (c.text || "").trim()));
       let n = 0;
       texts.forEach((raw) => {
@@ -5101,7 +5386,7 @@
         toast("字卡库已满，上限 20000 条");
         return;
       }
-      const cat = poolCat === "全部" ? "其他回复" : poolCat;
+      const cat = poolCat === "全部" ? fallbackCat() : poolCat;
       cardLib.push({ id: Date.now() + Math.random(), text: "", cat });
       savePrivate();
       poolOpen = true;
@@ -5124,9 +5409,9 @@
     });
     document.getElementById("btnImportEmoji").addEventListener("click", () => {
       const bits = parseEmojiBlob(document.getElementById("poolImportText").value);
-      const n = importCardTexts(bits, "Emoji");
+      const n = importCardTexts(bits, cardCats.includes("Emoji") ? "Emoji" : fallbackCat());
       document.getElementById("poolImportText").value = "";
-      poolCat = "Emoji";
+      poolCat = cardCats.includes("Emoji") ? "Emoji" : fallbackCat();
       poolOpen = true;
       renderPoolCats();
       renderPool();
@@ -5163,6 +5448,18 @@
       };
       reader.readAsText(f, "utf-8");
     });
+    document.getElementById("btnAddCat").addEventListener("click", () => {
+      const inp = document.getElementById("poolNewCat");
+      if (addCardCat(inp.value)) inp.value = "";
+    });
+    document.getElementById("poolNewCat").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("btnAddCat").click();
+      }
+    });
+    document.getElementById("btnClearOrigin").addEventListener("click", clearOriginCards);
+    document.getElementById("btnRestoreOrigin").addEventListener("click", restoreOriginCards);
     document.getElementById("btnPool").addEventListener("click", () => {
       poolOpen = false;
       renderPoolCats();
@@ -5932,6 +6229,8 @@
         at: new Date().toISOString(),
         chat: collectChatLogs(2000),
         cards: cardLib,
+        cardCats: cardCats,
+        originCardsOn: originCardsOn,
         chatSet: chatSet,
         status: { me: statusMe, him: statusHim, himLib: hisStatusLib, meLib: meStatusLib, meHidden: meHidden, himUnknown: himUnknown, himDur: himStatusDur, himLibVer: himLibVer },
         his: hisInfo,
@@ -5991,9 +6290,18 @@
             if (Array.isArray(pack.cards)) {
               cardLib = pack.cards.map((c) => ({
                 text: String((c && c.text) || "").trim().slice(0, 500),
-                cat: String((c && c.cat) || "其他回复")
+                cat: String((c && c.cat) || fallbackCat())
               })).filter((c) => c.text).slice(0, CARD_LIMIT);
               savePrivate();
+            }
+            if (Array.isArray(pack.cardCats) && pack.cardCats.length) {
+              cardCats = [...new Set(pack.cardCats.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
+              if (!cardCats.length) cardCats = DEFAULT_CATS.slice();
+              saveCardCats();
+            }
+            if (typeof pack.originCardsOn === "boolean") {
+              originCardsOn = pack.originCardsOn;
+              saveOriginFlag();
             }
             if (pack.chatSet && typeof pack.chatSet === "object") {
               chatSet = Object.assign({}, CHATSET_DEF, pack.chatSet);
@@ -7071,7 +7379,10 @@
       m.likes.push({ who: "him", name: himName(), at: when });
       persistFoundMoment(found);
       refreshMomentFeeds();
-      if (sys) addSys(himName() + "赞了你的朋友圈 · " + when);
+      if (sys) {
+        addSys(himName() + "赞了你的朋友圈 · " + when);
+        pingAway(himName(), "赞了你的朋友圈", "mm");
+      }
       return true;
     }
     function scheduleHimLike(id) {
@@ -7101,6 +7412,7 @@
       saveMoments();
       if (document.getElementById("momentsPage").classList.contains("show")) renderMoments();
       addSys(himName() + "评论了你的朋友圈 · " + when);
+      pingAway(himName(), "评论了你的朋友圈：" + text, "mm");
       return true;
     }
     function scheduleHimComment(id) {
@@ -7151,6 +7463,7 @@
         persistFoundMoment(found);
         refreshMomentFeeds();
         addSys(himName() + "回复了你的评论 · " + formatTime());
+        pingAway(himName(), "回复了你的评论", "mm");
       }, randomDelayMs(3000, 90 * 1000));
     }
     function renderMoments() {
@@ -7264,6 +7577,9 @@
     document.getElementById("hallChat").addEventListener("click", enterChat);
     document.getElementById("hallDiv").addEventListener("click", openFortune);
     document.getElementById("hallContact").addEventListener("click", () => openModal("modalNotice"));
+    document.getElementById("hallBg").addEventListener("click", toggleBgKeep);
+    document.getElementById("btnBgKeep").addEventListener("click", toggleBgKeep);
+    syncBgUi();
     document.getElementById("btnToHall").addEventListener("click", showHall);
     document.getElementById("divBack").addEventListener("click", closeFortune);
     document.getElementById("goBond").addEventListener("click", () => openDraw("bond"));
