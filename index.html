@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="莉莉Amour" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <title>莉莉·Amour</title>
   <style>
     :root {
@@ -1234,17 +1239,22 @@
       position: fixed;
       top: 8px;
       left: 50%;
-      transform: translateX(-50%) translateY(-120%);
+      transform: translateX(-50%) translateY(-140%);
       width: min(420px, 92%);
       background: rgba(255,255,255,0.96);
       border-radius: 14px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.15);
       padding: 10px 12px;
-      z-index: 60;
+      z-index: 100;
       display: flex;
       gap: 10px;
       align-items: center;
       transition: transform 0.28s ease;
+      pointer-events: auto;
+      touch-action: pan-y;
+      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
     }
     .wx-banner.show { transform: translateX(-50%) translateY(0); }
     .wx-banner .b-ava {
@@ -1846,14 +1856,28 @@
     .mm-cmt-box {
       display: none;
       margin-top: 6px;
+      gap: 6px;
+      align-items: center;
     }
-    .mm-cmt-box.show { display: block; }
+    .mm-cmt-box.show { display: flex; }
     .mm-cmt-box input {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
       border: 1px solid #e5e5e5;
       border-radius: 4px;
       padding: 6px 8px;
       font: inherit;
+    }
+    .mm-cmt-send {
+      flex-shrink: 0;
+      border: none;
+      background: #576b95;
+      color: #fff;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
     }
     .wx-back {
       border: none;
@@ -2535,7 +2559,7 @@
         </div>
         <div class="chat-opt">
           <div class="top"><span>他主动找你</span></div>
-          <p class="me-hint">下面三条各自掷一次，互不影响，可以同时发生。勾随机用默认概率。真发消息时，表情包 / Emoji / 引用仍用上面的概率。</p>
+          <p class="me-hint">三条各自掷一次。取消随机并拉高「发消息」，他会更勤地主动找你：100% 大约每隔几秒就发，不是等好几分钟才抽一次。</p>
           <div class="top"><span>发消息概率</span><label class="rand"><input type="checkbox" data-rand="idleMsg" checked /> 随机</label></div>
           <input type="range" id="optIdleMsg" min="0" max="100" value="60" />
           <div class="val" id="valIdleMsg">60%</div>
@@ -2880,6 +2904,17 @@
       <p>大众占卜大众传讯在抖音：<br/>抖音：@莉莉安娜（<span class="emoji emoji1f52f"></span>CTA认证版 34731972220</p>
       <p>w x只接私占相关，申请时注明来意，否则不予通过，欢迎来找我玩呀～</p>
       <button class="ghost-btn" data-close="modalNotice">关上</button>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="modalBgIos">
+    <div class="sheet notice-sheet">
+      <h2>苹果手机开后台</h2>
+      <p>苹果的 Safari 标签页<strong>不能</strong>在你刷别的软件时弹出系统通知。必须先把网站加到主屏幕，再从图标打开。</p>
+      <p>1. 点 Safari 底部分享按钮（方框加箭头）<br/>2. 滑到「添加到主屏幕」，点添加<br/>3. 回到手机桌面，点「莉莉Amour」图标打开（不要再从 Safari 收藏夹进）<br/>4. 再点「开后台」，弹出询问时选「允许」<br/>5. 去刷别的软件时，不要从后台卡片里把这个应用上划关掉</p>
+      <p>系统要 iOS 16.4 或更新。锁屏太久或省电模式，苹果仍可能冻住网页，这是系统限制。</p>
+      <button type="button" class="submit-btn" id="btnBgIosOk">我已经从主屏幕打开了</button>
+      <button class="ghost-btn" data-close="modalBgIos">关上</button>
     </div>
   </div>
 
@@ -4205,6 +4240,7 @@
     }
 
     let titleTimer = null;
+    let bannerHideTimer = null;
     const baseTitle = document.title;
     let keepAudio = null;
     let keepAudioEl = null;
@@ -4222,28 +4258,82 @@
     function pingAway(title, body, kind) {
       const t = title || himName();
       const b = String(body || "发来一条消息").replace(/\s+/g, " ").slice(0, 48);
-      if (lookingAtChat() && kind !== "call") return;
-      const banner = document.getElementById("wxBanner");
-      const bt = document.getElementById("wxBannerTitle");
-      const bb = document.getElementById("wxBannerBody");
-      if (bt) bt.textContent = t;
-      if (bb) bb.textContent = b;
-      if (banner) banner.classList.add("show");
-      paintAva(document.getElementById("wxBannerAva"), "him");
-      let n = 0;
-      clearInterval(titleTimer);
-      titleTimer = setInterval(() => {
-        document.title = n % 2 ? t : baseTitle;
-        n += 1;
-        if (n > 24) stopTitleFlash();
-      }, 900);
-      if (window.Notification && Notification.permission === "granted") {
-        try {
-          const tag = kind === "call" ? "lily-call" : (kind === "mm" ? "lily-mm-" + Date.now() : "lily-msg");
-          const note = new Notification(t, { body: b, tag: tag, renotify: true });
-          note.onclick = () => { try { window.focus(); } catch (e) {} note.close(); };
-        } catch (e) {}
+      const watchingChat = lookingAtChat();
+      if (!watchingChat) {
+        const banner = document.getElementById("wxBanner");
+        const bt = document.getElementById("wxBannerTitle");
+        const bb = document.getElementById("wxBannerBody");
+        if (bt) bt.textContent = t;
+        if (bb) bb.textContent = b;
+        if (banner) {
+          banner.style.transform = "";
+          banner.classList.add("show");
+        }
+        paintAva(document.getElementById("wxBannerAva"), "him");
+        let n = 0;
+        clearInterval(titleTimer);
+        titleTimer = setInterval(() => {
+          document.title = n % 2 ? t : baseTitle;
+          n += 1;
+          if (n > 24) stopTitleFlash();
+        }, 900);
+        clearTimeout(bannerHideTimer);
+        bannerHideTimer = setTimeout(hideWxBanner, 4500);
       }
+      if (watchingChat && kind !== "call" && !document.hidden) return;
+      popSystemNotify(t, b, kind);
+    }
+    function popSystemNotify(title, body, kind) {
+      if (!window.Notification || Notification.permission !== "granted") return;
+      const tag = kind === "call" ? "lily-call" : (kind === "mm" ? "lily-mm-" + Date.now() : (kind === "bg" ? "lily-bg" : "lily-msg"));
+      const opts = {
+        body: body || "",
+        tag: tag,
+        renotify: kind !== "bg",
+        requireInteraction: kind === "call" || kind === "bg",
+        silent: kind === "bg",
+        open: kind === "mm" ? "stay" : "chat"
+      };
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.ready.then((reg) => {
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: "notify",
+              title: title,
+              body: opts.body,
+              tag: opts.tag,
+              renotify: opts.renotify,
+              requireInteraction: opts.requireInteraction,
+              silent: opts.silent,
+              open: opts.open
+            });
+            return;
+          }
+          if (reg.showNotification) return reg.showNotification(title, {
+            body: opts.body,
+            tag: opts.tag,
+            renotify: opts.renotify,
+            requireInteraction: opts.requireInteraction,
+            silent: opts.silent,
+            data: { open: opts.open }
+          });
+        }).catch(() => {
+          try { new Notification(title, { body: body, tag: tag }); } catch (err) {}
+        });
+        return;
+      }
+      try { new Notification(title, { body: body, tag: tag, renotify: true }); } catch (err) {}
+    }
+    function clearBgNotify() {
+      if (!navigator.serviceWorker) return;
+      navigator.serviceWorker.ready.then((reg) => {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: "clear", tag: "lily-bg" });
+        }
+        if (reg.getNotifications) {
+          reg.getNotifications({ tag: "lily-bg" }).then((list) => list.forEach((n) => n.close()));
+        }
+      }).catch(() => {});
     }
     function askNotify() {
       if (window.Notification && Notification.permission === "default") Notification.requestPermission();
@@ -4271,6 +4361,15 @@
           keepAudioEl.volume = 0.01;
         }
         keepAudioEl.play().catch(function () {});
+        if (navigator.mediaSession) {
+          try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+              title: "莉莉·Amour 后台运行中",
+              artist: "正在接收消息"
+            });
+            navigator.mediaSession.playbackState = "playing";
+          } catch (err) {}
+        }
         const AC = window.AudioContext || window.webkitAudioContext;
         if (AC) {
           if (!keepAudio) {
@@ -4326,26 +4425,49 @@
       try { if (wakeLockSentinel) wakeLockSentinel.release(); } catch (e) {}
       wakeLockSentinel = null;
     }
+    function isApplePhone() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    }
+    function isStandaloneApp() {
+      return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+    }
     function toggleBgKeep() {
-      bgKeepOn = !bgKeepOn;
+      if (!bgKeepOn) {
+        if (isApplePhone() && !isStandaloneApp()) {
+          openModal("modalBgIos");
+          return;
+        }
+        const run = (ok) => {
+          if (!ok) {
+            toast("要先允许通知，切出去刷别的软件才能弹出消息");
+            return;
+          }
+          bgKeepOn = true;
+          saveBgKeep();
+          syncBgUi();
+          startEngineKeepAlive();
+          popSystemNotify("莉莉·Amour 后台运行中", "正在接收消息。点这里可回到网站，不要把这个应用划掉。", "bg");
+          toast("后台已开。去刷别的时会弹系统通知，不要划掉这个应用。");
+          resetIdle();
+          scheduleHimStatusLoop();
+        };
+        if (!window.Notification) {
+          toast("这台系统还不支持网页通知，请把 iOS 升级到 16.4 以上");
+          return;
+        }
+        if (Notification.permission === "granted") run(true);
+        else if (Notification.permission === "denied") run(false);
+        else {
+          Notification.requestPermission().then((p) => run(p === "granted"));
+        }
+        return;
+      }
+      bgKeepOn = false;
       saveBgKeep();
       syncBgUi();
-      if (bgKeepOn) {
-        startEngineKeepAlive();
-        if (window.Notification && Notification.permission === "default") {
-          Notification.requestPermission().then((p) => {
-            if (p !== "granted") toast("请允许通知，切出去才能弹消息和来电");
-          });
-        } else if (window.Notification && Notification.permission === "denied") {
-          toast("通知被系统关掉了，请到浏览器设置里打开");
-        }
-        toast("后台已开。可以切去玩别的，但不要把这个网页划掉。");
-        resetIdle();
-        scheduleHimStatusLoop();
-      } else {
-        stopEngineKeepAlive();
-        toast("后台已关");
-      }
+      stopEngineKeepAlive();
+      clearBgNotify();
+      toast("后台已关");
     }
     function catchUpEngine() {
       let n = 0;
@@ -4366,7 +4488,15 @@
         if (keepAudioEl && keepAudioEl.paused) keepAudioEl.play().catch(function () {});
       }
     }
-    function notifyIncoming() {}
+    function hideWxBanner() {
+      const banner = document.getElementById("wxBanner");
+      if (banner) {
+        banner.classList.remove("show");
+        banner.style.transform = "";
+      }
+      clearTimeout(bannerHideTimer);
+      stopTitleFlash();
+    }
     function stopTitleFlash() {
       clearInterval(titleTimer);
       document.title = baseTitle;
@@ -4383,10 +4513,52 @@
     window.addEventListener("pageshow", catchUpEngine);
     window.addEventListener("focus", catchUpEngine);
     document.addEventListener("pointerdown", startEngineKeepAlive, { once: true });
-    document.getElementById("wxBanner").addEventListener("click", () => {
-      document.getElementById("wxBanner").classList.remove("show");
-      stopTitleFlash();
-    });
+    (function bindWxBanner() {
+      const banner = document.getElementById("wxBanner");
+      let startY = 0;
+      let dragging = false;
+      let swiped = false;
+      banner.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        startY = e.clientY;
+        dragging = true;
+        swiped = false;
+        try { banner.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      banner.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const dy = e.clientY - startY;
+        if (dy < -8) {
+          swiped = true;
+          banner.style.transition = "none";
+          banner.style.transform = "translateX(-50%) translateY(" + dy + "px)";
+        }
+      });
+      function endBanner(e) {
+        if (!dragging) return;
+        dragging = false;
+        banner.style.transition = "";
+        const dy = e.clientY - startY;
+        if (swiped && dy < -28) {
+          hideWxBanner();
+          return;
+        }
+        banner.style.transform = "";
+        if (!swiped && Math.abs(dy) < 12) {
+          hideWxBanner();
+          enterChat();
+        }
+      }
+      banner.addEventListener("pointerup", endBanner);
+      banner.addEventListener("pointercancel", endBanner);
+    })();
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+      navigator.serviceWorker.addEventListener("message", (e) => {
+        const d = e.data || {};
+        if (d.type === "open" && d.open === "chat") enterChat();
+      });
+    }
 
     let stickers = [];
     function loadStickers() {
@@ -5020,9 +5192,18 @@
       clearTimeout(idleTimer);
       if (pendingReplies > 0) return;
       if (callState === "in" || callState === "out") return;
-      const wait = randomDelayMs(2000, TEN_MIN);
+      const wait = idleWaitMs();
       nextIdleAt = Date.now() + wait;
       idleTimer = setTimeout(() => idleEvent(Date.now()), wait);
+    }
+    function idleWaitMs() {
+      if (isRand(chatSet.idleMsg)) return randomDelayMs(2000, TEN_MIN);
+      const p = Math.max(0, Math.min(100, Number(chatSet.idleMsg) || 0));
+      if (p <= 0) return randomDelayMs(8 * 60 * 1000, 20 * 60 * 1000);
+      const t = p / 100;
+      const min = Math.round(1500 + (1 - t) * 20000);
+      const max = Math.round(6000 + (1 - t) * (TEN_MIN - 6000));
+      return randomDelayMs(min, Math.max(min + 1200, max));
     }
     function markAllUserRead() {
       chatEl.querySelectorAll(".msg.user .receipt").forEach((rec) => {
@@ -6184,12 +6365,14 @@
     });
     document.getElementById("saveChatSet").addEventListener("click", () => {
       readChatSetForm();
+      resetIdle();
       saveOk("已保存");
     });
     document.getElementById("resetChatSet").addEventListener("click", () => {
       chatSet = Object.assign({}, CHATSET_DEF);
       saveChatSetObj();
       fillChatSetForm();
+      resetIdle();
       saveOk("已保存");
     });
     document.getElementById("btnExportChat").addEventListener("click", () => {
@@ -7300,7 +7483,7 @@
               </div>
             </div>
             ${social}
-            <div class="mm-cmt-box"><input type="text" maxlength="80" placeholder="评论" /></div>
+            <div class="mm-cmt-box"><input type="text" maxlength="80" placeholder="评论" enterkeyhint="send" /><button type="button" class="mm-cmt-send">发送</button></div>
           </div>
         </div>`;
     }
@@ -7338,13 +7521,27 @@
           box.querySelector("input").focus();
         });
       });
-      feed.querySelectorAll(".mm-cmt-box input").forEach((inp) => {
-        inp.addEventListener("keydown", (e) => {
-          if (e.key !== "Enter") return;
-          e.preventDefault();
-          const text = inp.value.trim();
+      feed.querySelectorAll(".mm-cmt-box").forEach((box) => {
+        const inp = box.querySelector("input");
+        const send = box.querySelector(".mm-cmt-send");
+        function go() {
+          const text = (inp.value || "").trim();
           if (!text) return;
-          addMyComment(inp.closest(".mm-post").dataset.id, text);
+          const id = box.closest(".mm-post").dataset.id;
+          inp.value = "";
+          box.classList.remove("show");
+          addMyComment(id, text);
+        }
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            go();
+          }
+        });
+        if (send) send.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          go();
         });
       });
     }
@@ -7579,6 +7776,14 @@
     document.getElementById("hallContact").addEventListener("click", () => openModal("modalNotice"));
     document.getElementById("hallBg").addEventListener("click", toggleBgKeep);
     document.getElementById("btnBgKeep").addEventListener("click", toggleBgKeep);
+    document.getElementById("btnBgIosOk").addEventListener("click", () => {
+      closeModal("modalBgIos");
+      if (isApplePhone() && !isStandaloneApp()) {
+        toast("还是 Safari 打开的。请回桌面点「莉莉Amour」图标再开后台");
+        return;
+      }
+      toggleBgKeep();
+    });
     syncBgUi();
     document.getElementById("btnToHall").addEventListener("click", showHall);
     document.getElementById("divBack").addEventListener("click", closeFortune);

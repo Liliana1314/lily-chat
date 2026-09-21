@@ -1,0 +1,11 @@
+{
+  "name": "莉莉·Amour",
+  "short_name": "莉莉Amour",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6e6ec",
+  "theme_color": "#f4dce4",
+  "lang": "zh-CN",
+  "description": "字卡传讯"
+}
