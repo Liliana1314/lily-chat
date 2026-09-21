@@ -7249,7 +7249,15 @@
     scheduleHimMoment();
     const restored = restoreChat();
     if (!restored) {
-      addSys("莉莉·Amour 已上线。你随便说，他从字卡库里回你。");
+      addSys("初次见面，说点什么吧");
+    } else {
+      chatEl.querySelectorAll(".sys").forEach((el) => {
+        const t = (el.textContent || "").trim();
+        if (t === "莉莉·Amour 已上线。你随便说，他从字卡库里回你。" || t.indexOf("已上线。你随便说") >= 0) {
+          el.textContent = "初次见面，说点什么吧";
+        }
+      });
+      saveChat();
     }
     const gated = setupGate();
     if (!gated) showHall();
