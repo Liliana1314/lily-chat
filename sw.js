@@ -120,7 +120,7 @@ async function tickIfDue() {
     return;
   }
   const now = Date.now();
-  if (now - lastBeat < 6000 && lastBeat) return;
+  if (lastBeat && now - lastBeat < 2500) return;
   const due = Number(cfg.nextAt) || 0;
   if (now < due) return;
 
@@ -149,23 +149,25 @@ async function tickIfDue() {
   }
 }
 
+let bursting = false;
 async function runEngineBurst() {
   const my = ++loopGen;
-  const end = Date.now() + 4 * 60 * 1000;
-  while (running && my === loopGen && Date.now() < end) {
+  while (running && my === loopGen) {
     try { await tickIfDue(); } catch (e) {}
     const cfg = await getCfg();
     if (!cfg || !cfg.running) break;
-    const wait = Math.max(500, Math.min(2500, (Number(cfg.nextAt) || Date.now() + 1500) - Date.now()));
+    const wait = Math.max(400, Math.min(2000, (Number(cfg.nextAt) || Date.now() + 1500) - Date.now()));
     await sleep(wait);
   }
-  if (running && my === loopGen) armSoft();
 }
 function armSoft() {
   clearTimeout(softTimer);
   softTimer = setTimeout(() => {
-    if (running) runEngineBurst();
-  }, 1200);
+    if (running && !bursting) {
+      bursting = true;
+      runEngineBurst().finally(() => { bursting = false; });
+    }
+  }, 800);
 }
 async function startFromCfg(cfg) {
   if (!cfg) return;
@@ -176,7 +178,13 @@ async function startFromCfg(cfg) {
   try {
     await showNote("莉莉·Amour 后台运行中", "正在接收消息。不要把这个应用划掉。", "bg");
   } catch (e) {}
-  runEngineBurst();
+  if (bursting) return;
+  bursting = true;
+  try {
+    await runEngineBurst();
+  } finally {
+    bursting = false;
+  }
 }
 
 self.addEventListener("install", (e) => {
@@ -188,12 +196,21 @@ self.addEventListener("activate", (e) => {
     const cfg = await getCfg();
     if (cfg && cfg.running) {
       running = true;
-      await runEngineBurst();
+      bursting = true;
+      try { await runEngineBurst(); }
+      finally { bursting = false; }
     }
   })());
 });
 self.addEventListener("periodicsync", (e) => {
-  if (e.tag === "lily-engine") e.waitUntil(runEngineBurst());
+  if (e.tag !== "lily-engine") return;
+  e.waitUntil((async () => {
+    running = true;
+    if (bursting) return;
+    bursting = true;
+    try { await runEngineBurst(); }
+    finally { bursting = false; }
+  })());
 });
 self.addEventListener("message", (e) => {
   const d = e.data || {};
@@ -224,7 +241,6 @@ self.addEventListener("message", (e) => {
     return;
   }
   if (d.type === "engine-start") {
-    lastBeat = Date.now();
     e.waitUntil(startFromCfg(d.cfg || {}));
     return;
   }

@@ -2701,7 +2701,7 @@
           </button>
         </div>
       </div>
-      <div class="agenda-note">点大厅左下角「开后台」并允许通知后，切去玩别的也可以继续收消息、来电和朋友圈互动（网页要留在浏览器里，不要划掉）。打卡只保留 24 小时，超时会自动清空。</div>
+      <div class="agenda-note">点大厅左下角「开后台」并允许通知。苹果请从主屏幕图标打开；安卓请用 Chrome / Edge，并尽量加到主屏幕。去刷别的时不要把这个应用划掉。打卡只保留 24 小时。</div>
       <div class="agenda-wrap">
         <button type="button" class="agenda-head" id="foldHimAgenda">
           <span class="lab">他的今日打卡</span>
@@ -2910,12 +2910,21 @@
   <div class="modal-mask" id="modalBgIos">
     <div class="sheet notice-sheet">
       <h2>苹果手机开后台</h2>
-      <p>苹果的 Safari 标签页<strong>不能</strong>在你刷别的软件时弹出系统通知。必须先把网站加到主屏幕，再从图标打开。</p>
-      <p>1. 点 Safari 底部分享按钮（方框加箭头）<br/>2. 滑到「添加到主屏幕」，点添加<br/>3. 回到手机桌面，点「莉莉Amour」图标打开（不要再从 Safari 收藏夹进）<br/>4. 再点「开后台」，弹出询问时选「允许」<br/>5. 去刷别的软件时，不要从后台卡片里把这个应用上划关掉</p>
-      <p>系统要 iOS 16.4 或更新。开后台后状态栏可能显示「正在播放」，这是为了不被冻住，请不要点暂停，也不要把手机开成静音。</p>
-      <p>锁屏太久、省电模式，或从后台卡片里把应用划掉，苹果仍可能冻住网页。</p>
+      <p>Safari 标签页<strong>不能</strong>在你刷别的软件时弹出系统通知。必须加到主屏幕，再从图标打开（iOS 16.4 以上）。</p>
+      <p>1. Safari 底部分享（方框加箭头）<br/>2.「添加到主屏幕」<br/>3. 回桌面点「莉莉Amour」图标打开，不要再从 Safari 进<br/>4. 点「开后台」，通知选允许<br/>5. 去刷别的时，不要从后台卡片把应用上划关掉</p>
+      <p>苹果没有安卓那种「页面全关后仍定时唤醒」。锁屏太久、开静音、省电，或系统把应用冻住，后台就会停。这是系统限制。</p>
       <button type="button" class="submit-btn" id="btnBgIosOk">我已经从主屏幕打开了</button>
       <button class="ghost-btn" data-close="modalBgIos">关上</button>
+    </div>
+  </div>
+  <div class="modal-mask" id="modalBgAndroid">
+    <div class="sheet notice-sheet">
+      <h2>安卓手机开后台</h2>
+      <p>不要用手机自带浏览器（小米 / 华为 / OPPO / vivo / 夸克）。请用 <strong>Chrome 或 Edge</strong> 打开本站。</p>
+      <p>1. Chrome / Edge 菜单 →「添加到主屏幕 / 安装应用」<br/>2. 从桌面图标打开<br/>3. 点「开后台」，通知选允许<br/>4. 系统设置 → 应用 → Chrome/Edge → 通知允许，电池选「不受限制」<br/>5. 不要从后台卡片划掉这个应用</p>
+      <p>挂太久仍可能被系统杀掉。别的软件播视频/听歌时，保活也可能被打断，回到本页会自动恢复。</p>
+      <button type="button" class="submit-btn" id="btnBgAndroidOk">知道了，开启</button>
+      <button class="ghost-btn" data-close="modalBgAndroid">关上</button>
     </div>
   </div>
 
@@ -4244,14 +4253,26 @@
     let titleTimer = null;
     let bannerHideTimer = null;
     const baseTitle = document.title;
-    let keepAudio = null;
-    let keepAudioEl = null;
     let wakeLockSentinel = null;
     let engineWorker = null;
     let bgTick = null;
     let muteAwayPing = false;
     let lastQueueAt = 0;
-    let keepAliveUrl = "";
+    let rtcPc1 = null;
+    let rtcPc2 = null;
+    let rtcTimer = null;
+    let rtcBootTimer = null;
+    let rtcDiscTimer = null;
+    let rtcRebuildDelay = 0;
+    let rtcOkAt = 0;
+    let rtcCand1 = [];
+    let rtcCand2 = [];
+    let keepAudioEl = null;
+    let keepAudioUrl = "";
+    let kaTimer = null;
+    let kaPauseStreak = 0;
+    let kaKeepInterval = null;
+    let lastHiddenAt = 0;
     let appliedBgIds = new Set();
     let bgHeartTimer = null;
     let nextIdleAt = 0;
@@ -4293,43 +4314,38 @@
     function popSystemNotify(title, body, kind) {
       if (!window.Notification || Notification.permission !== "granted") return;
       const tag = kind === "call" ? "lily-call" : (kind === "mm" ? "lily-mm-" + Date.now() : (kind === "bg" ? "lily-bg" : "lily-msg"));
+      const hidden = document.visibilityState === "hidden";
       const opts = {
         body: body || "",
         tag: tag,
         renotify: kind !== "bg",
         requireInteraction: kind === "call" || kind === "bg",
         silent: kind === "bg",
-        open: kind === "mm" ? "stay" : "chat"
+        vibrate: kind === "bg" ? [] : [80, 40, 80],
+        data: { open: kind === "mm" ? "stay" : "chat" }
       };
-      if (navigator.serviceWorker) {
-        navigator.serviceWorker.ready.then((reg) => {
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-              type: "notify",
-              title: title,
-              body: opts.body,
-              tag: opts.tag,
-              renotify: opts.renotify,
-              requireInteraction: opts.requireInteraction,
-              silent: opts.silent,
-              open: opts.open
-            });
-            return;
-          }
-          if (reg.showNotification) return reg.showNotification(title, {
-            body: opts.body,
-            tag: opts.tag,
-            renotify: opts.renotify,
-            requireInteraction: opts.requireInteraction,
-            silent: opts.silent,
-            data: { open: opts.open }
-          });
-        }).catch(() => {
-          try { new Notification(title, { body: body, tag: tag }); } catch (err) {}
-        });
+      const pageFallback = () => {
+        try { new Notification(title, { body: opts.body, tag: tag, renotify: opts.renotify }); } catch (err) {}
+      };
+      if (!navigator.serviceWorker) {
+        if (!hidden) pageFallback();
         return;
       }
-      try { new Notification(title, { body: body, tag: tag, renotify: true }); } catch (err) {}
+      navigator.serviceWorker.ready.then((reg) => {
+        if (!reg || !reg.showNotification) {
+          if (hidden) return;
+          pageFallback();
+          return;
+        }
+        return Promise.race([
+          reg.showNotification(title, opts),
+          new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 4000))
+        ]).catch(() => {
+          if (!hidden) pageFallback();
+        });
+      }).catch(() => {
+        if (!hidden) pageFallback();
+      });
     }
     function clearBgNotify() {
       if (!navigator.serviceWorker) return;
@@ -4368,77 +4384,219 @@
       const max = Math.round(6000 + (1 - t) * (TEN_MIN - 6000));
       return [min, Math.max(min + 1200, max)];
     }
-    function buildKeepAliveUrl() {
-      if (keepAliveUrl) return keepAliveUrl;
-      const sr = 22050;
-      const n = sr * 4;
-      const bytes = n * 2;
-      const buf = new ArrayBuffer(44 + bytes);
-      const v = new DataView(buf);
-      const wstr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
-      wstr(0, "RIFF");
-      v.setUint32(4, 36 + bytes, true);
-      wstr(8, "WAVE");
-      wstr(12, "fmt ");
-      v.setUint32(16, 16, true);
-      v.setUint16(20, 1, true);
-      v.setUint16(22, 1, true);
-      v.setUint32(24, sr, true);
-      v.setUint32(28, sr * 2, true);
-      v.setUint16(32, 2, true);
-      v.setUint16(34, 16, true);
-      wstr(36, "data");
-      v.setUint32(40, bytes, true);
-      for (let i = 0; i < n; i++) {
-        const s = Math.sin(2 * Math.PI * 52 * i / sr) * 0.04;
-        v.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, Math.round(s * 32767))), true);
-      }
-      keepAliveUrl = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
-      return keepAliveUrl;
+    function isApplePhone() {
+      return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     }
-    function startSilentAudio() {
-      if (!bgKeepOn) return;
+    function isAndroidPhone() {
+      return /Android/i.test(navigator.userAgent);
+    }
+    function isStandaloneApp() {
+      return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+    }
+    function isGoodAndroidBrowser() {
+      if (!isAndroidPhone()) return true;
+      const ua = navigator.userAgent || "";
+      if (/EdgA|Edg\//i.test(ua)) return true;
+      if (/SamsungBrowser|OPR|UCBrowser|MQQBrowser|MiuiBrowser|HuaweiBrowser|VivoBrowser|HeyTapBrowser|Quark|UCBrowser/i.test(ua)) return false;
+      return /Chrome\/\d+/i.test(ua) && !/; wv\)/i.test(ua);
+    }
+    function kaYieldStealFocus() {
+      return isApplePhone() && document.visibilityState === "hidden";
+    }
+    function ensureKeepAudioUrl() {
+      if (keepAudioUrl) return keepAudioUrl;
       try {
-        const el = document.getElementById("keepAliveAudio");
-        keepAudioEl = el || keepAudioEl;
-        if (keepAudioEl) {
-          if (!keepAudioEl.src) keepAudioEl.src = buildKeepAliveUrl();
-          keepAudioEl.loop = true;
-          keepAudioEl.muted = false;
-          keepAudioEl.volume = 1;
-          keepAudioEl.play().catch(function () {});
+        const sr = 44100, n = sr;
+        const amp = isApplePhone() ? 0.002 : 0.02;
+        const freq = 18000;
+        const buf = new ArrayBuffer(44 + n * 2);
+        const dv = new DataView(buf);
+        const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+        ws(0, "RIFF"); dv.setUint32(4, 36 + n * 2, true); ws(8, "WAVE");
+        ws(12, "fmt "); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+        dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+        ws(36, "data"); dv.setUint32(40, n * 2, true);
+        for (let i = 0; i < n; i++) {
+          const v = Math.sin(2 * Math.PI * freq * (i / sr)) * amp;
+          dv.setInt16(44 + i * 2, Math.round(v * 32767), true);
         }
-        if (navigator.mediaSession) {
-          try {
-            navigator.mediaSession.metadata = new MediaMetadata({
-              title: "莉莉·Amour 后台运行中",
-              artist: "正在接收消息"
-            });
-            navigator.mediaSession.playbackState = "playing";
-            navigator.mediaSession.setActionHandler("pause", () => { startSilentAudio(); });
-            navigator.mediaSession.setActionHandler("play", () => { startSilentAudio(); });
-            navigator.mediaSession.setActionHandler("stop", () => { startSilentAudio(); });
-          } catch (err) {}
-        }
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (AC) {
-          if (!keepAudio) {
-            keepAudio = new AC();
-            const osc = keepAudio.createOscillator();
-            const g = keepAudio.createGain();
-            g.gain.value = 0.001;
-            osc.frequency.value = 48;
-            osc.connect(g);
-            g.connect(keepAudio.destination);
-            osc.start();
+        keepAudioUrl = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+      } catch (e) { keepAudioUrl = ""; }
+      return keepAudioUrl;
+    }
+    function setKeepMediaSession() {
+      try {
+        if (!("mediaSession" in navigator) || !window.MediaMetadata) return;
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "莉莉·Amour 后台运行中",
+          artist: "正在接收消息",
+          album: "后台保活"
+        });
+        navigator.mediaSession.playbackState = "playing";
+        navigator.mediaSession.setActionHandler("play", function () {});
+        navigator.mediaSession.setActionHandler("pause", function () {});
+      } catch (e) {}
+    }
+    function kaScheduleReplay() {
+      if (!bgKeepOn || kaTimer) return;
+      if (kaYieldStealFocus()) return;
+      kaPauseStreak += 1;
+      let delay = Math.min(5000 * Math.pow(2, Math.min(kaPauseStreak - 1, 8)), 60000);
+      if (document.visibilityState === "hidden" && delay > 20000) delay = 20000;
+      kaTimer = setTimeout(() => {
+        kaTimer = null;
+        if (!bgKeepOn || !keepAudioEl) return;
+        if (!keepAudioEl.paused) return;
+        if (kaYieldStealFocus()) return;
+        const p = keepAudioEl.play();
+        if (p && p.then) p.then(() => {
+          if (keepAudioEl && keepAudioEl.paused) kaScheduleReplay();
+        }, () => kaScheduleReplay());
+      }, delay);
+    }
+    function startKeepAudio() {
+      if (!bgKeepOn) return;
+      const src = ensureKeepAudioUrl();
+      const el = document.getElementById("keepAliveAudio");
+      if (!el || !src) return;
+      keepAudioEl = el;
+      el.loop = true;
+      el.muted = false;
+      el.volume = isApplePhone() ? 0.2 : 0.2;
+      if (el.src !== src) el.src = src;
+      el.onplay = () => { kaPauseStreak = 0; };
+      el.onpause = () => {
+        if (!bgKeepOn) return;
+        if (kaYieldStealFocus()) return;
+        kaScheduleReplay();
+      };
+      el.play().catch(() => kaScheduleReplay());
+      setKeepMediaSession();
+      if (!kaKeepInterval) {
+        kaKeepInterval = setInterval(() => {
+          if (!bgKeepOn || !keepAudioEl) return;
+          if (!keepAudioEl.paused) {
+            try { if (navigator.mediaSession) navigator.mediaSession.playbackState = "playing"; } catch (e) {}
+            return;
           }
-          if (keepAudio.state === "suspended") keepAudio.resume();
+          if (!kaTimer && !kaYieldStealFocus()) kaScheduleReplay();
+        }, 5000);
+      }
+    }
+    function stopKeepAudio() {
+      if (kaTimer) { clearTimeout(kaTimer); kaTimer = null; }
+      if (kaKeepInterval) { clearInterval(kaKeepInterval); kaKeepInterval = null; }
+      try { if (keepAudioEl) { keepAudioEl.pause(); } } catch (e) {}
+      try {
+        if (navigator.mediaSession) {
+          navigator.mediaSession.playbackState = "paused";
+          navigator.mediaSession.metadata = null;
         }
       } catch (e) {}
     }
-    function stopSilentAudio() {
-      try { if (keepAudioEl) keepAudioEl.pause(); } catch (e) {}
-      try { if (keepAudio && keepAudio.state !== "closed") keepAudio.suspend(); } catch (e) {}
+    function healKeepAlive() {
+      if (!bgKeepOn) return;
+      if (kaTimer) { clearTimeout(kaTimer); kaTimer = null; }
+      kaPauseStreak = 0;
+      startKeepAudio();
+      startWakeLock();
+      if (!document.hidden) {
+        if (!rtcPc1 && !rtcTimer && !rtcBootTimer) kaWebrtcDeferredStart(3000);
+      }
+    }
+    function kaWebrtcDeferredStart(delayMs) {
+      if (rtcBootTimer) { clearTimeout(rtcBootTimer); rtcBootTimer = null; }
+      rtcBootTimer = setTimeout(() => {
+        rtcBootTimer = null;
+        if (!bgKeepOn || rtcPc1 || document.hidden) return;
+        startRtcKeep();
+      }, delayMs);
+    }
+    function startRtcKeep() {
+      if (!bgKeepOn) return;
+      if (document.hidden) return;
+      if (typeof RTCPeerConnection === "undefined") return;
+      if (rtcPc1 || rtcPc2) return;
+      if (rtcTimer) { clearTimeout(rtcTimer); rtcTimer = null; }
+      if (rtcBootTimer) { clearTimeout(rtcBootTimer); rtcBootTimer = null; }
+      if (rtcDiscTimer) { clearTimeout(rtcDiscTimer); rtcDiscTimer = null; }
+      rtcCand1 = [];
+      rtcCand2 = [];
+      try {
+        const p1 = new RTCPeerConnection();
+        const p2 = new RTCPeerConnection();
+        p1.onicecandidate = (e) => { if (e.candidate) rtcCand1.push(e.candidate); };
+        p2.onicecandidate = (e) => { if (e.candidate) rtcCand2.push(e.candidate); };
+        p1.createDataChannel("lily-bg");
+        const gathered = (pc) => new Promise((res) => {
+          let done = false;
+          const fin = () => { if (!done) { done = true; res(); } };
+          try { if (pc.iceGatheringState === "complete") { fin(); return; } } catch (e) { fin(); return; }
+          pc.addEventListener("icegatheringstatechange", () => {
+            try { if (pc.iceGatheringState === "complete") fin(); } catch (e) { fin(); }
+          });
+          setTimeout(fin, 3000);
+        });
+        const wire = () => p1.createOffer()
+          .then((o) => p1.setLocalDescription(o))
+          .then(() => p2.setRemoteDescription(p1.localDescription))
+          .then(() => p2.createAnswer())
+          .then((a) => p2.setLocalDescription(a))
+          .then(() => p1.setRemoteDescription(p2.localDescription));
+        wire()
+          .then(() => Promise.all([gathered(p1), gathered(p2)]))
+          .then(() => {
+            rtcCand2.forEach((c) => p1.addIceCandidate(c).catch(() => {}));
+            rtcCand1.forEach((c) => p2.addIceCandidate(c).catch(() => {}));
+          })
+          .catch(() => { stopRtcKeep(false); scheduleRtcRebuild(); });
+        p1.onconnectionstatechange = () => {
+          const st = p1.connectionState;
+          if (st === "connected") {
+            rtcOkAt = Date.now();
+            if (rtcDiscTimer) { clearTimeout(rtcDiscTimer); rtcDiscTimer = null; }
+            return;
+          }
+          if (st === "disconnected") {
+            if (rtcDiscTimer) return;
+            rtcDiscTimer = setTimeout(() => {
+              rtcDiscTimer = null;
+              if (!rtcPc1) return;
+              if (rtcPc1.connectionState === "connected") { rtcOkAt = Date.now(); return; }
+              stopRtcKeep(false);
+              scheduleRtcRebuild();
+            }, 8000);
+            return;
+          }
+          if (st === "failed" || st === "closed") {
+            stopRtcKeep(false);
+            scheduleRtcRebuild();
+          }
+        };
+        rtcPc1 = p1;
+        rtcPc2 = p2;
+      } catch (e) {}
+    }
+    function scheduleRtcRebuild() {
+      if (rtcOkAt && Date.now() - rtcOkAt > 300000) rtcRebuildDelay = 0;
+      rtcRebuildDelay = rtcRebuildDelay ? Math.min(rtcRebuildDelay * 2, 900000) : 30000;
+      if (bgKeepOn && !rtcTimer) rtcTimer = setTimeout(() => {
+        rtcTimer = null;
+        if (!bgKeepOn || document.hidden) return;
+        startRtcKeep();
+      }, rtcRebuildDelay);
+    }
+    function stopRtcKeep(clearTimer) {
+      if (clearTimer !== false) {
+        if (rtcTimer) { clearTimeout(rtcTimer); rtcTimer = null; }
+        if (rtcBootTimer) { clearTimeout(rtcBootTimer); rtcBootTimer = null; }
+        if (rtcDiscTimer) { clearTimeout(rtcDiscTimer); rtcDiscTimer = null; }
+      }
+      try { if (rtcPc1) rtcPc1.close(); } catch (e) {}
+      try { if (rtcPc2) rtcPc2.close(); } catch (e) {}
+      rtcPc1 = rtcPc2 = null;
+      rtcCand1 = [];
+      rtcCand2 = [];
     }
     function swCtl() {
       return navigator.serviceWorker && navigator.serviceWorker.controller;
@@ -4535,19 +4693,20 @@
     function startEngineKeepAlive() {
       if (!bgKeepOn) return;
       askNotify();
-      startSilentAudio();
+      startKeepAudio();
       startWakeLock();
+      kaWebrtcDeferredStart(10000);
       postBgEngine();
       if (!bgTick) bgTick = setInterval(() => {
         beatBgEngine();
         catchUpEngine();
-        if (bgKeepOn) startSilentAudio();
       }, 2000);
       if (!bgHeartTimer) bgHeartTimer = setInterval(beatBgEngine, 1500);
-      if (navigator.serviceWorker) {
+      if (navigator.serviceWorker && !isApplePhone()) {
         navigator.serviceWorker.ready.then((reg) => {
-          if (reg.periodicSync && reg.periodicSync.register) {
-            reg.periodicSync.register("lily-engine", { minInterval: 60 * 1000 }).catch(() => {});
+          const ps = navigator.periodicSync || (reg && reg.periodicSync);
+          if (ps && ps.register) {
+            ps.register("lily-engine", { minInterval: 6 * 60 * 60 * 1000 }).catch(() => {});
           }
         }).catch(() => {});
       }
@@ -4567,15 +4726,39 @@
         engineWorker = null;
       }
       stopBgEngine();
-      stopSilentAudio();
+      stopKeepAudio();
+      stopRtcKeep(true);
       try { if (wakeLockSentinel) wakeLockSentinel.release(); } catch (e) {}
       wakeLockSentinel = null;
     }
-    function isApplePhone() {
-      return /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    }
-    function isStandaloneApp() {
-      return window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+    function enableBgKeep() {
+      const run = (ok) => {
+        if (!ok) {
+          toast(isApplePhone()
+            ? "要先允许通知。请用主屏幕图标打开后再开后台"
+            : "要先允许通知。请在 Chrome / Edge 里允许本站通知");
+          return;
+        }
+        bgKeepOn = true;
+        saveBgKeep();
+        syncBgUi();
+        startEngineKeepAlive();
+        popSystemNotify("莉莉·Amour 后台运行中", "正在接收消息。不要把这个应用划掉。", "bg");
+        toast(isApplePhone()
+          ? "后台已开。去刷别的时不要划掉应用，也不要开静音太久"
+          : "后台已开。系统设置里把 Chrome/Edge 电池设为不受限制，不要划掉应用");
+        resetIdle();
+        scheduleHimStatusLoop();
+      };
+      if (!window.Notification) {
+        toast(isApplePhone()
+          ? "这台系统还不支持网页通知，请把 iOS 升级到 16.4 以上"
+          : "当前浏览器不支持系统通知，请改用 Chrome 或 Edge");
+        return;
+      }
+      if (Notification.permission === "granted") run(true);
+      else if (Notification.permission === "denied") run(false);
+      else Notification.requestPermission().then((p) => run(p === "granted"));
     }
     function toggleBgKeep() {
       if (!bgKeepOn) {
@@ -4583,29 +4766,11 @@
           openModal("modalBgIos");
           return;
         }
-        const run = (ok) => {
-          if (!ok) {
-            toast("要先允许通知，切出去刷别的软件才能弹出消息");
-            return;
-          }
-          bgKeepOn = true;
-          saveBgKeep();
-          syncBgUi();
-          startEngineKeepAlive();
-          popSystemNotify("莉莉·Amour 后台运行中", "正在接收消息。点这里可回到网站，不要把这个应用划掉。", "bg");
-          toast("后台已开。退出去也会继续发。状态栏若显示正在播放请不要暂停，也不要划掉这个应用。");
-          resetIdle();
-          scheduleHimStatusLoop();
-        };
-        if (!window.Notification) {
-          toast("这台系统还不支持网页通知，请把 iOS 升级到 16.4 以上");
+        if (isAndroidPhone() && (!isGoodAndroidBrowser() || !isStandaloneApp())) {
+          openModal("modalBgAndroid");
           return;
         }
-        if (Notification.permission === "granted") run(true);
-        else if (Notification.permission === "denied") run(false);
-        else {
-          Notification.requestPermission().then((p) => run(p === "granted"));
-        }
+        enableBgKeep();
         return;
       }
       bgKeepOn = false;
@@ -4617,10 +4782,6 @@
     }
     function catchUpEngine() {
       unstickPending();
-      if (bgKeepOn && document.hidden) {
-        startSilentAudio();
-        postBgEngine();
-      }
       let n = 0;
       while (pendingReplies === 0 && !pendingUserReply && nextIdleAt && Date.now() >= nextIdleAt && n < 2) {
         idleEvent(nextIdleAt);
@@ -4635,8 +4796,7 @@
       } catch (e) {}
       if (bgKeepOn) {
         startWakeLock();
-        if (keepAudio && keepAudio.state === "suspended") keepAudio.resume();
-        if (keepAudioEl && keepAudioEl.paused) keepAudioEl.play().catch(function () {});
+        if (!document.hidden && !rtcPc1) kaWebrtcDeferredStart(3000);
       }
     }
     function hideWxBanner() {
@@ -4661,28 +4821,35 @@
         pullBgInbox().then(() => {
           if (pendingReplies === 0) resetIdle();
           catchUpEngine();
-          if (bgKeepOn) startEngineKeepAlive();
+          if (bgKeepOn) healKeepAlive();
         });
-      } else if (bgKeepOn) {
-        startSilentAudio();
-        postBgEngine();
-        catchUpEngine();
+      } else {
+        lastHiddenAt = Date.now();
+        if (bgKeepOn) {
+          if (keepAudioEl && keepAudioEl.paused && !kaYieldStealFocus()) {
+            keepAudioEl.play().catch(() => kaScheduleReplay());
+          }
+          postBgEngine();
+          catchUpEngine();
+        }
       }
     });
     window.addEventListener("pagehide", () => {
-      if (bgKeepOn) {
-        startSilentAudio();
-        postBgEngine();
-        beatBgEngine();
-      }
+      if (bgKeepOn) postBgEngine();
     });
     document.addEventListener("freeze", () => {
       if (bgKeepOn) postBgEngine();
     });
     window.addEventListener("pageshow", () => {
-      pullBgInbox().then(catchUpEngine);
+      pullBgInbox().then(() => {
+        catchUpEngine();
+        if (bgKeepOn) healKeepAlive();
+      });
     });
-    window.addEventListener("focus", catchUpEngine);
+    window.addEventListener("focus", () => {
+      catchUpEngine();
+      if (bgKeepOn) healKeepAlive();
+    });
     document.addEventListener("pointerdown", startEngineKeepAlive, { once: true });
     (function bindWxBanner() {
       const banner = document.getElementById("wxBanner");
@@ -7954,7 +8121,15 @@
         toast("还是 Safari 打开的。请回桌面点「莉莉Amour」图标再开后台");
         return;
       }
-      toggleBgKeep();
+      enableBgKeep();
+    });
+    document.getElementById("btnBgAndroidOk").addEventListener("click", () => {
+      closeModal("modalBgAndroid");
+      if (isAndroidPhone() && !isGoodAndroidBrowser()) {
+        toast("请先用 Chrome 或 Edge 打开，再点开后台");
+        return;
+      }
+      enableBgKeep();
     });
     syncBgUi();
     document.getElementById("btnToHall").addEventListener("click", showHall);
