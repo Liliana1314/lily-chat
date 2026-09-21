@@ -431,11 +431,63 @@
     }
     #divPage .his-home-bar button { color: #5c3d48; }
     .div-hero {
-      padding: 16px 16px 10px;
+      padding: 22px 16px 12px;
       background: transparent;
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+    .div-pair {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .div-pair .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid #ead7a8;
+      box-shadow: 0 8px 20px rgba(107, 74, 85, 0.16);
+      padding: 0;
+      cursor: pointer;
+    }
+    .div-heart {
+      width: 30px;
+      height: 30px;
+      margin: 0 2px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #fff8fb, #ffdce6);
+      border: 1px solid rgba(243, 184, 201, 0.75);
+      color: #d46a86;
+      font-size: 14px;
+      line-height: 1;
+      box-shadow: 0 4px 12px rgba(180, 90, 110, 0.14);
+      flex-shrink: 0;
+    }
+    .div-names {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .div-names span {
+      width: 72px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #5c3d48;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .div-names-gap {
+      width: 34px;
+      flex-shrink: 0;
     }
     .div-ava {
       width: 86px;
@@ -1801,6 +1853,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
+    .color-grid.one { grid-template-columns: 1fr; }
     .color-cell {
       background: #faf5ff;
       border-radius: 14px;
@@ -1821,7 +1874,7 @@
     }
     .bbl-shape-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
       margin-bottom: 8px;
     }
@@ -2363,25 +2416,14 @@
       <div class="wx-view" id="themeViewBubble" hidden>
         <button type="button" class="wx-back" data-theme-go="dress">‹ 返回</button>
         <h2>气泡装扮</h2>
-        <div class="color-grid">
-          <label class="color-cell"><span>我的气泡</span><input type="color" id="colorUser" value="#f6d5e0" /></label>
-          <label class="color-cell"><span>他的气泡</span><input type="color" id="colorBot" value="#f6d5e0" /></label>
+        <div class="color-grid one">
+          <label class="color-cell"><span>气泡颜色</span><input type="color" id="colorUser" value="#f6d5e0" /></label>
         </div>
         <input type="hidden" id="shapeBbl" value="bunny" />
         <div class="bbl-shape-row" data-shape-for="shapeBbl">
           <button type="button" class="bbl-shape" data-shape="bunny"><span class="bbl-mini bunny"></span>原版</button>
           <button type="button" class="bbl-shape" data-shape="wing"><span class="bbl-mini wing"></span>小翅膀</button>
           <button type="button" class="bbl-shape" data-shape="cat"><span class="bbl-mini cat"></span>猫耳</button>
-          <button type="button" class="bbl-shape" data-shape="custom"><span class="bbl-mini custom"></span>自定义</button>
-        </div>
-        <div class="bbl-draw" id="bblDrawPad" hidden>
-          <canvas id="bblCanvas" width="560" height="336"></canvas>
-          <div class="bbl-draw-tools">
-            <input type="color" id="bblPen" value="#f6d5e0" />
-            <input type="range" id="bblPenSize" min="3" max="28" value="10" />
-            <button type="button" class="ghost-btn" id="bblEraser" style="width:auto;margin:0">橡皮</button>
-            <button type="button" class="ghost-btn" id="bblClear" style="width:auto;margin:0">清空</button>
-          </div>
         </div>
         <button class="submit-btn" id="saveBubbleTheme">保存气泡</button>
       </div>
@@ -2536,8 +2578,16 @@
     </div>
     <div id="divHome" style="overflow:auto;flex:1">
       <div class="div-hero">
-        <button type="button" class="avatar div-ava" id="divHimAva" title="上传他的头像"> </button>
-        <div class="div-name" id="divHimName">用户001</div>
+        <div class="div-pair">
+          <button type="button" class="avatar" id="divHimAva" title="他的头像"> </button>
+          <span class="div-heart" aria-hidden="true">♡</span>
+          <button type="button" class="avatar" id="divMeAva" title="我的头像">我</button>
+        </div>
+        <div class="div-names">
+          <span id="divHimName">用户001</span>
+          <span class="div-names-gap"></span>
+          <span id="divMeName">我</span>
+        </div>
         <div class="div-sub">☽ 你与他之间的占卜链接 ☾</div>
         <div class="cal-mini">
           <div class="cal-date-full" id="calTitle">2026年9月</div>
@@ -3454,28 +3504,28 @@
       const root = document.documentElement.style;
       root.setProperty("--bg-a", t.bgA);
       root.setProperty("--bg-b", t.bgB);
-      root.setProperty("--bubble-user", t.user);
-      root.setProperty("--bubble-bot", t.bot);
-      root.setProperty("--bubble-user-ink", inkFor(t.user));
-      root.setProperty("--bubble-bot-ink", inkFor(t.bot));
+      const bubble = t.user || t.bot || "#f6d5e0";
+      root.setProperty("--bubble-user", bubble);
+      root.setProperty("--bubble-bot", bubble);
+      root.setProperty("--bubble-user-ink", inkFor(bubble));
+      root.setProperty("--bubble-bot-ink", inkFor(bubble));
       const wallOp = t.wallOp == null ? 100 : Number(t.wallOp);
       const washOp = t.washOp == null ? 0 : Number(t.washOp);
       const wallBlur = t.wallBlur == null ? 0 : Number(t.wallBlur);
       root.setProperty("--wall-opacity", String(wallOp / 100));
       root.setProperty("--wash-opacity", String(washOp / 100));
       root.setProperty("--wall-blur", wallBlur + "px");
-      const shape = ["bunny", "wing", "cat", "custom"].includes(t.shape)
+      const shape = ["bunny", "wing", "cat"].includes(t.shape)
         ? t.shape
-        : (["bunny", "wing", "cat", "custom"].includes(t.shapeUser) ? t.shapeUser : "bunny");
+        : (["bunny", "wing", "cat"].includes(t.shapeUser) ? t.shapeUser : "bunny");
       document.getElementById("shapeBbl").value = shape;
       document.documentElement.setAttribute("data-bbl", shape);
-      bubbleDeco = safeDataImage(t.deco || t.decoUser || t.decoBot || "");
-      root.setProperty("--bbl-deco", bubbleDeco ? "url(" + bubbleDeco + ")" : "none");
+      bubbleDeco = "";
+      root.setProperty("--bbl-deco", "none");
       syncBubbleShapeUi();
       document.getElementById("colorBgA").value = t.bgA;
       document.getElementById("colorBgB").value = t.bgB;
-      document.getElementById("colorUser").value = t.user;
-      document.getElementById("colorBot").value = t.bot;
+      document.getElementById("colorUser").value = bubble;
       document.getElementById("rangeWallOp").value = wallOp;
       document.getElementById("rangeWashOp").value = washOp;
       document.getElementById("rangeWallBlur").value = wallBlur;
@@ -3503,16 +3553,17 @@
       }
     }
     function currentTheme() {
+      const bubble = document.getElementById("colorUser").value;
       return {
         bgA: document.getElementById("colorBgA").value,
         bgB: document.getElementById("colorBgB").value,
-        user: document.getElementById("colorUser").value,
-        bot: document.getElementById("colorBot").value,
+        user: bubble,
+        bot: bubble,
         wallOp: Number(document.getElementById("rangeWallOp").value),
         washOp: Number(document.getElementById("rangeWashOp").value),
         wallBlur: Number(document.getElementById("rangeWallBlur").value),
         shape: document.getElementById("shapeBbl").value || "bunny",
-        deco: bubbleDeco || ""
+        deco: ""
       };
     }
     function syncBubbleShapeUi() {
@@ -3520,9 +3571,6 @@
       document.querySelectorAll("[data-shape-for=\"shapeBbl\"] .bbl-shape").forEach((btn) => {
         btn.classList.toggle("on", btn.dataset.shape === val);
       });
-      const pad = document.getElementById("bblDrawPad");
-      if (pad) pad.hidden = val !== "custom";
-      if (val === "custom") fillBubbleCanvas();
     }
     function persistTheme() {
       try {
@@ -3585,6 +3633,7 @@
       paintAva(document.getElementById("mmAva"), "me");
       paintAva(document.getElementById("hisHomeAva"), "him");
       paintAva(document.getElementById("divHimAva"), "him");
+      paintAva(document.getElementById("divMeAva"), "me");
       chatEl.querySelectorAll(".msg.bot .ava").forEach((el) => paintAva(el, "him"));
       chatEl.querySelectorAll(".msg.user .ava").forEach((el) => paintAva(el, "me"));
     }
@@ -5740,7 +5789,9 @@
     function openFortune() {
       loadTarotStore();
       document.getElementById("divHimName").textContent = himName();
+      document.getElementById("divMeName").textContent = profile.nick || "我";
       paintAva(document.getElementById("divHimAva"), "him");
+      paintAva(document.getElementById("divMeAva"), "me");
       paintTarotTiles();
       renderCal();
       showDivHome();
@@ -5755,7 +5806,7 @@
     }
 
     /* ========== 十三、装扮与头像 ========== */
-    ["colorUser", "colorBot", "rangeWallOp", "rangeWallBlur"].forEach((id) => {
+    ["colorUser", "rangeWallOp", "rangeWallBlur"].forEach((id) => {
       document.getElementById(id).addEventListener("input", () => applyTheme(currentTheme()));
     });
     const CHAT_OPT_FIELDS = [
@@ -6069,96 +6120,6 @@
         persistTheme();
       });
     });
-    let bblDraw = { down: false, erase: false, last: null };
-    function bblCanvasPos(e) {
-      const c = document.getElementById("bblCanvas");
-      const r = c.getBoundingClientRect();
-      const t = e.touches ? e.touches[0] : e;
-      return {
-        x: (t.clientX - r.left) * (c.width / r.width),
-        y: (t.clientY - r.top) * (c.height / r.height)
-      };
-    }
-    function fillBubbleCanvas() {
-      const c = document.getElementById("bblCanvas");
-      if (!c) return;
-      const ctx = c.getContext("2d");
-      ctx.clearRect(0, 0, c.width, c.height);
-      if (!bubbleDeco) return;
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0, c.width, c.height);
-      img.src = bubbleDeco;
-    }
-    function commitBubbleDraw() {
-      const c = document.getElementById("bblCanvas");
-      if (!c) return;
-      const ctx = c.getContext("2d");
-      const img = ctx.getImageData(0, 0, c.width, c.height);
-      let painted = false;
-      for (let i = 3; i < img.data.length; i += 4) {
-        if (img.data[i] > 10) { painted = true; break; }
-      }
-      bubbleDeco = painted ? c.toDataURL("image/png") : "";
-      applyTheme(currentTheme());
-      persistTheme();
-    }
-    function strokeBubble(from, to) {
-      const c = document.getElementById("bblCanvas");
-      const ctx = c.getContext("2d");
-      const size = Number(document.getElementById("bblPenSize").value) || 10;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.lineWidth = size * (c.width / Math.max(c.getBoundingClientRect().width, 1));
-      if (bblDraw.erase) {
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.strokeStyle = "#000";
-      } else {
-        ctx.globalCompositeOperation = "source-over";
-        ctx.strokeStyle = document.getElementById("bblPen").value;
-      }
-      ctx.beginPath();
-      ctx.moveTo(from.x, from.y);
-      ctx.lineTo(to.x, to.y);
-      ctx.stroke();
-    }
-    (function bindBubbleDraw() {
-      const c = document.getElementById("bblCanvas");
-      if (!c) return;
-      const start = (e) => {
-        e.preventDefault();
-        bblDraw.down = true;
-        bblDraw.last = bblCanvasPos(e);
-        strokeBubble(bblDraw.last, bblDraw.last);
-      };
-      const move = (e) => {
-        if (!bblDraw.down) return;
-        e.preventDefault();
-        const p = bblCanvasPos(e);
-        strokeBubble(bblDraw.last, p);
-        bblDraw.last = p;
-      };
-      const end = (e) => {
-        if (!bblDraw.down) return;
-        e.preventDefault();
-        bblDraw.down = false;
-        commitBubbleDraw();
-      };
-      c.addEventListener("pointerdown", start);
-      c.addEventListener("pointermove", move);
-      window.addEventListener("pointerup", end);
-      c.addEventListener("pointerleave", () => {});
-    })();
-    document.getElementById("bblEraser").addEventListener("click", () => {
-      bblDraw.erase = !bblDraw.erase;
-      document.getElementById("bblEraser").classList.toggle("on", bblDraw.erase);
-    });
-    document.getElementById("bblClear").addEventListener("click", () => {
-      const c = document.getElementById("bblCanvas");
-      c.getContext("2d").clearRect(0, 0, c.width, c.height);
-      bubbleDeco = "";
-      applyTheme(currentTheme());
-      persistTheme();
-    });
     document.getElementById("resetTheme").addEventListener("click", () => {
       wallpaperData = "";
       applyTheme(DEFAULT_THEME);
@@ -6266,6 +6227,7 @@
     });
     document.getElementById("hisHomeAva").addEventListener("click", () => document.getElementById("fileHis").click());
     document.getElementById("divHimAva").addEventListener("click", () => document.getElementById("fileHis").click());
+    document.getElementById("divMeAva").addEventListener("click", () => document.getElementById("fileMine").click());
     document.getElementById("pickMine").addEventListener("click", () => document.getElementById("fileMine").click());
     document.getElementById("fileHis").addEventListener("change", (e) => {
       const f = e.target.files[0];
