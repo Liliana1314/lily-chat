@@ -2912,7 +2912,8 @@
       <h2>苹果手机开后台</h2>
       <p>苹果的 Safari 标签页<strong>不能</strong>在你刷别的软件时弹出系统通知。必须先把网站加到主屏幕，再从图标打开。</p>
       <p>1. 点 Safari 底部分享按钮（方框加箭头）<br/>2. 滑到「添加到主屏幕」，点添加<br/>3. 回到手机桌面，点「莉莉Amour」图标打开（不要再从 Safari 收藏夹进）<br/>4. 再点「开后台」，弹出询问时选「允许」<br/>5. 去刷别的软件时，不要从后台卡片里把这个应用上划关掉</p>
-      <p>系统要 iOS 16.4 或更新。锁屏太久或省电模式，苹果仍可能冻住网页，这是系统限制。</p>
+      <p>系统要 iOS 16.4 或更新。开后台后状态栏可能显示「正在播放」，这是为了不被冻住，请不要点暂停，也不要把手机开成静音。</p>
+      <p>锁屏太久、省电模式，或从后台卡片里把应用划掉，苹果仍可能冻住网页。</p>
       <button type="button" class="submit-btn" id="btnBgIosOk">我已经从主屏幕打开了</button>
       <button class="ghost-btn" data-close="modalBgIos">关上</button>
     </div>
@@ -2976,6 +2977,7 @@
     <button type="button" data-act="quote">引用</button>
     <button type="button" data-act="copy">复制</button>
   </div>
+  <audio id="keepAliveAudio" loop playsinline webkit-playsinline></audio>
   <div class="toast" id="toast"></div>
   <div class="save-pop" id="savePop" role="dialog" aria-modal="true" aria-labelledby="savePopTxt">
     <div class="save-pop-card">
@@ -4198,7 +4200,7 @@
       chatEl.appendChild(wrap);
       if (!chatPersistLock) saveChat();
       scrollBottom();
-      if (!chatPersistLock) pingAway(himName(), (card && card.text) || "发来一条消息");
+      if (!chatPersistLock && !muteAwayPing) pingAway(himName(), (card && card.text) || "发来一条消息");
     }
     function addMedia(who, dataUrl, at) {
       const wrap = document.createElement("div");
@@ -4247,6 +4249,11 @@
     let wakeLockSentinel = null;
     let engineWorker = null;
     let bgTick = null;
+    let muteAwayPing = false;
+    let lastQueueAt = 0;
+    let keepAliveUrl = "";
+    let appliedBgIds = new Set();
+    let bgHeartTimer = null;
     let nextIdleAt = 0;
     let nextStatusAt = 0;
     let bgKeepOn = localStorage.getItem(LS_BG) === "1";
@@ -4352,15 +4359,55 @@
     function saveBgKeep() {
       try { localStorage.setItem(LS_BG, bgKeepOn ? "1" : "0"); } catch (e) {}
     }
+    function idleWaitRange() {
+      if (isRand(chatSet.idleMsg)) return [2000, TEN_MIN];
+      const p = Math.max(0, Math.min(100, Number(chatSet.idleMsg) || 0));
+      if (p <= 0) return [8 * 60 * 1000, 20 * 60 * 1000];
+      const t = p / 100;
+      const min = Math.round(1500 + (1 - t) * 20000);
+      const max = Math.round(6000 + (1 - t) * (TEN_MIN - 6000));
+      return [min, Math.max(min + 1200, max)];
+    }
+    function buildKeepAliveUrl() {
+      if (keepAliveUrl) return keepAliveUrl;
+      const sr = 22050;
+      const n = sr * 4;
+      const bytes = n * 2;
+      const buf = new ArrayBuffer(44 + bytes);
+      const v = new DataView(buf);
+      const wstr = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+      wstr(0, "RIFF");
+      v.setUint32(4, 36 + bytes, true);
+      wstr(8, "WAVE");
+      wstr(12, "fmt ");
+      v.setUint32(16, 16, true);
+      v.setUint16(20, 1, true);
+      v.setUint16(22, 1, true);
+      v.setUint32(24, sr, true);
+      v.setUint32(28, sr * 2, true);
+      v.setUint16(32, 2, true);
+      v.setUint16(34, 16, true);
+      wstr(36, "data");
+      v.setUint32(40, bytes, true);
+      for (let i = 0; i < n; i++) {
+        const s = Math.sin(2 * Math.PI * 52 * i / sr) * 0.04;
+        v.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, Math.round(s * 32767))), true);
+      }
+      keepAliveUrl = URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+      return keepAliveUrl;
+    }
     function startSilentAudio() {
       if (!bgKeepOn) return;
       try {
-        if (!keepAudioEl) {
-          keepAudioEl = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+        const el = document.getElementById("keepAliveAudio");
+        keepAudioEl = el || keepAudioEl;
+        if (keepAudioEl) {
+          if (!keepAudioEl.src) keepAudioEl.src = buildKeepAliveUrl();
           keepAudioEl.loop = true;
-          keepAudioEl.volume = 0.01;
+          keepAudioEl.muted = false;
+          keepAudioEl.volume = 1;
+          keepAudioEl.play().catch(function () {});
         }
-        keepAudioEl.play().catch(function () {});
         if (navigator.mediaSession) {
           try {
             navigator.mediaSession.metadata = new MediaMetadata({
@@ -4368,6 +4415,9 @@
               artist: "正在接收消息"
             });
             navigator.mediaSession.playbackState = "playing";
+            navigator.mediaSession.setActionHandler("pause", () => { startSilentAudio(); });
+            navigator.mediaSession.setActionHandler("play", () => { startSilentAudio(); });
+            navigator.mediaSession.setActionHandler("stop", () => { startSilentAudio(); });
           } catch (err) {}
         }
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -4376,8 +4426,8 @@
             keepAudio = new AC();
             const osc = keepAudio.createOscillator();
             const g = keepAudio.createGain();
-            g.gain.value = 0.00001;
-            osc.frequency.value = 18;
+            g.gain.value = 0.001;
+            osc.frequency.value = 48;
             osc.connect(g);
             g.connect(keepAudio.destination);
             osc.start();
@@ -4387,8 +4437,89 @@
       } catch (e) {}
     }
     function stopSilentAudio() {
-      try { if (keepAudioEl) { keepAudioEl.pause(); } } catch (e) {}
+      try { if (keepAudioEl) keepAudioEl.pause(); } catch (e) {}
       try { if (keepAudio && keepAudio.state !== "closed") keepAudio.suspend(); } catch (e) {}
+    }
+    function swCtl() {
+      return navigator.serviceWorker && navigator.serviceWorker.controller;
+    }
+    function postBgEngine() {
+      const ctl = swCtl();
+      if (!ctl || !bgKeepOn) return;
+      const range = idleWaitRange();
+      const texts = [];
+      try {
+        for (let i = 0; i < 80; i++) {
+          const lines = drawChatLines(1);
+          if (lines && lines[0] && lines[0].text) texts.push(lines[0].text);
+        }
+      } catch (e) {}
+      const pct = (key, defPct) => (isRand(chatSet[key]) ? defPct : Math.max(0, Math.min(100, Number(chatSet[key]) || 0)));
+      ctl.postMessage({
+        type: "engine-start",
+        cfg: {
+          name: himName(),
+          texts: texts,
+          poke: (pokeTxt && pokeTxt.you) || "拍了拍你",
+          idleMsg: pct("idleMsg", 60),
+          idlePoke: pct("idlePoke", 8),
+          idleCall: pct("idleCall", 10),
+          waitMin: range[0],
+          waitMax: range[1],
+          nextAt: nextIdleAt || Date.now() + range[0]
+        }
+      });
+    }
+    function stopBgEngine() {
+      const ctl = swCtl();
+      if (ctl) ctl.postMessage({ type: "engine-stop" });
+    }
+    function beatBgEngine() {
+      const ctl = swCtl();
+      if (!ctl || !bgKeepOn) return;
+      ctl.postMessage({ type: "heartbeat", at: Date.now() });
+    }
+    function bgItemKey(item) {
+      return (item.kind || "msg") + ":" + (item.at || 0) + ":" + String(item.text || "").slice(0, 24);
+    }
+    function applyBgInboxItem(item) {
+      if (!item) return;
+      const key = bgItemKey(item);
+      if (appliedBgIds.has(key)) return;
+      appliedBgIds.add(key);
+      muteAwayPing = true;
+      try {
+        if (item.kind === "poke") pokeYou(item.at);
+        else if (item.kind === "call") {
+          if (Date.now() - (item.at || 0) < 120000 && callState === "idle") incomingCall("voice");
+        } else {
+          addBot({ text: item.text || "在想你" }, true, null, item.at);
+        }
+      } catch (e) {}
+      muteAwayPing = false;
+    }
+    function pullBgInbox() {
+      const ctl = swCtl();
+      if (!ctl) return Promise.resolve();
+      return new Promise((resolve) => {
+        const ch = new MessageChannel();
+        const t = setTimeout(() => resolve(), 1200);
+        ch.port1.onmessage = (e) => {
+          clearTimeout(t);
+          const items = (e.data && e.data.items) || [];
+          items.forEach(applyBgInboxItem);
+          resolve();
+        };
+        try { ctl.postMessage({ type: "inbox-take" }, [ch.port2]); }
+        catch (err) { clearTimeout(t); resolve(); }
+      });
+    }
+    function unstickPending() {
+      if (pendingReplies > 0 && lastQueueAt && Date.now() - lastQueueAt > 12000) {
+        pendingReplies = 0;
+        pendingUserReply = false;
+        hideTyping();
+      }
     }
     async function startWakeLock() {
       if (!bgKeepOn) return;
@@ -4406,21 +4537,36 @@
       askNotify();
       startSilentAudio();
       startWakeLock();
-      if (!bgTick) bgTick = setInterval(catchUpEngine, 4000);
+      postBgEngine();
+      if (!bgTick) bgTick = setInterval(() => {
+        beatBgEngine();
+        catchUpEngine();
+        if (bgKeepOn) startSilentAudio();
+      }, 2000);
+      if (!bgHeartTimer) bgHeartTimer = setInterval(beatBgEngine, 1500);
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.ready.then((reg) => {
+          if (reg.periodicSync && reg.periodicSync.register) {
+            reg.periodicSync.register("lily-engine", { minInterval: 60 * 1000 }).catch(() => {});
+          }
+        }).catch(() => {});
+      }
       if (engineWorker) return;
       try {
-        const blob = new Blob(["setInterval(function(){postMessage(1)},4000);"], { type: "text/javascript" });
+        const blob = new Blob(["setInterval(function(){postMessage(1)},2000);"], { type: "text/javascript" });
         const url = URL.createObjectURL(blob);
         engineWorker = new Worker(url);
-        engineWorker.onmessage = () => catchUpEngine();
+        engineWorker.onmessage = () => { beatBgEngine(); catchUpEngine(); };
       } catch (e) {}
     }
     function stopEngineKeepAlive() {
       if (bgTick) { clearInterval(bgTick); bgTick = null; }
+      if (bgHeartTimer) { clearInterval(bgHeartTimer); bgHeartTimer = null; }
       if (engineWorker) {
         try { engineWorker.terminate(); } catch (e) {}
         engineWorker = null;
       }
+      stopBgEngine();
       stopSilentAudio();
       try { if (wakeLockSentinel) wakeLockSentinel.release(); } catch (e) {}
       wakeLockSentinel = null;
@@ -4447,7 +4593,7 @@
           syncBgUi();
           startEngineKeepAlive();
           popSystemNotify("莉莉·Amour 后台运行中", "正在接收消息。点这里可回到网站，不要把这个应用划掉。", "bg");
-          toast("后台已开。去刷别的时会弹系统通知，不要划掉这个应用。");
+          toast("后台已开。退出去也会继续发。状态栏若显示正在播放请不要暂停，也不要划掉这个应用。");
           resetIdle();
           scheduleHimStatusLoop();
         };
@@ -4470,8 +4616,13 @@
       toast("后台已关");
     }
     function catchUpEngine() {
+      unstickPending();
+      if (bgKeepOn && document.hidden) {
+        startSilentAudio();
+        postBgEngine();
+      }
       let n = 0;
-      while (pendingReplies === 0 && !pendingUserReply && nextIdleAt && Date.now() >= nextIdleAt && n < 4) {
+      while (pendingReplies === 0 && !pendingUserReply && nextIdleAt && Date.now() >= nextIdleAt && n < 2) {
         idleEvent(nextIdleAt);
         n += 1;
         if (!nextIdleAt || nextIdleAt > Date.now()) break;
@@ -4504,13 +4655,33 @@
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
         stopTitleFlash();
-        catchUpEngine();
-        if (bgKeepOn) startEngineKeepAlive();
+        unstickPending();
+        clearTimeout(idleTimer);
+        idleTimer = null;
+        pullBgInbox().then(() => {
+          if (pendingReplies === 0) resetIdle();
+          catchUpEngine();
+          if (bgKeepOn) startEngineKeepAlive();
+        });
       } else if (bgKeepOn) {
+        startSilentAudio();
+        postBgEngine();
         catchUpEngine();
       }
     });
-    window.addEventListener("pageshow", catchUpEngine);
+    window.addEventListener("pagehide", () => {
+      if (bgKeepOn) {
+        startSilentAudio();
+        postBgEngine();
+        beatBgEngine();
+      }
+    });
+    document.addEventListener("freeze", () => {
+      if (bgKeepOn) postBgEngine();
+    });
+    window.addEventListener("pageshow", () => {
+      pullBgInbox().then(catchUpEngine);
+    });
     window.addEventListener("focus", catchUpEngine);
     document.addEventListener("pointerdown", startEngineKeepAlive, { once: true });
     (function bindWxBanner() {
@@ -4553,10 +4724,13 @@
       banner.addEventListener("pointercancel", endBanner);
     })();
     if (navigator.serviceWorker) {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => {
+        try { reg.update(); } catch (e) {}
+      }).catch(function () {});
       navigator.serviceWorker.addEventListener("message", (e) => {
         const d = e.data || {};
         if (d.type === "open" && d.open === "chat") enterChat();
+        if (d.type === "engine-tick" && d.item) applyBgInboxItem(d.item);
       });
     }
 
@@ -4820,7 +4994,7 @@
     }
     function pokeYou(at) {
       addSys(pokeTxt.you || DEFAULT_POKE.you, at);
-      pingAway(himName(), pokeTxt.you || "拍了拍你", "msg");
+      if (!muteAwayPing) pingAway(himName(), pokeTxt.you || "拍了拍你", "msg");
     }
     function pokeHim() {
       addSys(pokeTxt.me || DEFAULT_POKE.me);
@@ -5129,7 +5303,9 @@
     }
     function queueHisCards(fromIdle, delay, at) {
       pendingReplies += 1;
+      lastQueueAt = Date.now();
       clearTimeout(idleTimer);
+      if (bgKeepOn && document.hidden) delay = Math.min(delay || 0, 180);
       const count = fromIdle ? 1 : (Math.random() < 0.55 ? 1 : 2);
       const cards = drawChatLines(count);
       const typingLead = Math.min(1600, Math.max(400, delay * 0.08));
@@ -5197,13 +5373,8 @@
       idleTimer = setTimeout(() => idleEvent(Date.now()), wait);
     }
     function idleWaitMs() {
-      if (isRand(chatSet.idleMsg)) return randomDelayMs(2000, TEN_MIN);
-      const p = Math.max(0, Math.min(100, Number(chatSet.idleMsg) || 0));
-      if (p <= 0) return randomDelayMs(8 * 60 * 1000, 20 * 60 * 1000);
-      const t = p / 100;
-      const min = Math.round(1500 + (1 - t) * 20000);
-      const max = Math.round(6000 + (1 - t) * (TEN_MIN - 6000));
-      return randomDelayMs(min, Math.max(min + 1200, max));
+      const range = idleWaitRange();
+      return randomDelayMs(range[0], range[1]);
     }
     function markAllUserRead() {
       chatEl.querySelectorAll(".msg.user .receipt").forEach((rec) => {
@@ -6366,6 +6537,7 @@
     document.getElementById("saveChatSet").addEventListener("click", () => {
       readChatSetForm();
       resetIdle();
+      if (bgKeepOn) postBgEngine();
       saveOk("已保存");
     });
     document.getElementById("resetChatSet").addEventListener("click", () => {
