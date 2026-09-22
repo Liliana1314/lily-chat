@@ -6021,11 +6021,23 @@
       renderPool();
       openModal("modalPool");
     });
-    function renderChoiceOpts() {
-      const n = Math.max(2, Math.min(8, Number(document.getElementById("choiceN").value) || 2));
-      document.getElementById("choiceN").value = n;
+    function choiceCountFromInput(commit) {
+      const el = document.getElementById("choiceN");
+      const raw = String(el.value || "").trim();
+      let n = parseInt(raw, 10);
+      if (!Number.isFinite(n)) {
+        if (!commit) return null;
+        n = 2;
+      }
+      n = Math.max(2, Math.min(8, n));
+      if (commit) el.value = String(n);
+      return n;
+    }
+    function renderChoiceOpts(commit) {
+      const n = choiceCountFromInput(!!commit) ?? Math.max(2, document.getElementById("choiceOpts").querySelectorAll("input").length || 2);
       const box = document.getElementById("choiceOpts");
       const old = Array.from(box.querySelectorAll("input")).map((el) => el.value);
+      if (!commit && box.querySelectorAll("input").length === n) return;
       box.innerHTML = "";
       for (let i = 0; i < n; i++) {
         const lab = document.createElement("label");
@@ -6053,10 +6065,12 @@
       return list[x % n];
     }
     document.getElementById("btnChoice").addEventListener("click", () => {
-      renderChoiceOpts();
+      renderChoiceOpts(true);
       openModal("modalChoice");
     });
-    document.getElementById("choiceN").addEventListener("input", renderChoiceOpts);
+    document.getElementById("choiceN").addEventListener("input", () => renderChoiceOpts(false));
+    document.getElementById("choiceN").addEventListener("change", () => renderChoiceOpts(true));
+    document.getElementById("choiceN").addEventListener("blur", () => renderChoiceOpts(true));
     document.getElementById("sendChoice").addEventListener("click", () => {
       const q = document.getElementById("choiceQ").value.trim();
       const opts = Array.from(document.getElementById("choiceOpts").querySelectorAll("input"))
