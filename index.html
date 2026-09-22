@@ -2635,7 +2635,7 @@
       <div class="pool-import">
         <label>批量导入到分类</label>
         <select id="poolImportCat"></select>
-        <textarea id="poolImportText" placeholder="每行一条字卡。导入 emoji 时可直接粘贴表情。"></textarea>
+        <textarea id="poolImportText" placeholder="空一行分开每张字卡，一张里可以有多行。也可以每行一条。导入 emoji 时可直接粘贴表情。"></textarea>
         <div class="row-btns">
           <button type="button" class="submit-btn" id="btnImportCards">导入字卡</button>
           <button type="button" class="ghost-btn" id="btnImportEmoji">导入 emoji</button>
@@ -5864,16 +5864,59 @@
         });
       });
     }
+    function splitCardBlob(raw) {
+      const s = String(raw == null ? "" : raw).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+      if (!s.trim()) return [];
+      const byBlank = s.split(/\n[ \t\u00a0\u3000]*\n+/).map((t) => t.trim()).filter(Boolean);
+      if (byBlank.length > 1) return byBlank;
+      const byLine = s.split("\n").map((t) => t.trim()).filter(Boolean);
+      if (byLine.length > 1) return byLine;
+      return [s.trim()];
+    }
+    function flattenImportTexts(list) {
+      const out = [];
+      (list || []).forEach((item) => {
+        if (item == null) return;
+        if (typeof item === "string") {
+          splitCardBlob(item).forEach((t) => out.push(t));
+          return;
+        }
+        if (typeof item === "object") {
+          const t = item.text || item.txt || item.content || "";
+          splitCardBlob(t).forEach((x) => out.push(x));
+        }
+      });
+      return out;
+    }
+    function extractImportTexts(raw) {
+      const s = String(raw == null ? "" : raw).replace(/^\uFEFF/, "");
+      const trimmed = s.trim();
+      if (!trimmed) return [];
+      if (trimmed.charAt(0) === "[" || trimmed.charAt(0) === "{") {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return flattenImportTexts(parsed);
+          if (parsed && typeof parsed === "object") {
+            if (Array.isArray(parsed.cards)) return flattenImportTexts(parsed.cards);
+            if (Array.isArray(parsed.list)) return flattenImportTexts(parsed.list);
+            if (typeof parsed.text === "string") return splitCardBlob(parsed.text);
+          }
+          if (typeof parsed === "string") return splitCardBlob(parsed);
+        } catch (e) {}
+      }
+      return splitCardBlob(s);
+    }
     function importCardTexts(texts, cat) {
       const kind = cardCats.includes(cat) ? cat : fallbackCat();
       const have = new Set(cardLib.map((c) => (c.text || "").trim()));
       let n = 0;
+      const stamp = Date.now();
       texts.forEach((raw) => {
         if (cardLib.length >= CARD_LIMIT) return;
         const t = String(raw || "").trim();
         if (!t || have.has(t)) return;
         have.add(t);
-        cardLib.push({ id: Date.now() + Math.random() + n, text: t, cat: kind });
+        cardLib.push({ id: stamp + "-" + n + "-" + Math.random().toString(36).slice(2, 8), text: t, cat: kind });
         n += 1;
       });
       if (n) savePrivate();
@@ -5919,12 +5962,16 @@
     });
     document.getElementById("btnImportCards").addEventListener("click", () => {
       const cat = document.getElementById("poolImportCat").value;
-      const lines = document.getElementById("poolImportText").value.split(/\r?\n/);
-      const n = importCardTexts(lines, cat);
+      const texts = extractImportTexts(document.getElementById("poolImportText").value);
+      const n = importCardTexts(texts, cat);
       document.getElementById("poolImportText").value = "";
       poolOpen = true;
+      poolCat = "全部";
+      poolPage = Math.max(0, Math.ceil(cardLib.length / POOL_PAGE) - 1);
+      renderPoolCats();
       renderPool();
-      toast(n ? "已导入 " + n + " 条" : "没有新内容（可能重复或为空）");
+      const full = cardLib.length >= CARD_LIMIT;
+      toast(n ? ("已导入 " + n + " 条，库里共 " + cardLib.length + " 条" + (full ? "（已到上限）" : "")) : "没有新内容（可能重复、为空，或整段都已在库里）");
     });
     document.getElementById("btnImportEmoji").addEventListener("click", () => {
       const bits = parseEmojiBlob(document.getElementById("poolImportText").value);
@@ -5944,26 +5991,15 @@
       if (!f) return;
       const reader = new FileReader();
       reader.onload = () => {
-        let texts = [];
-        let cat = document.getElementById("poolImportCat").value;
-        try {
-          const parsed = JSON.parse(String(reader.result));
-          if (Array.isArray(parsed)) {
-            parsed.forEach((item) => {
-              if (typeof item === "string") texts.push(item);
-              else if (item && item.text) {
-                texts.push(item.text);
-                if (item.cat) cat = item.cat;
-              }
-            });
-          }
-        } catch (err) {
-          texts = String(reader.result).split(/\r?\n/);
-        }
+        const texts = extractImportTexts(reader.result);
+        const cat = document.getElementById("poolImportCat").value;
         const n = importCardTexts(texts, cat);
         poolOpen = true;
+        poolCat = "全部";
+        poolPage = Math.max(0, Math.ceil(cardLib.length / POOL_PAGE) - 1);
+        renderPoolCats();
         renderPool();
-        toast(n ? "从文件导入 " + n + " 条" : "文件里没有新字卡");
+        toast(n ? ("从文件导入 " + n + " 条，库里共 " + cardLib.length + " 条") : "文件里没有新字卡");
       };
       reader.readAsText(f, "utf-8");
     });
