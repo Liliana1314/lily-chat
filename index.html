@@ -2105,6 +2105,77 @@
       font-size: 14px;
     }
     .pool-meta { font-size: 12px; opacity: 0.8; margin-bottom: 10px; }
+    .pool-block {
+      border: 1px solid rgba(92, 61, 72, 0.12);
+      border-radius: 16px;
+      padding: 12px;
+      margin: 0 0 14px;
+      background: rgba(255, 255, 255, 0.55);
+    }
+    .pool-block-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .pool-block-head h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+    }
+    .pool-fold {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      width: auto;
+      margin: 0;
+      text-align: left;
+    }
+    .pool-body.fold { display: none; }
+    .pool-use {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-radius: 999px;
+      padding: 5px 10px 5px 12px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #f3e4e9;
+      color: #6b4a55;
+      width: auto;
+      margin: 0;
+      flex: none;
+      user-select: none;
+    }
+    .pool-use.on {
+      background: #f6d0db;
+      color: #8a3d58;
+    }
+    .pool-use input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: #c45a7a;
+      cursor: pointer;
+      flex: none;
+    }
+    .card-img-prev {
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: #f3e4e9;
+    }
+    .pool-block .me-hint { margin: 0 0 8px; font-size: 12px; }
     .pool-cats {
       display: flex;
       gap: 6px;
@@ -2121,6 +2192,7 @@
       font-size: 12px;
       cursor: pointer;
     }
+    .pool-cats button.on { background: #e8c5d1; font-weight: 700; }
     .pool-origin, .pool-cat-add {
       display: flex;
       gap: 8px;
@@ -2613,37 +2685,64 @@
   <div class="modal-mask" id="modalPool">
     <div class="sheet">
       <h2>📒 他的字卡库</h2>
-      <p class="pool-meta">可按分类查看、批量导入。分类能自己加、也能删。上限 20000。当前 <span id="poolCount">0 / 20000</span></p>
-      <div class="pool-origin">
-        <button type="button" class="ghost-btn" id="btnClearOrigin">一键删除系统原始字卡</button>
-        <button type="button" class="ghost-btn" id="btnRestoreOrigin">恢复系统原始字卡</button>
-      </div>
-      <div class="pool-cats" id="poolCats"></div>
-      <div class="pool-cat-add">
-        <input type="text" id="poolNewCat" maxlength="12" placeholder="新分类名称" />
-        <button type="button" class="ghost-btn" id="btnAddCat">添加分类</button>
-      </div>
-      <input type="text" id="poolSearch" placeholder="搜索字卡…" />
-      <button type="button" class="fold-head" id="foldPool">已存字卡 ▸ 展开</button>
-      <div id="poolFold" style="display:none">
-        <ul class="card-list" id="poolList"></ul>
+      <p class="pool-meta">上下两库分开。系统字卡分类固定；自定义可增删分类、批量导入。聊天至少要使用其中一类。</p>
+
+      <div class="pool-block" id="sysPoolBlock">
+        <div class="pool-block-head">
+          <button type="button" class="pool-fold" id="foldSys">▸ 系统字卡</button>
+          <label class="pool-use" id="labUseSys"><span>使用</span><input type="checkbox" id="useSysChk" /></label>
+        </div>
+        <div class="pool-body fold" id="sysBody">
+        <p class="me-hint">不能整库删掉，也不能改分类。列表里可以改、可以拿掉某张。</p>
+        <div class="pool-cats" id="sysCats"></div>
+        <input type="text" id="sysSearch" placeholder="搜索系统字卡…" />
+        <ul class="card-list" id="sysList"></ul>
         <div class="pool-pager">
-          <button type="button" class="ghost-btn" id="poolPrev">上一页</button>
-          <button type="button" class="ghost-btn" id="poolNext">下一页</button>
+          <button type="button" class="ghost-btn" id="sysPrev">上一页</button>
+          <span class="pool-meta" id="sysCount" style="margin:0;flex:1;text-align:center"></span>
+          <button type="button" class="ghost-btn" id="sysNext">下一页</button>
+        </div>
+        <div class="pool-origin">
+          <button type="button" class="ghost-btn" id="btnRestoreDeleted">补回删掉的字卡</button>
+          <button type="button" class="ghost-btn" id="btnRestoreFactory">恢复成出厂原文</button>
+        </div>
         </div>
       </div>
-      <div class="pool-import">
-        <label>批量导入到分类</label>
-        <select id="poolImportCat"></select>
-        <textarea id="poolImportText" placeholder="空一行分开每张字卡，一张里可以有多行。也可以每行一条。导入 emoji 时可直接粘贴表情。"></textarea>
-        <div class="row-btns">
-          <button type="button" class="submit-btn" id="btnImportCards">导入字卡</button>
-          <button type="button" class="ghost-btn" id="btnImportEmoji">导入 emoji</button>
-          <button type="button" class="ghost-btn" id="btnImportStickers">导入表情包图片</button>
-          <button type="button" class="ghost-btn" id="btnImportCardFile">从文件导入</button>
+
+      <div class="pool-block" id="customPoolBlock">
+        <div class="pool-block-head">
+          <button type="button" class="pool-fold" id="foldCustom">▾ 自定义字卡</button>
+          <label class="pool-use" id="labUseCustom"><span>使用</span><input type="checkbox" id="useCustomChk" /></label>
+        </div>
+        <div class="pool-body" id="customBody">
+        <p class="me-hint">分类可自己加、也能删。Emoji、图片、未分类不能删。导入 emoji / 表情包图片会自动进对应分类。</p>
+        <div class="pool-cats" id="customCatsBox"></div>
+        <div class="pool-cat-add">
+          <input type="text" id="poolNewCat" maxlength="12" placeholder="新分类名称" />
+          <button type="button" class="ghost-btn" id="btnAddCat">添加分类</button>
+        </div>
+        <input type="text" id="customSearch" placeholder="搜索自定义字卡…" />
+        <ul class="card-list" id="customList"></ul>
+        <div class="pool-pager">
+          <button type="button" class="ghost-btn" id="customPrev">上一页</button>
+          <span class="pool-meta" id="customCount" style="margin:0;flex:1;text-align:center"></span>
+          <button type="button" class="ghost-btn" id="customNext">下一页</button>
+        </div>
+        <div class="pool-import">
+          <label>批量导入到分类</label>
+          <select id="poolImportCat"></select>
+          <textarea id="poolImportText" placeholder="空一行分开每张字卡，一张里可以有多行。也可以每行一条。导入 emoji 时可直接粘贴表情。"></textarea>
+          <div class="row-btns">
+            <button type="button" class="submit-btn" id="btnImportCards">导入字卡</button>
+            <button type="button" class="ghost-btn" id="btnImportEmoji">导入 emoji</button>
+            <button type="button" class="ghost-btn" id="btnImportStickers">导入表情包图片</button>
+            <button type="button" class="ghost-btn" id="btnImportCardFile">从文件导入</button>
+          </div>
+        </div>
+        <button type="button" class="add-plus" id="btnAddCard">＋ 再加一条</button>
         </div>
       </div>
-      <button type="button" class="add-plus" id="btnAddCard">＋ 再加一条</button>
+
       <button class="ghost-btn" data-close="modalPool">关上</button>
     </div>
   </div>
@@ -3353,8 +3452,17 @@
 小祖宗
 坏孩子`.trim().split("\n").map((s) => s.trim()).filter(Boolean);
     const DEFAULT_CATS = ["其他回复", "情话", "心情", "在做什么", "称呼", "颜文字", "Emoji"];
+    const UNC_CAT = "未分类";
+    const IMG_CAT = "图片";
+    const LOCKED_CUSTOM_CATS = ["Emoji", IMG_CAT, UNC_CAT];
+    const SYS_CATS = DEFAULT_CATS.slice();
     let cardCats = DEFAULT_CATS.slice();
+    let customCats = DEFAULT_CATS.concat([IMG_CAT, UNC_CAT]);
     let originCardsOn = true;
+    let sysLib = [];
+    let customLib = [];
+    let useSysCards = true;
+    let useCustomCards = true;
     const EXTRA_PRESETS = {
       "主字卡": ["我在工作","在忙","有事","没事","有空","没空","我在学习","在学习","在学校","在外面","最近很忙","最近空闲时间很多","现在有空","现在没空","现在有事","现在没事","等会有事","等会要忙","下班了","我下班了","我去上班了","去上班","去学校","去外面","出门了","刚出门","今天天气怎么样？","今天天气很好","今天天气很舒服","今天很热","今天很冷","出去吃饭了","在家吃饭","在家"],
       "常用语": ["想不想","是不是","好不好","对不对","会不会","能不能","需要不需要","懂不懂","喜欢不喜欢","讨厌不讨厌","如果我说是","如果我说不是","我是","你是","他是","我觉得","我感觉","我感觉到了","我听到","我看到","我听到了","我看到了","我不喜欢","我喜欢","我讨厌","我不讨厌","没关系","抱歉","有没有","确实","对了","错了","你误会我了","要不要","怪你","怪我","习惯了","那就好","行不行","ok","no","我希望","我不希望","我期待","我不期待","我想要","我不想要","我想","我不想","我知道了","我不知道","不要卖萌","你很可爱","我等你","不客气","我不是","你不是","以后不会了","很好","嗯","我相信你","我相信","狗派","猫派","哭哭","谢谢","像不像","可以不可以","你是我女朋友","我错了","我没错","有点","必须","我需要你","我喜欢你","我爱你","讨厌你","我在听","我在看","爱不爱","嗯……","我想一下","我思考一下","我还在想","我还在思考","我在","不过","也是","看来","话说","好了","但是","或许","没问题","是我","对不起","意料之外","意料之中","待会见","当然","我很抱歉","晚了","不要不理我","知道不知道","我一直在","我会对你负责","我们都在一起了","想你了","我想你","我想见你","好想你","我会改正的","像小猫","像小狗","喜欢","讨厌","记得","忘了","不可以","够了","不满足","知道了","不清楚","很好看","不怎么样","差不多","完全不对","不可能","有一定概率","长短"],
@@ -3376,14 +3484,19 @@
       "Emoji": ["☺","😉","😝","🙍","😫","😊","😌","😜","😏","💫","😻","😚","😒","😽","😞","😿","😓","😭","😱","😼","😳","😨","😲","😠","😰","🙎","😥","😷","😪","💨","💩","👾","😹","👿","👻","💀","🎃","😺","👽","👐","🙌","👏","👍","👎","👊","✊","✌","👌","👈","👉","👆","👇","☝","✋","👋","💪","🙏","💄","💋","👄","👂","👃","👣","👀","👶","👧","👦","👩","👨","👱","👵","👴","👲","👳","👮","👷","💂","🌾","🍳","🎓","🎤","🏫","🏭","💻","💼","🎨","🚒","✈","🚀","👸","🎄","🎅","👼","🙇","💁","🙅","🙆","💇","💆","💅","💃","👯","🚶","🏃","👫","❤","👚","👔","👗","👙","👘","👠","👡","👢","👟","🎭","👒","👑","💍","👜","🎒","🌂","😗","🤓","😙","😎","😟","😇","🤪","🥸","😕","🥰","🤨","🤩","🙁","🙃","😛","🧐","🥳","☹️","🥺","🤬","🫢","😶","🫨","😧","🤯","🤗","🫡","🫥","😬","😮","🤔","🤫","😐","🙄","🥵","🫣","🫠","🫤","😯","🥱","🥶","🤭","🤥","😑","😦","😴","🤤","🤐","🥴","🤒","🤢","🤕","🤮","🤑","🤧","🤠","😈","🤖","👹","👺","☠️","🤡","🫶","🤲","🤝","🤛","🤜","🫷","🫸","🤞","🫰","🤟","🤘","🤌","🤏","🤚","🖐️","🖖","🤙","🦾","🖕","✍️","🫵","🦶","🦵","🦿","🫦","🦷","🦻","👁️","🫀","🫁","🧠","🗣️","👤","👥","🫂","🧒","🧑","🪢","🧶","🧵","🪡","🧥","🥼","🦺","👖","🩲","🩳","🩱","🥻","🩴","🥿","🥾","🧦","🧤","🧣","🧢","⛑️","🪖","👝","👛","🧳","👓","🕶️","🥽","🙂","😶‍🌫️","😮‍💨","🕵️","🥷","🦸","🦹","🤶","🧙","🧝","🧌","🧛","🧟","🧞","🧜","🧚","🤰","👰","🤵","🤴","🧕","🙂‍↕️","🙂‍↔️"]
     };
     const KAOMOJI_SET = new Set(EXTRA_PRESETS["颜文字"] || []);
+    const EMOJI_SET = new Set(EXTRA_PRESETS["Emoji"] || []);
     const CALL_SET = new Set(EXTRA_PRESETS["称呼"] || []);
     const LOVE_SET = new Set(EXTRA_PRESETS["情话"] || []);
     const DOING_RE = /在忙|有事|没事|有空|没空|工作|学习|学校|上班|下班|出门|在家|在外面|吃饭|喝水|洗澡|出差|逛街|散步|天气|下雨|晴天|很热|很冷|聚餐|公园|客厅|厕所|路上|公司|外地|听雨|日出|日落|晚霞|刚出门|工作ing|学习ing|休息ing|正在工作|正在吃饭|马上到家|回来了|回不来|最近很忙|空闲时间|等会有事|等会要忙|你睡觉|看书|晒晒太阳|吹吹风|出门散步|在做什么|吃了|还没吃/;
     const MOOD_RE = /开心|高兴|难过|伤心|疲惫|轻松|生气|想你|喜欢|爱你|讨厌|吃醋|担心|焦虑|紧张|期待|幸福|幸运|孤独|寂寞|不安|害羞|委屈|惊讶|烦|想念|心疼|心情|感动|想哭|哄|无奈|遗憾|抱抱|亲亲|摸摸|贴贴|吻|保护你|离开我|可爱|美丽|萌|冷漠|过分|小猫|小狗|原谅|误会|别哭|别生气|陪着你|不是你的错|骗你是小狗|思念|依靠|不舒服|感冒|发烧|吃药|晚安|休息一下|辛苦|亲近|在意你|我爱你|想抱|倾诉|安全感|漂亮|敷衍|怀疑我|不开心|真遗憾|理理我|心疼|睡吧|睡得很香|别熬夜/;
     function isEmojiCard(t) {
+      if (EMOJI_SET.has(t)) return true;
       if (/[\u4e00-\u9fff]/.test(t)) return false;
       let em = [];
       try { em = t.match(/\p{Extended_Pictographic}/gu) || []; } catch (e) { em = []; }
+      if (!em.length) {
+        try { em = t.match(/\p{Emoji_Presentation}/gu) || []; } catch (e2) { em = []; }
+      }
       if (!em.length) return false;
       const compact = t.replace(/\s/g, "");
       return em.join("").length >= Math.max(1, compact.length * 0.5);
@@ -3405,18 +3518,39 @@
       if (MOOD_RE.test(t)) return "心情";
       return "其他回复";
     }
+    const PRESET_CAT = {
+      "颜文字": "颜文字",
+      "Emoji": "Emoji",
+      "情话": "情话",
+      "称呼": "称呼",
+      "情绪/状态": "心情",
+      "关心": "心情",
+      "主字卡": "在做什么",
+      "需求/状态": "在做什么"
+    };
+    const CAT_RANK = { "其他回复": 0, "心情": 1, "在做什么": 1, "情话": 2, "称呼": 2, "颜文字": 3, "Emoji": 3 };
     function buildDefaultCards() {
-      const seen = new Set();
+      const seen = new Map();
       const out = [];
       let n = 1;
-      function add(text) {
+      function add(text, forced) {
         const t = String(text || "").trim();
-        if (!t || seen.has(t)) return;
-        seen.add(t);
-        out.push({ id: n++, text: t, cat: classifyCard(t) });
+        if (!t) return;
+        const next = forced || classifyCard(t);
+        if (seen.has(t)) {
+          const item = seen.get(t);
+          if ((CAT_RANK[next] || 0) > (CAT_RANK[item.cat] || 0)) item.cat = next;
+          return;
+        }
+        const row = { id: n++, text: t, cat: next };
+        seen.set(t, row);
+        out.push(row);
       }
-      DEFAULT_TEXTS.forEach(add);
-      Object.keys(EXTRA_PRESETS).forEach((k) => (EXTRA_PRESETS[k] || []).forEach(add));
+      DEFAULT_TEXTS.forEach((t) => add(t));
+      Object.keys(EXTRA_PRESETS).forEach((k) => {
+        const forced = k === "颜文字" || k === "Emoji" ? k : (PRESET_CAT[k] || null);
+        (EXTRA_PRESETS[k] || []).forEach((t) => add(t, forced));
+      });
       return out;
     }
     const DEFAULT_CARDS = buildDefaultCards();
@@ -3425,6 +3559,12 @@
     const LS_LIB_VER = "card_lib_ver";
     const LS_CATS = "ui_card_cats";
     const LS_ORIGIN = "ui_origin_cards_on";
+    const LS_SYS = "ui_sys_cards";
+    const LS_CUSTOM = "ui_custom_cards";
+    const LS_USE_SYS = "ui_use_sys_cards";
+    const LS_USE_CUSTOM = "ui_use_custom_cards";
+    const LS_CUSTOM_CATS = "ui_custom_cats";
+    const LS_POOL_V2 = "ui_pool_v2";
     const LIB_VER = "origin-9-love-cat";
     const LS_CHAT = "chat_history";
     const LS_DIV = "today_divination";
@@ -3579,82 +3719,186 @@
 
     /* ========== 五、持久化 ========== */
     function fallbackCat() {
-      return cardCats.includes("其他回复") ? "其他回复" : (cardCats[0] || "其他回复");
+      return customCats.includes(UNC_CAT) ? UNC_CAT : (customCats[0] || UNC_CAT);
+    }
+    function keepSysCat(cat, text) {
+      const c = String(cat || "").trim();
+      if (c && SYS_CATS.includes(c)) return c;
+      const guessed = classifyCard(text);
+      if (SYS_CATS.includes(guessed)) return guessed;
+      return "其他回复";
+    }
+    function keepCustomCat(cat, text) {
+      const c = String(cat || "").trim();
+      if (c && customCats.includes(c)) return c;
+      const guessed = classifyCard(text);
+      if (customCats.includes(guessed)) return guessed;
+      return fallbackCat();
     }
     function keepCat(cat, text) {
-      const c = String(cat || "").trim();
-      if (c && cardCats.includes(c)) return c;
-      const guessed = classifyCard(text);
-      if (cardCats.includes(guessed)) return guessed;
-      return fallbackCat();
+      return keepCustomCat(cat, text);
+    }
+    function ensureUncat() {
+      if (!customCats.includes(UNC_CAT)) customCats.push(UNC_CAT);
+    }
+    function ensureLockedCustomCats() {
+      ensureUncat();
+      ["Emoji", IMG_CAT].forEach((c) => {
+        if (!customCats.includes(c)) customCats.push(c);
+      });
     }
     function saveCardCats() {
       try { localStorage.setItem(LS_CATS, JSON.stringify(cardCats)); } catch (e) {}
+      try { localStorage.setItem(LS_CUSTOM_CATS, JSON.stringify(customCats)); } catch (e) {}
     }
     function saveOriginFlag() {
+      originCardsOn = !!useSysCards;
       try { localStorage.setItem(LS_ORIGIN, originCardsOn ? "1" : "0"); } catch (e) {}
+    }
+    function saveUseFlags() {
+      try { localStorage.setItem(LS_USE_SYS, useSysCards ? "1" : "0"); } catch (e) {}
+      try { localStorage.setItem(LS_USE_CUSTOM, useCustomCards ? "1" : "0"); } catch (e) {}
+      saveOriginFlag();
     }
     function loadCardMeta() {
       try {
-        const raw = JSON.parse(localStorage.getItem(LS_CATS) || "null");
+        const raw = JSON.parse(localStorage.getItem(LS_CUSTOM_CATS) || localStorage.getItem(LS_CATS) || "null");
         if (Array.isArray(raw) && raw.length) {
-          cardCats = [...new Set(raw.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
+          customCats = [...new Set(raw.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
         }
       } catch (e) {}
-      if (!cardCats.length) cardCats = DEFAULT_CATS.slice();
+      ensureLockedCustomCats();
+      if (!customCats.length) customCats = DEFAULT_CATS.concat([IMG_CAT, UNC_CAT]);
+      cardCats = customCats.slice();
       originCardsOn = localStorage.getItem(LS_ORIGIN) !== "0";
     }
-    function originTextSet() {
-      return new Set(DEFAULT_CARDS.map((c) => c.text));
+    function retagSysCats() {
+      const byOid = new Map(DEFAULT_CARDS.map((c) => [c.id, c]));
+      const byText = new Map(DEFAULT_CARDS.map((c) => [c.text, c]));
+      sysLib.forEach((c) => {
+        const t = String(c.text || "").trim();
+        const origin = (c.originId != null && byOid.get(c.originId)) || byText.get(t);
+        if (origin && t === origin.text) {
+          c.originId = origin.id;
+          c.cat = keepSysCat(origin.cat, t);
+        } else {
+          c.cat = keepSysCat(null, t);
+        }
+      });
+    }
+    function defaultSysMapped() {
+      return DEFAULT_CARDS.map((c) => ({
+        id: "sys-" + c.id,
+        originId: c.id,
+        text: c.text,
+        cat: keepSysCat(c.cat, c.text)
+      }));
     }
     function defaultCardsMapped() {
-      return DEFAULT_CARDS.map((c) => ({
-        id: c.id || Date.now() + Math.random(),
-        text: c.text,
-        cat: keepCat(c.cat, c.text)
-      }));
+      return defaultSysMapped();
+    }
+    function syncCardLib() {
+      cardLib = sysLib.concat(customLib);
+      cardCats = customCats.slice();
+    }
+    function migrateFromFlat(list, originOn) {
+      const originByText = new Map(DEFAULT_CARDS.map((c) => [c.text, c]));
+      const usedOid = new Set();
+      sysLib = [];
+      customLib = [];
+      (list || []).forEach((c) => {
+        const text = String((c && c.text) || "").trim();
+        if (!text) return;
+        const oc = originByText.get(text);
+        if (originOn !== false && oc && !usedOid.has(oc.id)) {
+          usedOid.add(oc.id);
+          sysLib.push({
+            id: "sys-" + oc.id,
+            originId: oc.id,
+            text: text,
+            cat: keepSysCat(oc.cat, text)
+          });
+        } else {
+          customLib.push({
+            id: (c && c.id) || ("cu-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8)),
+            text: text,
+            cat: keepCustomCat(c && c.cat, text)
+          });
+        }
+      });
+      const hadAny = (list || []).some((c) => String((c && c.text) || "").trim());
+      useSysCards = originOn !== false;
+      useCustomCards = true;
+      if (!hadAny) {
+        useSysCards = true;
+        sysLib = defaultSysMapped();
+      }
+      if (!useSysCards && !useCustomCards) useSysCards = true;
+      retagSysCats();
+      syncCardLib();
+    }
+    function loadV2Pools() {
+      try {
+        const s = JSON.parse(localStorage.getItem(LS_SYS) || "null");
+        sysLib = Array.isArray(s) ? s.map((c) => ({
+          id: c.id || ("sys-" + (c.originId || Math.random())),
+          originId: c.originId || null,
+          text: String(c.text || "").trim(),
+          cat: keepSysCat(c.cat, c.text)
+        })).filter((c) => c.text) : [];
+      } catch (e) { sysLib = []; }
+      try {
+        const s = JSON.parse(localStorage.getItem(LS_CUSTOM) || "null");
+        customLib = Array.isArray(s) ? s.map((c) => ({
+          id: c.id || ("cu-" + Math.random()),
+          text: String(c.text || "").trim(),
+          cat: keepCustomCat(c.cat, c.text)
+        })).filter((c) => c.text) : [];
+      } catch (e) { customLib = []; }
+      useSysCards = localStorage.getItem(LS_USE_SYS) !== "0";
+      useCustomCards = localStorage.getItem(LS_USE_CUSTOM) !== "0";
+      if (!sysLib.length && !customLib.length) {
+        sysLib = defaultSysMapped();
+        useSysCards = true;
+        useCustomCards = true;
+      }
+      if (!useSysCards && !useCustomCards) useSysCards = true;
+      retagSysCats();
+      syncCardLib();
     }
     function loadPrivate() {
       loadCardMeta();
-      function norm(c) {
-        const text = (c.text || "").trim();
-        return {
-          id: c.id || Date.now() + Math.random(),
-          text,
-          cat: keepCat(c.cat, text)
-        };
+      if (localStorage.getItem(LS_POOL_V2) === "1") {
+        loadV2Pools();
+        savePrivate();
+        return;
       }
       try {
         const raw = localStorage.getItem(LS_CARDS);
         const saved = raw ? JSON.parse(raw) : [];
-        const list = (Array.isArray(saved) ? saved : []).map(norm).filter((c) => c.text);
-        const ver = localStorage.getItem(LS_LIB_VER);
-        if (ver !== LIB_VER) {
-          if (originCardsOn) {
-            const seeded = defaultCardsMapped();
-            const have = new Set(seeded.map((s) => s.text));
-            list.forEach((c) => {
-              if (c.text && !have.has(c.text) && seeded.length < CARD_LIMIT) {
-                seeded.push({ id: c.id || Date.now() + Math.random(), text: c.text, cat: keepCat(c.cat, c.text) });
-                have.add(c.text);
-              }
-            });
-            cardLib = seeded;
-          } else {
-            cardLib = list;
-          }
-          savePrivate();
-          localStorage.setItem(LS_LIB_VER, LIB_VER);
-          return;
-        }
-        cardLib = list.length ? list : (originCardsOn ? defaultCardsMapped() : []);
+        const list = (Array.isArray(saved) ? saved : []).map((c) => ({
+          id: c.id,
+          text: String((c && c.text) || "").trim(),
+          cat: c && c.cat
+        })).filter((c) => c.text);
+        migrateFromFlat(list, originCardsOn);
       } catch (e) {
-        cardLib = originCardsOn ? defaultCardsMapped() : [];
+        sysLib = defaultSysMapped();
+        customLib = [];
+        useSysCards = true;
+        useCustomCards = true;
+        syncCardLib();
       }
+      savePrivate();
+      try { localStorage.setItem(LS_POOL_V2, "1"); } catch (e) {}
     }
     function savePrivate() {
-      try { localStorage.setItem(LS_CARDS, JSON.stringify(cardLib)); }
-      catch (e) { toast("字卡太多，这台浏览器存不下了"); }
+      syncCardLib();
+      try { localStorage.setItem(LS_SYS, JSON.stringify(sysLib)); } catch (e) { toast("系统字卡存不下了"); }
+      try { localStorage.setItem(LS_CUSTOM, JSON.stringify(customLib)); } catch (e) { toast("自定义字卡太多，这台浏览器存不下了"); }
+      try { localStorage.setItem(LS_CARDS, JSON.stringify(cardLib)); } catch (e) {}
+      saveUseFlags();
+      saveCardCats();
     }
     function inkFor(hex) {
       const h = hex.replace("#", "");
@@ -4182,7 +4426,7 @@
       return map;
     }
     function pickQuote(fromIdle, extraUsed) {
-      const chance = isRand(chatSet.quote) ? (fromIdle ? 0.22 : 0.4) : chatPct("quote", 0.4);
+      const chance = overlayChance("quote", fromIdle ? 0.22 : 0.4);
       if (Math.random() >= chance) return "";
       const used = quotedCountMap();
       (extraUsed || []).forEach((t) => {
@@ -4902,6 +5146,7 @@
     }
 
     let stickers = [];
+    let stickerFileMode = "album";
     function loadStickers() {
       try { stickers = JSON.parse(localStorage.getItem(LS_STICKERS) || "[]"); } catch (e) { stickers = []; }
       if (!Array.isArray(stickers)) stickers = [];
@@ -4920,7 +5165,10 @@
           closePlus();
         });
       });
-      document.getElementById("stickerAdd").addEventListener("click", () => document.getElementById("fileSticker").click());
+      document.getElementById("stickerAdd").addEventListener("click", () => {
+        stickerFileMode = "album";
+        document.getElementById("fileSticker").click();
+      });
     }
     function compressChatImage(file, done) {
       const img = new Image();
@@ -5308,21 +5556,45 @@
       });
     })();
     function himSendSticker(fromIdle, at) {
-      if (!stickers.length) return false;
-      const s = stickers[Math.floor(Math.random() * stickers.length)];
+      const libImgs = imgPool().map((c) => c.text).filter(Boolean);
+      const src = libImgs.length ? libImgs : [];
+      if (!src.length) return false;
+      const s = src[Math.floor(Math.random() * src.length)];
       if (!fromIdle) markAllUserRead();
       addMedia("him", s, at);
       return true;
     }
 
     /* ========== 七、他的回复：只从字卡库随机抽 ========== */
+    function cardIsImg(c) {
+      const t = String((c && c.text) || "");
+      return !!(c && (c.kind === "image" || c.cat === IMG_CAT || /^data:image\//i.test(t)));
+    }
     function fullPool() {
-      const filled = cardLib.filter((c) => (c.text || "").trim());
-      if (filled.length) return filled;
-      return originCardsOn ? DEFAULT_CARDS : [];
+      const out = [];
+      if (useSysCards) {
+        sysLib.forEach((c) => { if ((c.text || "").trim() && !cardIsImg(c)) out.push(c); });
+      }
+      if (useCustomCards) {
+        customLib.forEach((c) => { if ((c.text || "").trim() && !cardIsImg(c)) out.push(c); });
+      }
+      return out;
+    }
+    function imgPool() {
+      const out = [];
+      if (useSysCards) {
+        sysLib.forEach((c) => { if (cardIsImg(c) && (c.text || "").trim()) out.push(c); });
+      }
+      if (useCustomCards) {
+        customLib.forEach((c) => { if (cardIsImg(c) && (c.text || "").trim()) out.push(c); });
+      }
+      return out;
+    }
+    function overlayChance(key, def) {
+      return isRand(chatSet[key]) ? def : chatPct(key, def);
     }
     function poolByCat(cat) {
-      return fullPool().filter((c) => (c.cat || "其他回复") === cat && (c.text || "").trim());
+      return fullPool().filter((c) => (c.cat || UNC_CAT) === cat && (c.text || "").trim());
     }
     function pickCard(exclude) {
       const pool = fullPool().filter((c) => !exclude || !exclude.has(c.text));
@@ -5359,7 +5631,7 @@
       else if (r < 0.52 && mood.length) list = mood;
       else if (r < 0.74 && doing.length) list = doing;
       else if (other.length) list = other;
-      else list = fullPool().filter((c) => c.cat !== "颜文字" && c.cat !== "Emoji");
+      else list = fullPool().filter((c) => c.cat !== "颜文字" && c.cat !== "Emoji" && c.cat !== IMG_CAT && !cardIsImg(c));
       return pickFromPool(list, exclude) || pickCard(exclude);
     }
     function randomGlue() {
@@ -5374,26 +5646,16 @@
       if (!text) return text;
       const faces = poolByCat("颜文字");
       const emos = poolByCat("Emoji");
-      const r = Math.random();
       const one = (list) => {
         const c = pickFromPool(list);
         return c ? c.text : "";
       };
-      let bits = [];
-      const bothRand = isRand(chatSet.face) && isRand(chatSet.emoji);
-      if (bothRand) {
-        if (r < 0.42) bits = [];
-        else if (r < 0.66) bits = [one(faces)];
-        else if (r < 0.82) bits = [one(emos)];
-        else if (r < 0.94) bits = Math.random() < 0.5 ? [one(faces), one(emos)] : [one(emos), one(faces)];
-        else bits = [one(faces), one(faces), one(emos)];
-      } else {
-        if (Math.random() < (isRand(chatSet.face) ? 0.32 : chatPct("face", 0.32))) bits.push(one(faces));
-        if (Math.random() < (isRand(chatSet.emoji) ? 0.35 : chatPct("emoji", 0.35))) bits.push(one(emos));
-      }
-      bits = bits.filter((s) => s && s !== text && !text.includes(s));
-      if (!bits.length) return text;
-      return [text].concat(bits).join(randomGlue());
+      const bits = [];
+      if (faces.length && Math.random() < overlayChance("face", 0.32)) bits.push(one(faces));
+      if (emos.length && Math.random() < overlayChance("emoji", 0.35)) bits.push(one(emos));
+      const extra = bits.filter((s) => s && s !== text && !text.includes(s));
+      if (!extra.length) return text;
+      return [text].concat(extra).join(randomGlue());
     }
     function drawCards(n) {
       const used = new Set();
@@ -5409,9 +5671,16 @@
     function drawChatLines(n) {
       const used = new Set();
       const out = [];
+      const faces = poolByCat("颜文字");
+      const emos = poolByCat("Emoji");
+      const faceP = overlayChance("face", 0.32);
+      const emoP = overlayChance("emoji", 0.35);
       for (let i = 0; i < n; i++) {
-        if (Math.random() < 0.07) {
-          const only = pickFromPool(poolByCat("颜文字").concat(poolByCat("Emoji")), used);
+        const onlyFace = faces.length && Math.random() < faceP * 0.18;
+        const onlyEmo = emos.length && Math.random() < emoP * 0.18;
+        if (onlyFace || onlyEmo) {
+          const list = onlyFace && onlyEmo ? faces.concat(emos) : (onlyFace ? faces : emos);
+          const only = pickFromPool(list, used);
           if (only) {
             used.add(only.text);
             out.push({ text: only.text });
@@ -5447,11 +5716,10 @@
         markAllUserRead();
       }
       const sentAt = at || Date.now();
-      const stickerP = chatPct("sticker", fromIdle ? 0.28 : 0.22);
-      if (fromIdle && stickers.length && Math.random() < stickerP) {
-        himSendSticker(true, sentAt);
-      } else if (!fromIdle && stickers.length && Math.random() < stickerP) {
-        himSendSticker(false, sentAt);
+      const stickerP = overlayChance("sticker", fromIdle ? 0.28 : 0.22);
+      const canSticker = imgPool().length > 0;
+      if (canSticker && Math.random() < stickerP) {
+        himSendSticker(!!fromIdle, sentAt);
       } else {
         const batchQuotes = [];
         cards.forEach((card, i) => {
@@ -5503,7 +5771,7 @@
       if (callState === "in" || callState === "out") return;
       if (callState === "talk") {
         if (hasUnreadUser()) scheduleHisReply(false);
-        else if (stickers.length && Math.random() < chatPct("sticker", 0.28)) himSendSticker(true, stamp);
+        else if (imgPool().length && Math.random() < overlayChance("sticker", 0.28)) himSendSticker(true, stamp);
         else scheduleHisReply(true, stamp);
         return;
       }
@@ -5517,7 +5785,7 @@
       if (doPoke) pokeYou(stamp);
       let queuedReply = false;
       if (doMsg) {
-        if (stickers.length && Math.random() < chatPct("sticker", 0.28) && himSendSticker(true, stamp)) {
+        if (imgPool().length && Math.random() < overlayChance("sticker", 0.28) && himSendSticker(true, stamp)) {
           /* 表情包也算主动发消息 */
         } else {
           scheduleHisReply(true, stamp);
@@ -5707,41 +5975,156 @@
       }
     });
 
-    /* ========== 九、他的字卡库（折叠 + 分页 + 分类导入） ========== */
-    let poolPage = 0;
+    /* ========== 九、他的字卡库（系统 / 自定义两库） ========== */
     const POOL_PAGE = 20;
-    let poolOpen = false;
-    let poolCat = "全部";
-    function renderPoolCats() {
-      const box = document.getElementById("poolCats");
+    let sysPage = 0;
+    let customPage = 0;
+    let sysCat = "全部";
+    let customCat = "全部";
+    function syncUseBtns() {
+      const a = document.getElementById("useSysChk");
+      const b = document.getElementById("useCustomChk");
+      const la = document.getElementById("labUseSys");
+      const lb = document.getElementById("labUseCustom");
+      if (a) a.checked = !!useSysCards;
+      if (b) b.checked = !!useCustomCards;
+      if (la) la.classList.toggle("on", useSysCards);
+      if (lb) lb.classList.toggle("on", useCustomCards);
+    }
+    function setUseSys(on) {
+      if (!on && !useCustomCards) {
+        toast("至少要使用系统字卡或自定义字卡其中一类");
+        syncUseBtns();
+        return;
+      }
+      useSysCards = !!on;
+      saveUseFlags();
+      syncUseBtns();
+      saveOk("保存成功");
+    }
+    function setUseCustom(on) {
+      if (!on && !useSysCards) {
+        toast("至少要使用系统字卡或自定义字卡其中一类");
+        syncUseBtns();
+        return;
+      }
+      useCustomCards = !!on;
+      saveUseFlags();
+      syncUseBtns();
+      saveOk("保存成功");
+    }
+    function renderCatBar(boxId, cats, current, onPick, canDelete) {
+      const box = document.getElementById(boxId);
+      if (!box) return;
       box.innerHTML = "";
-      ["全部"].concat(cardCats).forEach((c) => {
+      ["全部"].concat(cats).forEach((c) => {
         const btn = document.createElement("button");
         btn.type = "button";
         btn.dataset.cat = c;
-        if (c === poolCat) btn.classList.add("on");
+        if (c === current) btn.classList.add("on");
         btn.appendChild(document.createTextNode(c));
-        if (c !== "全部" && cardCats.length > 1) {
+        if (canDelete && c !== "全部" && !LOCKED_CUSTOM_CATS.includes(c)) {
           const x = document.createElement("span");
           x.className = "cat-x";
           x.textContent = "×";
           x.title = "删除分类";
           x.addEventListener("click", (e) => {
             e.stopPropagation();
-            deleteCardCat(c);
+            deleteCustomCat(c);
           });
           btn.appendChild(x);
         }
-        btn.addEventListener("click", () => {
-          poolCat = btn.dataset.cat;
-          poolPage = 0;
-          renderPoolCats();
-          renderPool();
-        });
+        btn.addEventListener("click", () => onPick(c));
         box.appendChild(btn);
       });
+    }
+    function filterLib(lib, cat, q, fallback) {
+      const query = String(q || "").trim();
+      return lib.filter((c) => {
+        if (cat !== "全部" && (c.cat || fallback) !== cat) return false;
+        if (query && !(c.text || "").includes(query)) return false;
+        return true;
+      });
+    }
+    function paintCardList(ulId, list, page, libName) {
+      const ul = document.getElementById(ulId);
+      const pages = Math.max(1, Math.ceil(list.length / POOL_PAGE));
+      let p = page;
+      if (p >= pages) p = pages - 1;
+      if (p < 0) p = 0;
+      const slice = list.slice(p * POOL_PAGE, p * POOL_PAGE + POOL_PAGE);
+      ul.innerHTML = slice.map((c) => {
+        if (cardIsImg(c)) {
+          return `<li class="card-item" data-lib="${libName}" data-id="${escapeHtml(String(c.id))}">
+            <span class="cat-tag">${escapeHtml(c.cat || IMG_CAT)}</span>
+            <img class="card-img-prev" src="${escapeHtml(c.text)}" alt="图片" />
+            <button type="button" class="del-btn">删除</button>
+          </li>`;
+        }
+        return `<li class="card-item" data-lib="${libName}" data-id="${escapeHtml(String(c.id))}">
+            <span class="cat-tag">${escapeHtml(c.cat || UNC_CAT)}</span>
+            <textarea class="card-edit" placeholder="他可能会对你说…">${escapeHtml(c.text || "")}</textarea>
+            <button type="button" class="del-btn">删除</button>
+          </li>`;
+      }).join("") || "<li class='sys'>没有匹配的字卡</li>";
+      ul.querySelectorAll(".card-item").forEach((li) => {
+        const id = li.dataset.id;
+        const which = li.dataset.lib;
+        const edit = li.querySelector(".card-edit");
+        if (edit) edit.addEventListener("change", (e) => {
+          const lib = which === "sys" ? sysLib : customLib;
+          const item = lib.find((c) => String(c.id) === String(id));
+          if (item) {
+            item.text = e.target.value.trim();
+            savePrivate();
+          }
+        });
+        li.querySelector(".del-btn").addEventListener("click", () => {
+          if (which === "sys") sysLib = sysLib.filter((c) => String(c.id) !== String(id));
+          else customLib = customLib.filter((c) => String(c.id) !== String(id));
+          savePrivate();
+          if (which === "sys") renderSysPool();
+          else renderCustomPool();
+        });
+      });
+      return p;
+    }
+    function renderSysPool() {
+      renderCatBar("sysCats", SYS_CATS, sysCat, (c) => {
+        sysCat = c;
+        sysPage = 0;
+        renderSysPool();
+      }, false);
+      const q = (document.getElementById("sysSearch") || {}).value || "";
+      const list = filterLib(sysLib, sysCat, q, "其他回复");
+      sysPage = paintCardList("sysList", list, sysPage, "sys");
+      const el = document.getElementById("sysCount");
+      if (el) el.textContent = sysLib.length + " 条 · 本页分类 " + list.length;
+      syncUseBtns();
+    }
+    function renderCustomPool() {
+      ensureLockedCustomCats();
+      renderCatBar("customCatsBox", customCats, customCat, (c) => {
+        customCat = c;
+        customPage = 0;
+        renderCustomPool();
+      }, true);
       const sel = document.getElementById("poolImportCat");
-      sel.innerHTML = cardCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+      const keepCat = sel ? sel.value : "";
+      if (sel) {
+        sel.innerHTML = customCats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+        if (customCats.includes(keepCat)) sel.value = keepCat;
+      }
+      const q = (document.getElementById("customSearch") || {}).value || "";
+      const list = filterLib(customLib, customCat, q, UNC_CAT);
+      customPage = paintCardList("customList", list, customPage, "custom");
+      const el = document.getElementById("customCount");
+      if (el) el.textContent = customLib.length + " / " + CARD_LIMIT + " · 本页分类 " + list.length;
+      syncUseBtns();
+    }
+    function renderPool() {
+      renderSysPool();
+      renderCustomPool();
     }
     function addCardCat(name) {
       const n = String(name || "").trim().slice(0, 12);
@@ -5749,120 +6132,62 @@
         toast("请填写分类名");
         return false;
       }
-      if (cardCats.includes(n)) {
+      if (customCats.includes(n)) {
         toast("已有这个分类");
         return false;
       }
-      if (cardCats.length >= 30) {
+      if (customCats.length >= 30) {
         toast("分类最多 30 个");
         return false;
       }
-      cardCats.push(n);
+      customCats.push(n);
       saveCardCats();
-      poolCat = n;
-      renderPoolCats();
-      renderPool();
+      customCat = n;
+      renderCustomPool();
       toast("已添加分类");
       return true;
     }
-    function deleteCardCat(name) {
-      if (cardCats.length <= 1) {
-        toast("至少留一个分类");
+    function deleteCustomCat(name) {
+      if (LOCKED_CUSTOM_CATS.includes(name)) {
+        toast("「" + name + "」是默认分类，不能删");
         return;
       }
-      const next = cardCats.filter((c) => c !== name);
-      const moveTo = next.includes("其他回复") ? "其他回复" : next[0];
-      if (!confirm("删除分类「" + name + "」？该分类里的字卡会挪到「" + moveTo + "」。")) return;
-      cardLib.forEach((c) => {
-        if ((c.cat || "") === name) c.cat = moveTo;
+      if (!customCats.includes(name)) return;
+      const next = customCats.filter((c) => c !== name);
+      ensureUncat();
+      if (!next.includes(UNC_CAT)) next.push(UNC_CAT);
+      if (!confirm("删除分类「" + name + "」？该分类里的字卡会挪到「未分类」。")) return;
+      customLib.forEach((c) => {
+        if ((c.cat || "") === name) c.cat = UNC_CAT;
       });
-      cardCats = next;
-      saveCardCats();
+      customCats = next;
       savePrivate();
-      if (poolCat === name) poolCat = "全部";
-      renderPoolCats();
-      renderPool();
-      toast("已删除分类");
-    }
-    function clearOriginCards() {
-      const set = originTextSet();
-      const n = cardLib.filter((c) => set.has((c.text || "").trim())).length;
-      if (!n) {
-        originCardsOn = false;
-        saveOriginFlag();
-        toast("库里已经没有系统原始字卡了");
-        return;
-      }
-      if (!confirm("将删除 " + n + " 条系统原始字卡，你自己加的会留下。之后可以再点恢复。确定吗？")) return;
-      cardLib = cardLib.filter((c) => !set.has((c.text || "").trim()));
-      originCardsOn = false;
-      saveOriginFlag();
-      savePrivate();
-      renderPool();
-      toast("已删除系统原始字卡");
+      if (customCat === name) customCat = UNC_CAT;
+      renderCustomPool();
+      toast("已删除分类，字卡已进未分类");
     }
     function restoreOriginCards() {
-      const have = new Set(cardLib.map((c) => (c.text || "").trim()));
+      const haveOid = new Set(sysLib.map((c) => c.originId).filter((x) => x != null));
       let n = 0;
       DEFAULT_CARDS.forEach((c) => {
-        if (cardLib.length >= CARD_LIMIT) return;
+        if (haveOid.has(c.id)) return;
         const t = (c.text || "").trim();
-        if (!t || have.has(t)) return;
-        have.add(t);
-        cardLib.push({ id: Date.now() + Math.random() + n, text: t, cat: keepCat(c.cat, t) });
+        if (!t) return;
+        sysLib.push({ id: "sys-" + c.id, originId: c.id, text: t, cat: keepSysCat(c.cat, t) });
+        haveOid.add(c.id);
         n += 1;
       });
-      originCardsOn = true;
-      saveOriginFlag();
       savePrivate();
-      renderPool();
-      toast(n ? "已恢复 " + n + " 条系统原始字卡" : "系统原始字卡都在，不用恢复");
+      renderSysPool();
+      if (n) saveOk("保存成功");
+      toast(n ? "已补回 " + n + " 条被拿掉的系统字卡" : "没有需要补回的系统字卡");
     }
-    function filteredPool() {
-      const q = (document.getElementById("poolSearch").value || "").trim();
-      return cardLib.filter((c) => {
-        if (poolCat !== "全部" && (c.cat || "其他回复") !== poolCat) return false;
-        if (q && !(c.text || "").includes(q)) return false;
-        return true;
-      });
-    }
-    function renderPool() {
-      document.getElementById("poolCount").textContent = cardLib.length + " / " + CARD_LIMIT;
-      document.getElementById("foldPool").textContent = poolOpen
-        ? "已存字卡 ▾ 收起（" + cardLib.length + "）"
-        : "已存字卡 ▸ 展开（" + cardLib.length + "）";
-      document.getElementById("poolFold").style.display = poolOpen ? "block" : "none";
-      if (!poolOpen) return;
-      const list = filteredPool();
-      const pages = Math.max(1, Math.ceil(list.length / POOL_PAGE));
-      if (poolPage >= pages) poolPage = pages - 1;
-      if (poolPage < 0) poolPage = 0;
-      const slice = list.slice(poolPage * POOL_PAGE, poolPage * POOL_PAGE + POOL_PAGE);
-      const ul = document.getElementById("poolList");
-      ul.innerHTML = slice
-        .map(
-          (c) => `<li class="card-item" data-id="${c.id}">
-            <span class="cat-tag">${escapeHtml(c.cat || "其他回复")}</span>
-            <textarea class="card-edit" placeholder="他可能会对你说…">${escapeHtml(c.text || "")}</textarea>
-            <button type="button" class="del-btn">删除</button>
-          </li>`
-        )
-        .join("") || "<li class='sys'>没有匹配的字卡</li>";
-      ul.querySelectorAll(".card-item").forEach((li) => {
-        const id = li.dataset.id;
-        li.querySelector(".card-edit").addEventListener("change", (e) => {
-          const item = cardLib.find((c) => String(c.id) === String(id));
-          if (item) {
-            item.text = e.target.value.trim();
-            savePrivate();
-          }
-        });
-        li.querySelector(".del-btn").addEventListener("click", () => {
-          cardLib = cardLib.filter((c) => String(c.id) !== String(id));
-          savePrivate();
-          renderPool();
-        });
-      });
+    function restoreFactoryCards() {
+      if (!confirm("会把系统字卡全部恢复成最开始那一套，你改过的、删过的都不保留。确定吗？")) return;
+      sysLib = defaultSysMapped();
+      savePrivate();
+      renderSysPool();
+      saveOk("保存成功");
     }
     function splitCardBlob(raw) {
       const s = String(raw == null ? "" : raw).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -5907,20 +6232,49 @@
       return splitCardBlob(s);
     }
     function importCardTexts(texts, cat) {
-      const kind = cardCats.includes(cat) ? cat : fallbackCat();
-      const have = new Set(cardLib.map((c) => (c.text || "").trim()));
+      if (cat === IMG_CAT) {
+        toast("图片分类请点「导入表情包图片」");
+        return 0;
+      }
+      ensureLockedCustomCats();
+      const kind = customCats.includes(cat) ? cat : fallbackCat();
+      const have = new Set(customLib.map((c) => (c.text || "").trim()));
       let n = 0;
       const stamp = Date.now();
       texts.forEach((raw) => {
-        if (cardLib.length >= CARD_LIMIT) return;
+        if (customLib.length >= CARD_LIMIT) return;
         const t = String(raw || "").trim();
-        if (!t || have.has(t)) return;
+        if (!t || have.has(t) || /^data:image\//i.test(t)) return;
         have.add(t);
-        cardLib.push({ id: stamp + "-" + n + "-" + Math.random().toString(36).slice(2, 8), text: t, cat: kind });
+        customLib.push({ id: "cu-" + stamp + "-" + n + "-" + Math.random().toString(36).slice(2, 8), text: t, cat: kind });
         n += 1;
       });
       if (n) savePrivate();
       return n;
+    }
+    function importImageCards(urls) {
+      ensureLockedCustomCats();
+      const have = new Set(customLib.filter(cardIsImg).map((c) => (c.text || "").trim()));
+      let n = 0;
+      const stamp = Date.now();
+      (urls || []).forEach((data) => {
+        const t = String(data || "").trim();
+        if (!t || have.has(t)) return;
+        if (customLib.filter(cardIsImg).length >= STICKER_LIMIT) return;
+        if (customLib.length >= CARD_LIMIT) return;
+        have.add(t);
+        customLib.push({ id: "cu-img-" + stamp + "-" + n + "-" + Math.random().toString(36).slice(2, 8), text: t, cat: IMG_CAT, kind: "image" });
+        n += 1;
+      });
+      if (n) savePrivate();
+      return n;
+    }
+    function setPoolImportCat(cat) {
+      ensureLockedCustomCats();
+      customCat = cat;
+      renderCustomPool();
+      const sel = document.getElementById("poolImportCat");
+      if (sel && customCats.includes(cat)) sel.value = cat;
     }
     function parseEmojiBlob(s) {
       let found = [];
@@ -5932,58 +6286,66 @@
       const lines = s.split(/[\s,，]+/).map((t) => t.trim()).filter(Boolean);
       return [...new Set(found.concat(lines))];
     }
-    document.getElementById("foldPool").addEventListener("click", () => {
-      poolOpen = !poolOpen;
-      renderPool();
-    });
-    document.getElementById("poolSearch").addEventListener("input", () => {
-      poolPage = 0;
-      if (!poolOpen) poolOpen = true;
-      renderPool();
-    });
-    document.getElementById("poolPrev").addEventListener("click", () => { poolPage -= 1; renderPool(); });
-    document.getElementById("poolNext").addEventListener("click", () => { poolPage += 1; renderPool(); });
+    document.getElementById("useSysChk").addEventListener("change", (e) => setUseSys(e.target.checked));
+    document.getElementById("useCustomChk").addEventListener("change", (e) => setUseCustom(e.target.checked));
+    document.getElementById("sysSearch").addEventListener("input", () => { sysPage = 0; renderSysPool(); });
+    document.getElementById("customSearch").addEventListener("input", () => { customPage = 0; renderCustomPool(); });
+    document.getElementById("sysPrev").addEventListener("click", () => { sysPage -= 1; renderSysPool(); });
+    document.getElementById("sysNext").addEventListener("click", () => { sysPage += 1; renderSysPool(); });
+    document.getElementById("customPrev").addEventListener("click", () => { customPage -= 1; renderCustomPool(); });
+    document.getElementById("customNext").addEventListener("click", () => { customPage += 1; renderCustomPool(); });
     document.getElementById("btnAddCard").addEventListener("click", () => {
-      if (cardLib.length >= CARD_LIMIT) {
-        toast("字卡库已满，上限 20000 条");
+      if (customLib.length >= CARD_LIMIT) {
+        toast("自定义字卡已满，上限 20000 条");
         return;
       }
-      const cat = poolCat === "全部" ? fallbackCat() : poolCat;
-      cardLib.push({ id: Date.now() + Math.random(), text: "", cat });
+      const cat = customCat === "全部" ? fallbackCat() : customCat;
+      if (cat === IMG_CAT) {
+        toast("图片请用「导入表情包图片」");
+        return;
+      }
+      customLib.push({ id: "cu-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8), text: "", cat });
       savePrivate();
-      poolOpen = true;
-      poolPage = Math.floor((filteredPool().length - 1) / POOL_PAGE);
-      renderPool();
+      const list = filterLib(customLib, customCat, "", UNC_CAT);
+      customPage = Math.max(0, Math.floor((list.length - 1) / POOL_PAGE));
+      renderCustomPool();
       setTimeout(() => {
-        const areas = document.querySelectorAll("#poolList .card-edit");
+        const areas = document.querySelectorAll("#customList .card-edit");
         const last = areas[areas.length - 1];
         if (last) last.focus();
       }, 0);
     });
     document.getElementById("btnImportCards").addEventListener("click", () => {
       const cat = document.getElementById("poolImportCat").value;
+      if (cat === IMG_CAT) {
+        toast("图片分类请点「导入表情包图片」");
+        return;
+      }
       const texts = extractImportTexts(document.getElementById("poolImportText").value);
       const n = importCardTexts(texts, cat);
       document.getElementById("poolImportText").value = "";
-      poolOpen = true;
-      poolCat = "全部";
-      poolPage = Math.max(0, Math.ceil(cardLib.length / POOL_PAGE) - 1);
-      renderPoolCats();
-      renderPool();
-      const full = cardLib.length >= CARD_LIMIT;
-      toast(n ? ("已导入 " + n + " 条，库里共 " + cardLib.length + " 条" + (full ? "（已到上限）" : "")) : "没有新内容（可能重复、为空，或整段都已在库里）");
+      customCat = cat || "全部";
+      customPage = Math.max(0, Math.ceil(customLib.length / POOL_PAGE) - 1);
+      renderCustomPool();
+      const full = customLib.length >= CARD_LIMIT;
+      toast(n ? ("已导入 " + n + " 条自定义字卡，共 " + customLib.length + " 条" + (full ? "（已到上限）" : "")) : "没有新内容（可能重复、为空，或整段都已在库里）");
     });
     document.getElementById("btnImportEmoji").addEventListener("click", () => {
+      setPoolImportCat("Emoji");
       const bits = parseEmojiBlob(document.getElementById("poolImportText").value);
-      const n = importCardTexts(bits, cardCats.includes("Emoji") ? "Emoji" : fallbackCat());
+      const n = importCardTexts(bits, "Emoji");
       document.getElementById("poolImportText").value = "";
-      poolCat = cardCats.includes("Emoji") ? "Emoji" : fallbackCat();
-      poolOpen = true;
-      renderPoolCats();
-      renderPool();
-      toast(n ? "已导入 " + n + " 个 emoji" : "没有识别到新的 emoji");
+      customCat = "Emoji";
+      renderCustomPool();
+      const sel = document.getElementById("poolImportCat");
+      if (sel) sel.value = "Emoji";
+      toast(n ? "已导入 " + n + " 个 emoji，已归入 Emoji" : "没有识别到新的 emoji");
     });
-    document.getElementById("btnImportStickers").addEventListener("click", () => document.getElementById("fileSticker").click());
+    document.getElementById("btnImportStickers").addEventListener("click", () => {
+      setPoolImportCat(IMG_CAT);
+      stickerFileMode = "pool";
+      document.getElementById("fileSticker").click();
+    });
     document.getElementById("btnImportCardFile").addEventListener("click", () => document.getElementById("filePoolTxt").click());
     document.getElementById("filePoolTxt").addEventListener("change", (e) => {
       const f = e.target.files[0];
@@ -5994,12 +6356,10 @@
         const texts = extractImportTexts(reader.result);
         const cat = document.getElementById("poolImportCat").value;
         const n = importCardTexts(texts, cat);
-        poolOpen = true;
-        poolCat = "全部";
-        poolPage = Math.max(0, Math.ceil(cardLib.length / POOL_PAGE) - 1);
-        renderPoolCats();
-        renderPool();
-        toast(n ? ("从文件导入 " + n + " 条，库里共 " + cardLib.length + " 条") : "文件里没有新字卡");
+        customCat = "全部";
+        customPage = Math.max(0, Math.ceil(customLib.length / POOL_PAGE) - 1);
+        renderCustomPool();
+        toast(n ? ("从文件导入 " + n + " 条自定义字卡，共 " + customLib.length + " 条") : "文件里没有新字卡");
       };
       reader.readAsText(f, "utf-8");
     });
@@ -6013,11 +6373,21 @@
         document.getElementById("btnAddCat").click();
       }
     });
-    document.getElementById("btnClearOrigin").addEventListener("click", clearOriginCards);
-    document.getElementById("btnRestoreOrigin").addEventListener("click", restoreOriginCards);
+    document.getElementById("btnRestoreDeleted").addEventListener("click", restoreOriginCards);
+    document.getElementById("btnRestoreFactory").addEventListener("click", restoreFactoryCards);
+    function bindPoolFold(btnId, bodyId, openLabel, shutLabel) {
+      const btn = document.getElementById(btnId);
+      const body = document.getElementById(bodyId);
+      if (!btn || !body) return;
+      btn.addEventListener("click", () => {
+        const shut = !body.classList.contains("fold");
+        body.classList.toggle("fold", shut);
+        btn.textContent = shut ? shutLabel : openLabel;
+      });
+    }
+    bindPoolFold("foldSys", "sysBody", "▾ 系统字卡", "▸ 系统字卡");
+    bindPoolFold("foldCustom", "customBody", "▾ 自定义字卡", "▸ 自定义字卡");
     document.getElementById("btnPool").addEventListener("click", () => {
-      poolOpen = false;
-      renderPoolCats();
       renderPool();
       openModal("modalPool");
     });
@@ -6801,8 +7171,13 @@
         at: new Date().toISOString(),
         chat: collectChatLogs(2000),
         cards: cardLib,
-        cardCats: cardCats,
-        originCardsOn: originCardsOn,
+        cardCats: customCats,
+        originCardsOn: useSysCards,
+        sysLib: sysLib,
+        customLib: customLib,
+        useSysCards: useSysCards,
+        useCustomCards: useCustomCards,
+        customCats: customCats,
         chatSet: chatSet,
         status: { me: statusMe, him: statusHim, himLib: hisStatusLib, meLib: meStatusLib, meHidden: meHidden, himUnknown: himUnknown, himDur: himStatusDur, himLibVer: himLibVer },
         his: hisInfo,
@@ -6851,7 +7226,7 @@
         try {
           const pack = JSON.parse(String(reader.result));
           const logs = Array.isArray(pack) ? pack : (pack.chat && pack.chat.msgs ? pack.chat.msgs : pack.chat);
-          const hasMore = pack && pack.v >= 2 && (pack.cards || pack.chatSet || pack.status || pack.his);
+          const hasMore = pack && pack.v >= 2 && (pack.cards || pack.sysLib || pack.customLib || pack.chatSet || pack.status || pack.his);
           if (!Array.isArray(logs) && !hasMore) {
             toast("这个文件里没有可导入的数据");
             return;
@@ -6859,22 +7234,39 @@
           if (!confirm("导入会覆盖这台设备上的聊天" + (hasMore ? "、字卡和设置" : "") + "，确定吗？")) return;
           if (Array.isArray(logs) && logs.length) applyChatLogs(logs);
           if (pack && pack.v >= 2) {
-            if (Array.isArray(pack.cards)) {
-              cardLib = pack.cards.map((c) => ({
+            if (Array.isArray(pack.sysLib) || Array.isArray(pack.customLib)) {
+              if (Array.isArray(pack.customCats) && pack.customCats.length) {
+                customCats = [...new Set(pack.customCats.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
+                ensureUncat();
+              }
+              sysLib = Array.isArray(pack.sysLib) ? pack.sysLib.map((c) => ({
+                id: c.id || ("sys-" + (c.originId || Math.random())),
+                originId: c.originId || null,
                 text: String((c && c.text) || "").trim().slice(0, 500),
-                cat: String((c && c.cat) || fallbackCat())
-              })).filter((c) => c.text).slice(0, CARD_LIMIT);
+                cat: keepSysCat(c && c.cat, c && c.text)
+              })).filter((c) => c.text) : [];
+              customLib = Array.isArray(pack.customLib) ? pack.customLib.map((c) => ({
+                id: c.id || ("cu-" + Math.random()),
+                text: String((c && c.text) || "").trim().slice(0, 500),
+                cat: keepCustomCat(c && c.cat, c && c.text)
+              })).filter((c) => c.text).slice(0, CARD_LIMIT) : [];
+              useSysCards = pack.useSysCards !== false;
+              useCustomCards = pack.useCustomCards !== false;
+              if (!useSysCards && !useCustomCards) useSysCards = true;
+              savePrivate();
+            } else if (Array.isArray(pack.cards)) {
+              const list = pack.cards.map((c) => ({
+                text: String((c && c.text) || "").trim().slice(0, 500),
+                cat: String((c && c.cat) || "")
+              })).filter((c) => c.text);
+              if (Array.isArray(pack.cardCats) && pack.cardCats.length) {
+                customCats = [...new Set(pack.cardCats.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
+                ensureUncat();
+              }
+              migrateFromFlat(list, pack.originCardsOn !== false);
               savePrivate();
             }
-            if (Array.isArray(pack.cardCats) && pack.cardCats.length) {
-              cardCats = [...new Set(pack.cardCats.map((s) => String(s || "").trim()).filter((s) => s && s !== "全部"))].slice(0, 30);
-              if (!cardCats.length) cardCats = DEFAULT_CATS.slice();
-              saveCardCats();
-            }
-            if (typeof pack.originCardsOn === "boolean") {
-              originCardsOn = pack.originCardsOn;
-              saveOriginFlag();
-            }
+            try { localStorage.setItem(LS_POOL_V2, "1"); } catch (e) {}
             if (pack.chatSet && typeof pack.chatSet === "object") {
               chatSet = Object.assign({}, CHATSET_DEF, pack.chatSet);
               saveChatSetObj();
@@ -7169,7 +7561,10 @@
       document.getElementById("pokeYouInput").value = pokeTxt.you;
       saveOk("已保存");
     });
-    document.getElementById("stickerFromAlbum").addEventListener("click", () => document.getElementById("fileSticker").click());
+    document.getElementById("stickerFromAlbum").addEventListener("click", () => {
+      stickerFileMode = "album";
+      document.getElementById("fileSticker").click();
+    });
     function onPickChatImage(e) {
       const f = e.target.files[0];
       e.target.value = "";
@@ -7183,19 +7578,34 @@
     document.getElementById("fileCamera").addEventListener("change", onPickChatImage);
     document.getElementById("fileSticker").addEventListener("change", (e) => {
       const files = [...e.target.files];
+      const mode = stickerFileMode;
+      stickerFileMode = "album";
       e.target.value = "";
       if (!files.length) return;
       let left = files.length;
+      const bag = [];
       files.forEach((f) => {
         compressImage(f, (data) => {
-          if (stickers.length >= STICKER_LIMIT) stickers.shift();
-          stickers.push(data);
+          bag.push(data);
           left -= 1;
-          if (left <= 0) {
-            saveStickers();
-            renderStickers();
-            toast("表情包已加入（" + stickers.length + "）");
+          if (left > 0) return;
+          if (mode === "pool") {
+            const n = importImageCards(bag);
+            customCat = IMG_CAT;
+            renderCustomPool();
+            const sel = document.getElementById("poolImportCat");
+            if (sel) sel.value = IMG_CAT;
+            toast(n ? ("已导入 " + n + " 张图片到「图片」分类") : "没有新的图片（可能重复或已满）");
+            if (n) saveOk("保存成功");
+            return;
           }
+          bag.forEach((d) => {
+            if (stickers.length >= STICKER_LIMIT) stickers.shift();
+            stickers.push(d);
+          });
+          saveStickers();
+          renderStickers();
+          toast("表情包已加入（" + stickers.length + "）");
         });
       });
     });
