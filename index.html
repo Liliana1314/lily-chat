@@ -1732,6 +1732,30 @@
       font-weight: 600;
       cursor: pointer;
     }
+    .ask-title {
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      margin-bottom: 8px !important;
+    }
+    .ask-sub {
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      color: #8a6570 !important;
+      margin-bottom: 16px !important;
+    }
+    .ask-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .ask-btns button {
+      flex: 1;
+      width: auto;
+      margin: 0;
+    }
+    .ask-btns #askPopYes {
+      background: #c45a7a;
+      color: #fff;
+    }
     .set-hdr-btn {
       display: flex;
       align-items: center;
@@ -2740,6 +2764,9 @@
           </div>
         </div>
         <button type="button" class="add-plus" id="btnAddCard">＋ 再加一条</button>
+        <div class="pool-origin">
+          <button type="button" class="ghost-btn" id="btnResetCustom">重置自定义字卡</button>
+        </div>
         </div>
       </div>
 
@@ -3091,6 +3118,16 @@
     <div class="save-pop-card">
       <p id="savePopTxt">已保存</p>
       <button type="button" id="savePopOk">好的</button>
+    </div>
+  </div>
+  <div class="save-pop" id="askPop" role="dialog" aria-modal="true" aria-labelledby="askPopTitle">
+    <div class="save-pop-card">
+      <p class="ask-title" id="askPopTitle">请确认</p>
+      <p class="ask-sub" id="askPopTxt">你确认你要做这件事情吗？</p>
+      <div class="ask-btns">
+        <button type="button" id="askPopNo">取消</button>
+        <button type="button" id="askPopYes">确认</button>
+      </div>
     </div>
   </div>
 
@@ -4285,6 +4322,30 @@
     });
     document.getElementById("savePop").addEventListener("click", (e) => {
       if (e.target.id === "savePop") document.getElementById("savePop").classList.remove("show");
+    });
+    let askPopFn = null;
+    function closeAskPop() {
+      askPopFn = null;
+      const pop = document.getElementById("askPop");
+      if (pop) pop.classList.remove("show");
+    }
+    function askToDo(title, fn) {
+      const pop = document.getElementById("askPop");
+      const t = document.getElementById("askPopTitle");
+      const s = document.getElementById("askPopTxt");
+      if (t) t.textContent = title || "请确认";
+      if (s) s.textContent = "你确认你要做这件事情吗？";
+      askPopFn = typeof fn === "function" ? fn : null;
+      if (pop) pop.classList.add("show");
+    }
+    document.getElementById("askPopYes").addEventListener("click", () => {
+      const fn = askPopFn;
+      closeAskPop();
+      if (fn) fn();
+    });
+    document.getElementById("askPopNo").addEventListener("click", closeAskPop);
+    document.getElementById("askPop").addEventListener("click", (e) => {
+      if (e.target.id === "askPop") closeAskPop();
     });
     const HALL_WDS = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
     function pad2(n) { return n < 10 ? "0" + n : String(n); }
@@ -6183,10 +6244,17 @@
       toast(n ? "已补回 " + n + " 条被拿掉的系统字卡" : "没有需要补回的系统字卡");
     }
     function restoreFactoryCards() {
-      if (!confirm("会把系统字卡全部恢复成最开始那一套，你改过的、删过的都不保留。确定吗？")) return;
       sysLib = defaultSysMapped();
       savePrivate();
       renderSysPool();
+      saveOk("保存成功");
+    }
+    function resetCustomCards() {
+      customLib = [];
+      customPage = 0;
+      customCat = "全部";
+      savePrivate();
+      renderCustomPool();
       saveOk("保存成功");
     }
     function splitCardBlob(raw) {
@@ -6373,8 +6441,15 @@
         document.getElementById("btnAddCat").click();
       }
     });
-    document.getElementById("btnRestoreDeleted").addEventListener("click", restoreOriginCards);
-    document.getElementById("btnRestoreFactory").addEventListener("click", restoreFactoryCards);
+    document.getElementById("btnRestoreDeleted").addEventListener("click", () => {
+      askToDo("补回删掉的字卡", restoreOriginCards);
+    });
+    document.getElementById("btnRestoreFactory").addEventListener("click", () => {
+      askToDo("恢复成出厂原文", restoreFactoryCards);
+    });
+    document.getElementById("btnResetCustom").addEventListener("click", () => {
+      askToDo("重置自定义字卡", resetCustomCards);
+    });
     function bindPoolFold(btnId, bodyId, openLabel, shutLabel) {
       const btn = document.getElementById(btnId);
       const body = document.getElementById(bodyId);
