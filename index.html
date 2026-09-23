@@ -3693,16 +3693,24 @@
     function loadChatSet() {
       try {
         const raw = JSON.parse(localStorage.getItem(LS_CHATSET) || "{}");
-        chatSet = Object.assign({}, CHATSET_DEF, raw && typeof raw === "object" ? raw : {});
-        if (raw && raw.idleMode && (raw.idle === "custom" || isRand(raw.idle))) {
-          if (raw.idleMode === "always") chatSet.idleMsg = 100;
-          else if (raw.idleMode === "chance") chatSet.idleMsg = Math.max(0, Math.min(100, Number(raw.idleChance) || 40));
-        } else if (!raw || raw.idle !== "custom") {
-          if (typeof chatSet.idleMsg === "number") chatSet.idleMsg = "random";
-          if (typeof chatSet.idlePoke === "number") chatSet.idlePoke = "random";
-          if (typeof chatSet.idleCall === "number") chatSet.idleCall = "random";
+        const src = raw && typeof raw === "object" ? raw : {};
+        const next = Object.assign({}, CHATSET_DEF);
+        Object.keys(CHATSET_DEF).forEach((k) => {
+          if (!Object.prototype.hasOwnProperty.call(src, k)) return;
+          const v = src[k];
+          if (v === "random" || v === "" || v == null) {
+            next[k] = "random";
+            return;
+          }
+          const n = Number(v);
+          next[k] = isFinite(n) ? n : "random";
+        });
+        if (src.idleMode && isRand(next.idleMsg)) {
+          if (src.idleMode === "always") next.idleMsg = 100;
+          else if (src.idleMode === "chance") next.idleMsg = Math.max(0, Math.min(100, Number(src.idleChance) || 40));
         }
-        delete chatSet.idle;
+        chatSet = next;
+        saveChatSetObj();
       } catch (e) {
         chatSet = Object.assign({}, CHATSET_DEF);
       }
@@ -8625,6 +8633,7 @@
     /* ========== 十四、启动 ========== */
     loadPrivate();
     loadChatSet();
+    fillChatSetForm();
     loadTheme();
     loadAvatars();
     loadStickers();
