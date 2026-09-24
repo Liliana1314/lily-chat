@@ -124,7 +124,7 @@
       overflow: hidden;
     }
     .ava { width: 32px; height: 32px; font-size: 12px; box-shadow: none; cursor: pointer; }
-    button.avatar {
+    button.avatar, label.avatar {
       cursor: pointer;
       padding: 0;
       font: inherit;
@@ -1707,6 +1707,17 @@
       padding: 20px;
     }
     .save-pop.show { display: flex; }
+    #cropPop { z-index: 520; }
+    .file-ghost {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+      z-index: 521;
+    }
     .save-pop-card {
       width: min(280px, 86%);
       background: #fff;
@@ -1752,9 +1763,58 @@
       width: auto;
       margin: 0;
     }
-    .ask-btns #askPopYes {
+    .ask-btns #askPopYes, .ask-btns #cropOk {
       background: #c45a7a;
       color: #fff;
+    }
+    .crop-card {
+      width: min(340px, 92%);
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px 16px 14px;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(76, 29, 99, 0.18);
+    }
+    .crop-card p {
+      font-size: 15px;
+      font-weight: 600;
+      color: #5c3d48;
+      margin-bottom: 12px;
+    }
+    .crop-stage {
+      width: 260px;
+      height: 260px;
+      max-width: 100%;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      background: #1a1216;
+      touch-action: none;
+      cursor: grab;
+    }
+    .crop-stage:active { cursor: grabbing; }
+    .crop-stage img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform-origin: 0 0;
+      user-select: none;
+      pointer-events: none;
+      max-width: none;
+    }
+    .crop-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(255,255,255,.55);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+    #cropZoom {
+      width: 100%;
+      margin: 0 0 14px;
+      accent-color: #c45a7a;
     }
     .set-hdr-btn {
       display: flex;
@@ -2396,6 +2456,11 @@
       width: 72px;
       height: 72px;
       border: 2px solid #fff;
+      position: relative;
+      z-index: 3;
+      flex-shrink: 0;
+      display: block;
+      cursor: pointer;
     }
     .his-home-id h3 { font-size: 20px; margin: 28px 0 4px; }
     .his-home-id .wxid { font-size: 13px; color: #888; }
@@ -2519,8 +2584,6 @@
     </div>
   </div>
 
-  <input type="file" id="fileHis" accept="image/*" hidden />
-  <input type="file" id="fileMine" accept="image/*" hidden />
   <input type="file" id="fileWall" accept="image/*" hidden />
 
   <!-- 装扮：背景与对话框颜色、头像 -->
@@ -2652,6 +2715,12 @@
           <div class="top"><span>引用概率</span><label class="rand"><input type="checkbox" data-rand="quote" checked /> 随机</label></div>
           <input type="range" id="optQuote" min="0" max="100" value="40" />
           <div class="val" id="valQuote">40%</div>
+        </div>
+        <div class="chat-opt">
+          <div class="top"><span>字卡拼接</span><label class="rand"><input type="checkbox" id="optComboOn" /> 打开</label></div>
+          <p class="me-hint">关上时跟原来一样：一句话一张字卡，颜文字和 Emoji 仍可能拼进这句话。打开后，他发的每一句话会在 1 句到你设的上限之间，随机抽几张字卡拼在一起；颜文字、Emoji 的概率逻辑不变。</p>
+          <div class="top"><span>拼接上限（句）</span></div>
+          <input type="number" id="optComboMax" min="1" max="12" step="1" value="5" disabled />
         </div>
         <div class="chat-opt">
           <div class="top"><span>他主动找你</span></div>
@@ -2870,7 +2939,7 @@
       <button type="button" class="me-cover-btn" id="meCoverBtn">更换主页背景</button>
     </div>
     <div class="me-id">
-      <button type="button" class="avatar" id="mePageAva" title="更换头像">我</button>
+      <label class="avatar" id="mePageAva" for="fileMine" title="更换头像">我</label>
       <div>
         <input type="text" id="myNick" maxlength="16" placeholder="昵称" />
         <div class="me-hint">点头像换头像 · 点上方换主页背景</div>
@@ -2891,7 +2960,7 @@
     </div>
     <div class="his-home-hero can-edit" id="myHomeHero" title="点击更换背景"></div>
     <div class="his-home-id">
-      <div class="avatar" id="myHomeAva">我</div>
+      <label class="avatar" id="myHomeAva" for="fileMine">我</label>
       <div>
         <h3 id="myHomeName">我</h3>
         <div class="wxid" id="myHomeWxid">微信号：未设置</div>
@@ -2918,7 +2987,7 @@
     </div>
     <div class="his-home-hero can-edit" id="hisHomeHero" title="点击更换背景"></div>
     <div class="his-home-id">
-      <button type="button" class="avatar" id="hisHomeAva" title="上传他的头像"> </button>
+      <label class="avatar" id="hisHomeAva" for="fileHis" title="上传他的头像"></label>
       <div>
         <h3 id="hisHomeName">用户001</h3>
         <div class="wxid" id="hisHomeWxid">微信号：未设置</div>
@@ -3130,6 +3199,19 @@
       </div>
     </div>
   </div>
+  <div class="save-pop" id="cropPop" role="dialog" aria-modal="true">
+    <div class="crop-card">
+      <p>拖动选区，滑杆放大</p>
+      <div class="crop-stage" id="cropStage"><img id="cropImg" alt="" /></div>
+      <input type="range" id="cropZoom" min="1" max="3" step="0.01" value="1" />
+      <div class="ask-btns">
+        <button type="button" id="cropCancel">取消</button>
+        <button type="button" id="cropOk">用这张</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="fileHis" class="file-ghost" accept="image/*" />
+  <input type="file" id="fileMine" class="file-ghost" accept="image/*" />
 
   <script>
     /* ========== 一、原始字卡库（可在「他的字卡库」里查看和编辑） ========== */
@@ -3604,6 +3686,8 @@
     const LS_POOL_V2 = "ui_pool_v2";
     const LIB_VER = "origin-9-love-cat";
     const LS_CHAT = "chat_history";
+    const PERSIST_DB = "lily-persist";
+    const PERSIST_STORE = "kv";
     const LS_DIV = "today_divination";
     const LS_THEME = "ui_theme";
     const LS_AVATAR = "ui_avatars";
@@ -3684,7 +3768,9 @@
       quote: "random",
       idleMsg: "random",
       idlePoke: "random",
-      idleCall: "random"
+      idleCall: "random",
+      comboOn: false,
+      comboMax: 5
     };
     let chatSet = Object.assign({}, CHATSET_DEF);
     function isRand(v) {
@@ -3697,6 +3783,15 @@
         const next = Object.assign({}, CHATSET_DEF);
         Object.keys(CHATSET_DEF).forEach((k) => {
           if (!Object.prototype.hasOwnProperty.call(src, k)) return;
+          if (k === "comboOn") {
+            next.comboOn = src.comboOn === true || src.comboOn === 1 || src.comboOn === "1";
+            return;
+          }
+          if (k === "comboMax") {
+            const m = Math.floor(Number(src.comboMax));
+            next.comboMax = isFinite(m) ? Math.max(1, Math.min(12, m)) : 5;
+            return;
+          }
           const v = src[k];
           if (v === "random" || v === "" || v == null) {
             next[k] = "random";
@@ -3915,7 +4010,6 @@
       loadCardMeta();
       if (localStorage.getItem(LS_POOL_V2) === "1") {
         loadV2Pools();
-        savePrivate();
         return;
       }
       try {
@@ -3941,7 +4035,7 @@
       syncCardLib();
       try { localStorage.setItem(LS_SYS, JSON.stringify(sysLib)); } catch (e) { toast("系统字卡存不下了"); }
       try { localStorage.setItem(LS_CUSTOM, JSON.stringify(customLib)); } catch (e) { toast("自定义字卡太多，这台浏览器存不下了"); }
-      try { localStorage.setItem(LS_CARDS, JSON.stringify(cardLib)); } catch (e) {}
+      try { localStorage.removeItem(LS_CARDS); } catch (e) {}
       saveUseFlags();
       saveCardCats();
     }
@@ -4116,15 +4210,81 @@
       };
       img.src = url;
     }
-    function avaHtml(who) {
-      if (who === "him") {
-        if (avatars.him) return `<span class="ava" style="background-image:url(${avatars.him})"></span>`;
-        return `<span class="ava" style="background:${hisInfo.color};background-image:none"></span>`;
+    const cropState = { url: "", done: null, x: 0, y: 0, zoom: 1, min: 1, natW: 1, natH: 1, drag: false, sx: 0, sy: 0, ox: 0, oy: 0 };
+    function cropStageSize() {
+      const stage = document.getElementById("cropStage");
+      return Math.max(80, (stage && stage.clientWidth) || 260);
+    }
+    function clampCrop() {
+      const size = cropStageSize();
+      const w = cropState.natW * cropState.zoom;
+      const h = cropState.natH * cropState.zoom;
+      cropState.x = Math.min(0, Math.max(size - w, cropState.x));
+      cropState.y = Math.min(0, Math.max(size - h, cropState.y));
+    }
+    function paintCrop() {
+      const img = document.getElementById("cropImg");
+      if (!img) return;
+      clampCrop();
+      img.style.width = cropState.natW + "px";
+      img.style.height = cropState.natH + "px";
+      img.style.transform = "translate(" + cropState.x + "px," + cropState.y + "px) scale(" + cropState.zoom + ")";
+    }
+    function closeCrop() {
+      const pop = document.getElementById("cropPop");
+      if (pop) pop.classList.remove("show");
+      if (cropState.url && cropState.url.indexOf("blob:") === 0) {
+        URL.revokeObjectURL(cropState.url);
       }
-      const url = avatars.me;
-      return url
-        ? `<span class="ava" style="background-image:url(${url})"></span>`
-        : `<span class="ava">我</span>`;
+      cropState.url = "";
+      cropState.done = null;
+    }
+    function startCropFromImg(img, done) {
+      cropState.done = done;
+      cropState.natW = img.naturalWidth || img.width || 1;
+      cropState.natH = img.naturalHeight || img.height || 1;
+      const size = cropStageSize();
+      cropState.min = Math.max(size / cropState.natW, size / cropState.natH);
+      cropState.zoom = cropState.min;
+      cropState.x = (size - cropState.natW * cropState.zoom) / 2;
+      cropState.y = (size - cropState.natH * cropState.zoom) / 2;
+      const zEl = document.getElementById("cropZoom");
+      if (zEl) zEl.value = "1";
+      const pop = document.getElementById("cropPop");
+      document.body.appendChild(pop);
+      pop.classList.add("show");
+      paintCrop();
+    }
+    function pickHisAvatar() {
+      const el = document.getElementById("fileHis");
+      if (el) el.click();
+    }
+    function pickMyAvatar() {
+      const el = document.getElementById("fileMine");
+      if (el) el.click();
+    }
+    function openAvaCrop(file, done) {
+      if (!file) return;
+      closeCrop();
+      const img = document.getElementById("cropImg");
+      const fail = () => {
+        toast("这张图打不开，换一张试试");
+        closeCrop();
+      };
+      const boot = (src) => {
+        cropState.url = src;
+        cropState.done = done;
+        img.onload = () => startCropFromImg(img, done);
+        img.onerror = fail;
+        img.src = src;
+      };
+      const reader = new FileReader();
+      reader.onerror = fail;
+      reader.onload = () => boot(String(reader.result || ""));
+      setTimeout(() => {
+        try { reader.readAsDataURL(file); }
+        catch (e) { fail(); }
+      }, 30);
     }
     function avaHtml(who) {
       if (who === "him") {
@@ -4137,6 +4297,75 @@
         : `<span class="ava">我</span>`;
     }
     let chatPersistLock = false;
+    let lastGoodChat = null;
+    let chatIdbTimer = null;
+    function askDurableStore() {
+      try {
+        if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+      } catch (e) {}
+    }
+    function persistDb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(new Error("no idb"));
+          return;
+        }
+        const req = indexedDB.open(PERSIST_DB, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(PERSIST_STORE)) db.createObjectStore(PERSIST_STORE);
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    function persistPut(key, value) {
+      return persistDb().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(PERSIST_STORE, "readwrite");
+        tx.objectStore(PERSIST_STORE).put(value, key);
+        tx.oncomplete = () => { try { db.close(); } catch (e) {} resolve(); };
+        tx.onerror = () => { try { db.close(); } catch (e) {} reject(tx.error); };
+      }));
+    }
+    function persistGet(key) {
+      return persistDb().then((db) => new Promise((resolve, reject) => {
+        const tx = db.transaction(PERSIST_STORE, "readonly");
+        const r = tx.objectStore(PERSIST_STORE).get(key);
+        r.onsuccess = () => { try { db.close(); } catch (e) {} resolve(r.result); };
+        r.onerror = () => { try { db.close(); } catch (e) {} reject(r.error); };
+      }));
+    }
+    function chatMsgsFrom(raw) {
+      if (!raw) return null;
+      if (Array.isArray(raw)) return raw;
+      if (raw && typeof raw === "object" && Array.isArray(raw.msgs)) return raw.msgs;
+      return null;
+    }
+    function writeChatLocal(obj) {
+      try {
+        localStorage.setItem(LS_CHAT, JSON.stringify(obj));
+        return true;
+      } catch (e) {
+        try {
+          const slim = {
+            v: 2,
+            msgs: (obj.msgs || []).map((m) => {
+              if (m && m.k === "img") return { k: "txt", role: m.role || "sys", t: "[图片]", ts: m.ts || "", time: m.time || "" };
+              if (m && m.src) { const x = Object.assign({}, m); x.src = ""; return x; }
+              return m;
+            }).slice(-160)
+          };
+          localStorage.setItem(LS_CHAT, JSON.stringify(slim));
+          return true;
+        } catch (e2) {
+          return false;
+        }
+      }
+    }
+    function flushChatIdb(obj) {
+      if (!obj || !obj.msgs || !obj.msgs.length) return;
+      persistPut(LS_CHAT, obj).catch(() => {});
+    }
     function safeDataImage(src) {
       const s = String(src || "").replace(/\s/g, "");
       return /^data:image\/(png|jpe?g|gif|webp);base64,[a-z0-9+/=]+$/i.test(s) ? s : "";
@@ -4184,16 +4413,20 @@
     }
     function saveChat() {
       if (chatPersistLock) return;
-      try {
-        localStorage.setItem(LS_CHAT, JSON.stringify({ v: 2, msgs: collectChatLogs(400) }));
-      } catch (e) {
-        try {
-          localStorage.setItem(LS_CHAT, JSON.stringify({ v: 2, msgs: collectChatLogs(80) }));
-          toast("聊天有点多，本机只留下最近一部分，请去设置里导出备份");
-        } catch (e2) {
-          toast("聊天存不下了，请马上导出备份");
-        }
-      }
+      const msgs = collectChatLogs(800);
+      if (!msgs.length) return;
+      lastGoodChat = { v: 2, msgs };
+      writeChatLocal(lastGoodChat);
+      clearTimeout(chatIdbTimer);
+      chatIdbTimer = setTimeout(() => flushChatIdb(lastGoodChat), 180);
+    }
+    function flushChatNow() {
+      if (chatPersistLock) return;
+      const msgs = collectChatLogs(800);
+      if (msgs.length) lastGoodChat = { v: 2, msgs };
+      if (!lastGoodChat || !lastGoodChat.msgs || !lastGoodChat.msgs.length) return;
+      writeChatLocal(lastGoodChat);
+      flushChatIdb(lastGoodChat);
     }
     function legacyHtmlToSafe(item) {
       const html = String(item.html || "");
@@ -4297,19 +4530,28 @@
       saveChat();
       refreshAvatars();
       scrollBottom();
-      return true;
+      return chatEl.querySelector("[data-log]") != null;
     }
-    function restoreChat() {
+    function restoreChatFromLs() {
       try {
-        const raw = localStorage.getItem(LS_CHAT);
-        if (!raw) return false;
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.v >= 2 && Array.isArray(parsed.msgs)) return applyChatLogs(parsed.msgs);
-        if (Array.isArray(parsed)) return applyChatLogs(parsed);
-        return false;
+        const msgs = chatMsgsFrom(JSON.parse(localStorage.getItem(LS_CHAT) || "null"));
+        if (!msgs || !msgs.length) return false;
+        return applyChatLogs(msgs);
       } catch (e) {
         return false;
       }
+    }
+    async function restoreChat() {
+      let ok = restoreChatFromLs();
+      try {
+        const idb = await persistGet(LS_CHAT);
+        const msgs = chatMsgsFrom(idb);
+        if (msgs && msgs.length) {
+          const live = chatEl.querySelectorAll("[data-log]").length;
+          if (!ok || msgs.length > live) ok = applyChatLogs(msgs) || ok;
+        }
+      } catch (e) {}
+      return !!ok;
     }
 
     /* ========== 六、UI 工具 ========== */
@@ -5547,6 +5789,8 @@
       btn.addEventListener("click", () => {
         if (btn.disabled) return;
         localStorage.setItem(LS_GATE, "1");
+        askDurableStore();
+        flushChatNow();
         gate.classList.add("hide");
         showHall();
       });
@@ -5558,6 +5802,8 @@
       resetIdle();
     }
     function enterChat() {
+      askDurableStore();
+      flushChatNow();
       const fromHall = !document.getElementById("hall").classList.contains("hide");
       document.getElementById("hall").classList.add("hide");
       startEngineKeepAlive();
@@ -5737,6 +5983,22 @@
       }
       return out;
     }
+    function joinBodyCards(used, n) {
+      const bits = [];
+      const take = Math.max(1, Math.min(12, n || 1));
+      for (let i = 0; i < take; i++) {
+        const body = pickBodyCard(used);
+        if (!body || !(body.text || "").trim()) break;
+        used.add(body.text);
+        bits.push(String(body.text).trim());
+      }
+      return bits.join(randomGlue()).replace(/\s*\n+\s*/g, " ").replace(/\s{2,}/g, " ").trim();
+    }
+    function comboLimit() {
+      if (!chatSet.comboOn) return 1;
+      const m = Math.floor(Number(chatSet.comboMax));
+      return isFinite(m) ? Math.max(1, Math.min(12, m)) : 5;
+    }
     function drawChatLines(n) {
       const used = new Set();
       const out = [];
@@ -5744,6 +6006,7 @@
       const emos = poolByCat("Emoji");
       const faceP = overlayChance("face", 0.32);
       const emoP = overlayChance("emoji", 0.35);
+      const cap = comboLimit();
       for (let i = 0; i < n; i++) {
         const onlyFace = faces.length && Math.random() < faceP * 0.18;
         const onlyEmo = emos.length && Math.random() < emoP * 0.18;
@@ -5756,10 +6019,10 @@
             continue;
           }
         }
-        const body = pickBodyCard(used);
-        if (!body) break;
-        used.add(body.text);
-        out.push({ text: decorateLine(body.text) });
+        const take = 1 + Math.floor(Math.random() * cap);
+        const text = joinBodyCards(used, take);
+        if (!text) break;
+        out.push({ text: decorateLine(text) });
       }
       return out;
     }
@@ -7155,6 +7418,15 @@
         inp.disabled = rand;
         if (f.val) document.getElementById(f.val).textContent = inp.value + "%";
       });
+      const on = !!chatSet.comboOn;
+      const comboBox = document.getElementById("optComboOn");
+      const comboMax = document.getElementById("optComboMax");
+      if (comboBox) comboBox.checked = on;
+      if (comboMax) {
+        const m = Math.floor(Number(chatSet.comboMax) || 5);
+        comboMax.value = String(Math.max(1, Math.min(12, m)));
+        comboMax.disabled = !on;
+      }
     }
     function readChatSetForm() {
       const next = Object.assign({}, CHATSET_DEF);
@@ -7163,6 +7435,10 @@
         if (box && box.checked) next[f.key] = "random";
         else next[f.key] = Number(document.getElementById(f.input).value);
       });
+      const comboBox = document.getElementById("optComboOn");
+      next.comboOn = !!(comboBox && comboBox.checked);
+      const cap = Math.floor(Number(document.getElementById("optComboMax").value));
+      next.comboMax = isFinite(cap) ? Math.max(1, Math.min(12, cap)) : 5;
       chatSet = next;
       saveChatSetObj();
     }
@@ -7198,6 +7474,15 @@
         if (!f) return;
         document.getElementById(f.input).disabled = box.checked;
       });
+    });
+    document.getElementById("optComboOn").addEventListener("change", () => {
+      document.getElementById("optComboMax").disabled = !document.getElementById("optComboOn").checked;
+    });
+    document.getElementById("optComboMax").addEventListener("change", () => {
+      const el = document.getElementById("optComboMax");
+      let n = Math.floor(Number(el.value));
+      if (!isFinite(n)) n = 5;
+      el.value = String(Math.max(1, Math.min(12, n)));
     });
     ["SkipReply", "Poke", "Sticker", "Face", "Emoji", "Quote", "IdleMsg", "IdlePoke", "IdleCall"].forEach((name) => {
       document.getElementById("opt" + name).addEventListener("input", (e) => {
@@ -7562,9 +7847,29 @@
       document.getElementById("mePage").classList.add("show");
       applyProfile();
     });
-    document.getElementById("myHomeAva").addEventListener("click", () => document.getElementById("fileMine").click());
-    document.getElementById("myHomeHero").addEventListener("click", () => document.getElementById("fileMeCover").click());
-    document.getElementById("hisHomeHero").addEventListener("click", () => document.getElementById("fileHisCover").click());
+    document.getElementById("myHomeAva").addEventListener("click", (e) => e.stopPropagation());
+    document.getElementById("myHomeHero").addEventListener("click", (e) => {
+      const ava = document.getElementById("myHomeAva");
+      if (ava) {
+        const r = ava.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+          pickMyAvatar();
+          return;
+        }
+      }
+      document.getElementById("fileMeCover").click();
+    });
+    document.getElementById("hisHomeHero").addEventListener("click", (e) => {
+      const ava = document.getElementById("hisHomeAva");
+      if (ava) {
+        const r = ava.getBoundingClientRect();
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
+          pickHisAvatar();
+          return;
+        }
+      }
+      document.getElementById("fileHisCover").click();
+    });
     document.getElementById("meCover").addEventListener("click", (e) => {
       if (e.target.closest("button")) return;
       document.getElementById("fileMeCover").click();
@@ -7573,35 +7878,83 @@
       if (e.target.closest("button, .avatar, .mm-who, .mm-compose")) return;
       document.getElementById("fileMeCover").click();
     });
-    document.getElementById("pickHis").addEventListener("click", () => document.getElementById("fileHis").click());
-    document.getElementById("hisAvaUpload").addEventListener("click", () => document.getElementById("fileHis").click());
+    document.getElementById("pickHis").addEventListener("click", pickHisAvatar);
+    document.getElementById("hisAvaUpload").addEventListener("click", pickHisAvatar);
     document.getElementById("hisAvaClear").addEventListener("click", () => {
       avatars.him = "";
       saveAvatars();
       toast("已去掉照片，暂用底色");
     });
-    document.getElementById("hisHomeAva").addEventListener("click", () => document.getElementById("fileHis").click());
-    document.getElementById("divHimAva").addEventListener("click", () => document.getElementById("fileHis").click());
-    document.getElementById("divMeAva").addEventListener("click", () => document.getElementById("fileMine").click());
-    document.getElementById("pickMine").addEventListener("click", () => document.getElementById("fileMine").click());
+    document.getElementById("hisHomeAva").addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    document.getElementById("divHimAva").addEventListener("click", pickHisAvatar);
+    document.getElementById("divMeAva").addEventListener("click", pickMyAvatar);
+    document.getElementById("pickMine").addEventListener("click", pickMyAvatar);
     document.getElementById("fileHis").addEventListener("change", (e) => {
       const f = e.target.files[0];
+      e.target.value = "";
       if (!f) return;
-      compressImage(f, (data) => {
+      openAvaCrop(f, (data) => {
         avatars.him = data;
         saveAvatars();
       });
-      e.target.value = "";
     });
     document.getElementById("fileMine").addEventListener("change", (e) => {
       const f = e.target.files[0];
+      e.target.value = "";
       if (!f) return;
-      compressImage(f, (data) => {
+      openAvaCrop(f, (data) => {
         avatars.me = data;
         saveAvatars();
       });
-      e.target.value = "";
     });
+    (function wireCrop() {
+      const stage = document.getElementById("cropStage");
+      const zEl = document.getElementById("cropZoom");
+      stage.addEventListener("pointerdown", (e) => {
+        cropState.drag = true;
+        cropState.sx = e.clientX;
+        cropState.sy = e.clientY;
+        cropState.ox = cropState.x;
+        cropState.oy = cropState.y;
+        try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+      });
+      stage.addEventListener("pointermove", (e) => {
+        if (!cropState.drag) return;
+        cropState.x = cropState.ox + (e.clientX - cropState.sx);
+        cropState.y = cropState.oy + (e.clientY - cropState.sy);
+        paintCrop();
+      });
+      function endDrag() { cropState.drag = false; }
+      stage.addEventListener("pointerup", endDrag);
+      stage.addEventListener("pointercancel", endDrag);
+      zEl.addEventListener("input", () => {
+        const size = cropStageSize();
+        const cx = (size / 2 - cropState.x) / cropState.zoom;
+        const cy = (size / 2 - cropState.y) / cropState.zoom;
+        cropState.zoom = cropState.min * Number(zEl.value || 1);
+        cropState.x = size / 2 - cx * cropState.zoom;
+        cropState.y = size / 2 - cy * cropState.zoom;
+        paintCrop();
+      });
+      document.getElementById("cropCancel").addEventListener("click", closeCrop);
+      document.getElementById("cropOk").addEventListener("click", () => {
+        const img = document.getElementById("cropImg");
+        const size = cropStageSize();
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 160;
+        const ctx = canvas.getContext("2d");
+        const sx = -cropState.x / cropState.zoom;
+        const sy = -cropState.y / cropState.zoom;
+        const sw = size / cropState.zoom;
+        ctx.drawImage(img, sx, sy, sw, sw, 0, 0, 160, 160);
+        const data = canvas.toDataURL("image/jpeg", 0.82);
+        const cb = cropState.done;
+        closeCrop();
+        if (cb) cb(data);
+      });
+    })();
 
     document.getElementById("plusBtn").addEventListener("click", () => {
       askNotify();
@@ -8131,9 +8484,9 @@
       }
       scheduleHimStatusLoop();
     }
-    function scheduleHimStatusLoop() {
+    function scheduleHimStatusLoop(first) {
       clearTimeout(himStatusLoopTimer);
-      const wait = randomDelayMs(35 * 1000, 2.5 * 60 * 60 * 1000);
+      const wait = first ? randomDelayMs(8000, 40000) : randomDelayMs(35 * 1000, 2.5 * 60 * 60 * 1000);
       nextStatusAt = Date.now() + wait;
       himStatusLoopTimer = setTimeout(himDoRandomStatusAction, wait);
     }
@@ -8262,12 +8615,18 @@
       else if (himMoments[0] && himMoments[0].time) hint.textContent = himMoments[0].time;
       else hint.textContent = "暂无";
     }
+    function himMomentText() {
+      const t = composeCardCombo(10);
+      if (t) return t;
+      const fallbacks = ["今天也想你。", "随便记一笔。", "天气不错。", "在听歌。", "发一条朋友圈。"];
+      return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    }
     function postHimMoment(at) {
       if (himPostedToday()) {
         refreshHisMmHint();
         return;
       }
-      const text = composeCardCombo(10);
+      const text = himMomentText();
       if (!text) return;
       const when = new Date(at && at > 0 ? at : Date.now());
       himMoments.unshift({
@@ -8292,7 +8651,6 @@
         refreshHisMmHint();
         return;
       }
-      if (!fullPool().length) return;
       const k = momentDayKey();
       let plan = null;
       try { plan = JSON.parse(localStorage.getItem(LS_HIM_MM_PLAN) || "null"); } catch (e) {}
@@ -8547,12 +8905,18 @@
     }
     function renderMoments() {
       const feed = document.getElementById("mmFeed");
-      if (!moments.length) {
+      const mixed = moments.map((raw) => ({ m: normMoment(raw), who: "me" }))
+        .concat(himMoments.map((raw) => ({ m: normMoment(raw), who: "him" })))
+        .sort((a, b) => (b.m.ts || 0) - (a.m.ts || 0));
+      if (!mixed.length) {
         feed.innerHTML = '<p class="sys">还没有动态，点右上角相机发表</p>';
         return;
       }
-      feed.innerHTML = moments.map((raw) => momentPostHtml(normMoment(raw), "me")).join("");
-      feed.querySelectorAll(".mm-post .ava").forEach((el) => paintAva(el, "me"));
+      feed.innerHTML = mixed.map((x) => momentPostHtml(x.m, x.who)).join("");
+      feed.querySelectorAll(".mm-post").forEach((el) => {
+        const who = mixed.find((x) => String(x.m.id) === String(el.dataset.id));
+        paintAva(el.querySelector(".ava"), who ? who.who : "me");
+      });
       wireMomentFeed(feed, true);
     }
     function renderMmDraft() {
@@ -8563,7 +8927,7 @@
       saveProfile();
       document.getElementById("mePage").classList.remove("show");
     });
-    document.getElementById("mePageAva").addEventListener("click", () => document.getElementById("fileMine").click());
+    document.getElementById("mePageAva").addEventListener("click", (e) => e.stopPropagation());
     document.getElementById("meCoverBtn").addEventListener("click", () => document.getElementById("fileMeCover").click());
     document.getElementById("myNick").addEventListener("change", saveProfile);
     document.getElementById("goMoments").addEventListener("click", () => {
@@ -8640,18 +9004,26 @@
     loadHis();
     loadProfile();
     scheduleHimMoment();
-    const restored = restoreChat();
-    if (!restored) {
-      addSys("初次见面，说点什么吧");
-    } else {
-      chatEl.querySelectorAll(".sys").forEach((el) => {
-        const t = (el.textContent || "").trim();
-        if (t === "莉莉·Amour 已上线。你随便说，他从字卡库里回你。" || t.indexOf("已上线。你随便说") >= 0) {
-          el.textContent = "初次见面，说点什么吧";
-        }
-      });
-      saveChat();
-    }
+    askDurableStore();
+    window.addEventListener("pagehide", flushChatNow);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flushChatNow();
+    });
+    restoreChat().then((restored) => {
+      if (!restored) {
+        if (!chatEl.querySelector("[data-log]")) addSys("初次见面，说点什么吧");
+      } else {
+        chatEl.querySelectorAll(".sys").forEach((el) => {
+          const t = (el.textContent || "").trim();
+          if (t === "莉莉·Amour 已上线。你随便说，他从字卡库里回你。" || t.indexOf("已上线。你随便说") >= 0) {
+            el.textContent = "初次见面，说点什么吧";
+          }
+        });
+        saveChat();
+      }
+    }).catch(() => {
+      if (!chatEl.querySelector("[data-log]")) addSys("初次见面，说点什么吧");
+    });
     const gated = setupGate();
     if (!gated) showHall();
     document.getElementById("hallChat").addEventListener("click", enterChat);
@@ -8698,7 +9070,7 @@
     document.getElementById("btnConfirmTarot").addEventListener("click", confirmTarot);
     purgeOldPunchData();
     scheduleStatusTick();
-    scheduleHimStatusLoop();
+    scheduleHimStatusLoop(true);
     resetIdle();
   </script>
 </body>
